@@ -14,6 +14,7 @@ class AdminTopBar extends StatelessWidget {
     required this.userRole,
     required this.userInitials,
     this.title,
+    this.breadcrumb,
     this.onMenuPressed,
   });
 
@@ -23,11 +24,14 @@ class AdminTopBar extends StatelessWidget {
   static const double _profileAvatarSize = 34;
   static const double _chevronSize = 20;
   static const double _chevronGap = 10;
+  static const double _breadcrumbIconSize = 13;
+  static const double _breadcrumbGap = 4;
 
   final String userName;
   final String userRole;
   final String userInitials;
   final String? title;
+  final List<String>? breadcrumb;
   final VoidCallback? onMenuPressed;
 
   @override
@@ -54,11 +58,37 @@ class AdminTopBar extends StatelessWidget {
           Expanded(
             child: title == null
                 ? const SizedBox.shrink()
-                : Text(
-                    title!,
-                    style: AppTextStyles.pageTitle.copyWith(
-                      color: context.colorScheme.onSurface,
-                    ),
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (breadcrumb case final crumbs?)
+                        Wrap(
+                          spacing: _breadcrumbGap,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            for (final (index, crumb) in crumbs.indexed) ...[
+                              if (index > 0)
+                                Icon(
+                                  Icons.chevron_right_rounded,
+                                  size: _breadcrumbIconSize,
+                                  color: context.appColors.textSecondary,
+                                ),
+                              Text(
+                                crumb,
+                                style: AppTextStyles.tableFootnote.copyWith(
+                                  color: context.appColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      Text(
+                        title!,
+                        style: AppTextStyles.pageTitle.copyWith(
+                          color: context.colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
                   ),
           ),
           if (!isCompact) ...[

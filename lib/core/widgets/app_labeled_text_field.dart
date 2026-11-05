@@ -14,9 +14,15 @@ class AppLabeledTextField extends StatelessWidget {
     this.autofillHints,
     this.onSubmitted,
     this.suffix,
+    this.onChanged,
+    this.dense = false,
   });
 
   static const double _labelGap = 5;
+  static const EdgeInsets _densePadding = EdgeInsets.symmetric(
+    horizontal: 10,
+    vertical: 9,
+  );
 
   final String label;
   final String hint;
@@ -27,6 +33,8 @@ class AppLabeledTextField extends StatelessWidget {
   final Iterable<String>? autofillHints;
   final ValueChanged<String>? onSubmitted;
   final Widget? suffix;
+  final ValueChanged<String>? onChanged;
+  final bool dense;
 
   @override
   Widget build(BuildContext context) {
@@ -44,11 +52,13 @@ class AppLabeledTextField extends StatelessWidget {
           textInputAction: textInputAction,
           autofillHints: autofillHints,
           onSubmitted: onSubmitted,
+          onChanged: onChanged,
           style: AppTextStyles.fieldValue.copyWith(color: textColor),
           decoration: InputDecoration(
             hintText: hint,
             suffixIcon: suffix,
             suffixIconConstraints: const BoxConstraints(),
+            contentPadding: dense ? _densePadding : null,
           ),
         ),
       ],

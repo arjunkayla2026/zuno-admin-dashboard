@@ -32,6 +32,12 @@ abstract final class DateFormatter {
   static String short(DateTime date) =>
       '${_twoDigits(date.day)} ${_months[date.month - 1]} ${date.year}';
 
+  static String time(DateTime date) {
+    final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
+    final period = date.hour < 12 ? 'AM' : 'PM';
+    return '${_twoDigits(hour)}:${_twoDigits(date.minute)} $period';
+  }
+
   static String long(DateTime date) =>
       '${_weekdays[date.weekday - 1]}, ${short(date)}';
 }

@@ -3,26 +3,29 @@ import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
-import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
 
-class DateRangeField extends StatelessWidget {
-  const DateRangeField({
+class AppDateField extends StatelessWidget {
+  const AppDateField({
     super.key,
     required this.date,
     required this.onChanged,
     this.firstDate,
     this.lastDate,
+    this.width = 142,
+    this.height = 40,
   });
 
-  static const double _width = 142;
-  static const double _height = 40;
-  static const double _iconSize = 16;
+  static const double _iconSize = 14;
+  static const double _leftPadding = 14;
+  static const double _rightPadding = 16;
 
   final DateTime date;
   final ValueChanged<DateTime> onChanged;
   final DateTime? firstDate;
   final DateTime? lastDate;
+  final double width;
+  final double height;
 
   Future<void> _pickDate(BuildContext context) async {
     final picked = await showDatePicker(
@@ -46,9 +49,12 @@ class DateRangeField extends StatelessWidget {
         onTap: () => _pickDate(context),
         borderRadius: radius,
         child: Container(
-          width: _width,
-          height: _height,
-          padding: const EdgeInsets.symmetric(horizontal: AppUtils.spacingMd),
+          width: width,
+          height: height,
+          padding: const EdgeInsets.only(
+            left: _leftPadding,
+            right: _rightPadding,
+          ),
           decoration: BoxDecoration(
             borderRadius: radius,
             border: Border.all(color: AppColors.cardBorder),
@@ -61,11 +67,7 @@ class DateRangeField extends StatelessWidget {
                   style: AppTextStyles.labelMedium.copyWith(color: textColor),
                 ),
               ),
-              Icon(
-                Icons.calendar_today_outlined,
-                size: _iconSize,
-                color: textColor,
-              ),
+              Icon(Icons.calendar_today, size: _iconSize, color: textColor),
             ],
           ),
         ),

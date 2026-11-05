@@ -13,6 +13,7 @@ class AdminShell extends StatelessWidget {
     required this.userInitials,
     required this.child,
     this.title,
+    this.breadcrumb,
   });
 
   final AdminNavItem selectedItem;
@@ -21,10 +22,11 @@ class AdminShell extends StatelessWidget {
   final String userInitials;
   final Widget child;
   final String? title;
+  final List<String>? breadcrumb;
 
   void _navigate(BuildContext context, AdminNavItem item) {
     final route = item.route;
-    if (route == null || item == selectedItem) return;
+    if (route == null || ModalRoute.of(context)?.settings.name == route) return;
     Navigator.of(context).pushReplacementNamed(route);
   }
 
@@ -56,6 +58,7 @@ class AdminShell extends StatelessWidget {
                     userRole: userRole,
                     userInitials: userInitials,
                     title: title,
+                    breadcrumb: breadcrumb,
                     onMenuPressed: isDesktop
                         ? null
                         : () => Scaffold.of(context).openDrawer(),

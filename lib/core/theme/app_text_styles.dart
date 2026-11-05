@@ -42,6 +42,13 @@ abstract final class AppTextStyles {
     letterSpacing: -0.2,
   );
 
+  static const TextStyle monoSmall = TextStyle(
+    fontFamily: jetBrainsMono,
+    fontSize: 13,
+    fontWeight: FontWeight.w400,
+    letterSpacing: -0.2,
+  );
+
   static const TextStyle emphasisArial = TextStyle(
     fontFamily: arial,
     fontSize: 20.89,
@@ -151,6 +158,12 @@ abstract final class AppTextStyles {
     fontFamily: dmSans,
     fontSize: 12,
     fontWeight: FontWeight.w400,
+  );
+
+  static const TextStyle compactButton = TextStyle(
+    fontFamily: dmSans,
+    fontSize: 13,
+    fontWeight: FontWeight.w600,
   );
 
   static const TextStyle menuItem = TextStyle(

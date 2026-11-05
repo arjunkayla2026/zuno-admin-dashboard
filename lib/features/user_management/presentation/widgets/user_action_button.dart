@@ -7,6 +7,7 @@ import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_anchored_menu.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_management_cubit.dart';
+import 'package:zuno_admin_dashboard/features/user_management/presentation/widgets/user_action_flow.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/widgets/user_action_menu.dart';
 
 class UserActionButton extends StatelessWidget {
@@ -32,15 +33,14 @@ class UserActionButton extends StatelessWidget {
       builder: (_) => const UserActionMenu(),
     );
 
-    switch (action) {
-      case UserAction.block:
-        cubit.blockUser(user);
-      case UserAction.delete:
-        cubit.deleteUser(user);
-      case UserAction.edit:
-      case null:
-        break;
-    }
+    if (action == null || !context.mounted) return;
+
+    await runUserAction(
+      context: context,
+      action: action,
+      user: user,
+      onUserChanged: cubit.replaceUser,
+    );
   }
 
   @override
