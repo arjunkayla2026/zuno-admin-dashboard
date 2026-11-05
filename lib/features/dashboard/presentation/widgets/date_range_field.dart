@@ -1,0 +1,75 @@
+import 'package:flutter/material.dart';
+import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
+import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
+import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
+import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
+import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
+import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
+
+class DateRangeField extends StatelessWidget {
+  const DateRangeField({
+    super.key,
+    required this.date,
+    required this.onChanged,
+    this.firstDate,
+    this.lastDate,
+  });
+
+  static const double _width = 142;
+  static const double _height = 40;
+  static const double _iconSize = 16;
+
+  final DateTime date;
+  final ValueChanged<DateTime> onChanged;
+  final DateTime? firstDate;
+  final DateTime? lastDate;
+
+  Future<void> _pickDate(BuildContext context) async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: date,
+      firstDate: firstDate ?? DateTime(2020),
+      lastDate: lastDate ?? DateTime(2100),
+    );
+    if (picked != null) onChanged(picked);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(AppTheme.radiusField);
+    final textColor = context.colorScheme.onSurface;
+
+    return Material(
+      color: context.colorScheme.surface,
+      borderRadius: radius,
+      child: InkWell(
+        onTap: () => _pickDate(context),
+        borderRadius: radius,
+        child: Container(
+          width: _width,
+          height: _height,
+          padding: const EdgeInsets.symmetric(horizontal: AppUtils.spacingMd),
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            border: Border.all(color: AppColors.cardBorder),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  DateFormatter.numeric(date),
+                  style: AppTextStyles.labelMedium.copyWith(color: textColor),
+                ),
+              ),
+              Icon(
+                Icons.calendar_today_outlined,
+                size: _iconSize,
+                color: textColor,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
