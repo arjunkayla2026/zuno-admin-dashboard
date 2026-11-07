@@ -17,6 +17,13 @@ abstract final class NumberFormatter {
 
   static String rupees(int value) => '$_rupee${grouped(value)}';
 
+  static String rupeesDecimal(double value) {
+    final whole = value.truncate();
+    if (whole == value) return rupees(whole);
+    final fraction = value.toStringAsFixed(1).split('.').last;
+    return '${rupees(whole)}.$fraction';
+  }
+
   static int parse(String value) =>
       int.tryParse(value.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
 }

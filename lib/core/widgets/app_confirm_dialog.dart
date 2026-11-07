@@ -14,6 +14,7 @@ Future<bool> showAppConfirmDialog({
   required String title,
   required InlineSpan message,
   required String confirmLabel,
+  bool positive = false,
 }) async {
   final confirmed = await showAppDialog<bool>(
     context: context,
@@ -22,6 +23,7 @@ Future<bool> showAppConfirmDialog({
       title: title,
       message: message,
       confirmLabel: confirmLabel,
+      positive: positive,
     ),
   );
   return confirmed ?? false;
@@ -34,6 +36,7 @@ class AppConfirmDialog extends StatelessWidget {
     required this.title,
     required this.message,
     required this.confirmLabel,
+    this.positive = false,
   });
 
   static const double _iconTileSize = 44;
@@ -49,10 +52,13 @@ class AppConfirmDialog extends StatelessWidget {
   final String title;
   final InlineSpan message;
   final String confirmLabel;
+  final bool positive;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final tileColor = positive ? colors.activeBadge : colors.errorBadge;
+    final iconColor = positive ? colors.activeText : colors.errorText;
 
     return AppDialogSurface(
       padding: _padding,
@@ -67,10 +73,10 @@ class AppConfirmDialog extends StatelessWidget {
                 width: _iconTileSize,
                 height: _iconTileSize,
                 decoration: BoxDecoration(
-                  color: colors.errorBadge,
+                  color: tileColor,
                   borderRadius: AppUtils.radiusSmall,
                 ),
-                child: Icon(icon, size: _iconSize, color: colors.errorText),
+                child: Icon(icon, size: _iconSize, color: iconColor),
               ),
               const SizedBox(width: _iconGap),
               Expanded(
@@ -106,7 +112,8 @@ class AppConfirmDialog extends StatelessWidget {
               AppPrimaryButton(
                 label: confirmLabel,
                 compact: true,
-                destructive: true,
+                destructive: !positive,
+                positive: positive,
                 onPressed: () => Navigator.of(context).pop(true),
               ),
             ],

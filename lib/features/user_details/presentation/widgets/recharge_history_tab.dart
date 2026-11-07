@@ -6,12 +6,12 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_record_count_footer.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_search_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_details_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_details_state.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/widgets/add_recharge_flow.dart';
-import 'package:zuno_admin_dashboard/features/user_details/presentation/widgets/history_footer.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/widgets/recharge_history_table.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
 
@@ -82,7 +82,7 @@ class RechargeHistoryTab extends StatelessWidget {
               ),
             ),
             RechargeHistoryTable(recharges: recharges),
-            HistoryFooter(
+            AppRecordCountFooter(
               shown: recharges.length,
               total: state.recharges.length,
             ),

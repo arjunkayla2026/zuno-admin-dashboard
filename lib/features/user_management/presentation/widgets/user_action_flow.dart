@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_action_menu.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_confirm_dialog.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_side_sheet.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_success_dialog.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/widgets/edit_user_sheet.dart';
-import 'package:zuno_admin_dashboard/features/user_management/presentation/widgets/user_action_menu.dart';
 
 Future<void> runUserAction({
   required BuildContext context,
-  required UserAction action,
+  required AppMenuAction action,
   required AdminUser user,
   required ValueChanged<AdminUser> onUserChanged,
 }) {
   return switch (action) {
-    UserAction.edit => _editUser(context, user, onUserChanged),
-    UserAction.block => _confirmBlock(context, user, onUserChanged),
-    UserAction.delete => _confirmDelete(context, user, onUserChanged),
+    AppMenuAction.edit => _editUser(context, user, onUserChanged),
+    AppMenuAction.block => _confirmBlock(context, user, onUserChanged),
+    AppMenuAction.delete => _confirmDelete(context, user, onUserChanged),
   };
 }
 

@@ -4,11 +4,11 @@ import 'package:zuno_admin_dashboard/core/navigation/app_routes.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_confirm_dialog.dart';
+import 'package:zuno_admin_dashboard/core/utils/name_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_pagination.dart';
-import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_take_action_button.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/pages/user_management_page.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_management_cubit.dart';
-import 'package:zuno_admin_dashboard/features/user_management/presentation/widgets/user_action_button.dart';
 
 void main() {
   Future<void> pumpPage(
@@ -93,7 +93,7 @@ void main() {
   });
 
   Future<void> chooseAction(WidgetTester tester, String label) async {
-    await tester.tap(find.byType(UserActionButton).first);
+    await tester.tap(find.byType(AppTakeActionButton).first);
     await tester.pumpAndSettle();
     await tester.tap(find.text(label));
     await tester.pumpAndSettle();
@@ -178,7 +178,7 @@ void main() {
   ) async {
     await pumpPage(tester);
 
-    await tester.tap(find.byType(UserActionButton).first);
+    await tester.tap(find.byType(AppTakeActionButton).first);
     await tester.pumpAndSettle();
     await tester.tapAt(const Offset(800, 1000));
     await tester.pumpAndSettle();
@@ -188,7 +188,7 @@ void main() {
   });
 
   Future<void> openEditSheet(WidgetTester tester) async {
-    await tester.tap(find.byType(UserActionButton).first);
+    await tester.tap(find.byType(AppTakeActionButton).first);
     await tester.pumpAndSettle();
     await tester.tap(find.text(AppStrings.edit));
     await tester.pumpAndSettle();
@@ -282,9 +282,9 @@ void main() {
   });
 
   test('initials use the first and last word', () {
-    expect(AdminUser.initialsFor('Arjun Nair'), 'AN');
-    expect(AdminUser.initialsFor('  Maya   K  Iyer '), 'MI');
-    expect(AdminUser.initialsFor('kiran'), 'K');
+    expect(NameFormatter.initials('Arjun Nair'), 'AN');
+    expect(NameFormatter.initials('  Maya   K  Iyer '), 'MI');
+    expect(NameFormatter.initials('kiran'), 'K');
   });
 
   for (final size in const [Size(1024, 700), Size(768, 900), Size(390, 844)]) {

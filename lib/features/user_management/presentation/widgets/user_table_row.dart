@@ -6,10 +6,11 @@ import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_initials_avatar.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_take_action_button.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_details_arguments.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_management_cubit.dart';
-import 'package:zuno_admin_dashboard/features/user_management/presentation/widgets/user_action_button.dart';
+import 'package:zuno_admin_dashboard/features/user_management/presentation/widgets/user_action_flow.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/widgets/user_table_columns.dart';
 
 class UserTableRow extends StatelessWidget {
@@ -17,7 +18,7 @@ class UserTableRow extends StatelessWidget {
 
   static const double _height = 55;
   static const double _avatarGap = 10;
-  static const double _noActionsInset = 17;
+  static const double _actionInset = 17;
   static const double _nameLineHeight = 1.25;
   static const double _statusLineHeight = 1.1;
 
@@ -109,10 +110,22 @@ class UserTableRow extends StatelessWidget {
             action: user.hasActions
                 ? Align(
                     alignment: Alignment.centerLeft,
-                    child: UserActionButton(user: user),
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: _actionInset),
+                      child: AppTakeActionButton(
+                        onSelected: (action) => runUserAction(
+                          context: context,
+                          action: action,
+                          user: user,
+                          onUserChanged: context
+                              .read<UserManagementCubit>()
+                              .replaceUser,
+                        ),
+                      ),
+                    ),
                   )
                 : Padding(
-                    padding: const EdgeInsets.only(left: _noActionsInset),
+                    padding: const EdgeInsets.only(left: _actionInset),
                     child: Text(
                       AppStrings.noActions,
                       style: AppTextStyles.tableFootnote.copyWith(

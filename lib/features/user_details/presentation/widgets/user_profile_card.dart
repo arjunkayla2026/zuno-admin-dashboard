@@ -7,6 +7,7 @@ import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_initials_avatar.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_meta_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_status_badge.dart';
 import 'package:zuno_admin_dashboard/features/user_details/data/mock/user_details_mock_data.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/widgets/user_profile_menu_button.dart';
@@ -20,7 +21,6 @@ class UserProfileCard extends StatelessWidget {
   static const double _avatarGap = 22;
   static const double _nameGap = 10;
   static const double _detailsGap = 8;
-  static const double _metaLabelGap = 2;
   static const EdgeInsets _padding = EdgeInsets.fromLTRB(22, 20, 20, 20);
 
   final AdminUser user;
@@ -35,39 +35,6 @@ class UserProfileCard extends StatelessWidget {
     ),
     UserStatus.deletedByUser => (AppStrings.deletedByUser, AppStatus.inactive),
   };
-
-  Widget _meta(
-    BuildContext context,
-    String label,
-    String value, {
-    required double width,
-    bool mono = false,
-  }) {
-    final textColor = context.colorScheme.onSurface;
-
-    return ConstrainedBox(
-      constraints: BoxConstraints(minWidth: width),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: AppTextStyles.captionSmall.copyWith(
-              color: context.appColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: _metaLabelGap),
-          Text(
-            value,
-            style: mono
-                ? AppTextStyles.mono.copyWith(color: textColor)
-                : AppTextStyles.labelMedium.copyWith(color: textColor),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -113,31 +80,27 @@ class UserProfileCard extends StatelessWidget {
                 Wrap(
                   runSpacing: AppUtils.spacingSm,
                   children: [
-                    _meta(
-                      context,
-                      AppStrings.userId,
-                      user.userId,
-                      width: 84,
+                    AppMetaField(
+                      label: AppStrings.userId,
+                      value: user.userId,
+                      minWidth: 84,
                       mono: true,
                     ),
-                    _meta(
-                      context,
-                      AppStrings.accountCreatedDate,
-                      user.createdDate,
-                      width: 152,
+                    AppMetaField(
+                      label: AppStrings.accountCreatedDate,
+                      value: user.createdDate,
+                      minWidth: 152,
                     ),
-                    _meta(
-                      context,
-                      AppStrings.phoneNumber,
-                      user.phone,
-                      width: 146,
+                    AppMetaField(
+                      label: AppStrings.phoneNumber,
+                      value: user.phone,
+                      minWidth: 146,
                       mono: true,
                     ),
-                    _meta(
-                      context,
-                      AppStrings.lastOnline,
-                      UserDetailsMockData.lastOnline,
-                      width: 160,
+                    const AppMetaField(
+                      label: AppStrings.lastOnline,
+                      value: UserDetailsMockData.lastOnline,
+                      minWidth: 160,
                     ),
                   ],
                 ),

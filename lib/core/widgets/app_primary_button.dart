@@ -11,16 +11,60 @@ class AppPrimaryButton extends StatelessWidget {
     required this.onPressed,
     this.icon,
     this.compact = false,
+    this.small = false,
     this.destructive = false,
+    this.tonal = false,
+    this.positive = false,
   });
 
   static const double _compactPadding = 18;
+  static const double _smallPadding = 10;
+  static const double _smallHeight = 28;
+  static const double _smallRadius = 8;
 
   final String label;
   final VoidCallback? onPressed;
   final IconData? icon;
   final bool compact;
+  final bool small;
   final bool destructive;
+  final bool tonal;
+  final bool positive;
+
+  bool get _shrinks => compact || small;
+
+  Color? _background(BuildContext context) {
+    if (destructive) return context.appColors.errorText;
+    if (positive) return context.appColors.activeText;
+    if (tonal) return context.appColors.primarySoft;
+    return null;
+  }
+
+  Color? _foreground(BuildContext context) {
+    if (destructive || positive) return AppColors.white;
+    if (tonal) return context.colorScheme.onSurface;
+    return null;
+  }
+
+  Size? get _minimumSize {
+    if (small) return const Size(0, _smallHeight);
+    if (compact) return const Size(0, AppTheme.compactButtonHeight);
+    return null;
+  }
+
+  EdgeInsets? get _padding {
+    if (small) return const EdgeInsets.symmetric(horizontal: _smallPadding);
+    if (compact) return const EdgeInsets.symmetric(horizontal: _compactPadding);
+    return null;
+  }
+
+  TextStyle? get _textStyle {
+    if (small) {
+      return AppTextStyles.tableFootnote.copyWith(fontWeight: FontWeight.w700);
+    }
+    if (compact) return AppTextStyles.compactButton;
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,20 +73,21 @@ class AppPrimaryButton extends StatelessWidget {
       icon: icon == null ? null : Icon(icon),
       label: Text(label),
       style: ElevatedButton.styleFrom(
-        minimumSize: compact
-            ? const Size(0, AppTheme.compactButtonHeight)
+        minimumSize: _minimumSize,
+        padding: _padding,
+        textStyle: _textStyle,
+        tapTargetSize: _shrinks ? MaterialTapTargetSize.shrinkWrap : null,
+        backgroundColor: _background(context),
+        foregroundColor: _foreground(context),
+        shape: small
+            ? RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(_smallRadius),
+              )
             : null,
-        padding: compact
-            ? const EdgeInsets.symmetric(horizontal: _compactPadding)
-            : null,
-        textStyle: compact ? AppTextStyles.compactButton : null,
-        tapTargetSize: compact ? MaterialTapTargetSize.shrinkWrap : null,
-        backgroundColor: destructive ? context.appColors.errorText : null,
-        foregroundColor: destructive ? AppColors.white : null,
       ),
     );
 
-    if (compact) return button;
+    if (_shrinks) return button;
     return SizedBox(width: double.infinity, child: button);
   }
 }

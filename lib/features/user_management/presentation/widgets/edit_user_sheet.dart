@@ -3,11 +3,11 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_labeled_text_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_profile_header.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_read_only_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_side_sheet.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
-import 'package:zuno_admin_dashboard/features/user_management/presentation/widgets/edit_user_profile.dart';
-import 'package:zuno_admin_dashboard/features/user_management/presentation/widgets/user_id_field.dart';
 
 typedef EditedUser = ({String name, String phone});
 
@@ -59,7 +59,12 @@ class _EditUserSheetState extends State<EditUserSheet> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          EditUserProfile(user: user),
+          AppProfileHeader(
+            initials: user.initials,
+            avatarIndex: user.avatarIndex,
+            name: user.name,
+            subtitle: user.userId,
+          ),
           const SizedBox(height: _profileGap),
           AppLabeledTextField(
             label: AppStrings.userNameField,
@@ -80,7 +85,11 @@ class _EditUserSheetState extends State<EditUserSheet> {
             dense: true,
           ),
           const SizedBox(height: _fieldGap),
-          UserIdField(userId: user.userId),
+          AppReadOnlyField(
+            label: AppStrings.userId,
+            value: user.userId,
+            helper: AppStrings.userIdCannotBeChanged,
+          ),
         ],
       ),
       footer: Wrap(

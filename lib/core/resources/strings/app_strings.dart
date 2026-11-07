@@ -192,6 +192,357 @@ abstract final class AppStrings {
   static String coinsAddedToWallet(String coins, String name) =>
       "$coins coins were added to $name's wallet.";
 
+  static const String hostList = 'Host List';
+  static const String surgeChargeSessions = 'Surge Charge Sessions';
+  static const String setCallMessagePrice = 'Set call & message price';
+  static const String searchHostsHint = 'Search mobile, name or host ID';
+  static const String allHosts = 'All Hosts';
+  static const String newHosts = 'New Hosts';
+  static const String blockedHosts = 'Blocked Hosts';
+  static const String hostId = 'Host ID';
+  static const String inactive = 'Inactive';
+  static const String newLabel = 'New';
+  static const String noHostsFound = 'No hosts found';
+  static const String editHostDetails = 'Edit host details';
+  static const String hostDetailsUpdated = 'Host details updated';
+  static const String blockHostAction = 'Block host';
+  static const String blockHostMessage =
+      'Blocked hosts cannot sign in, receive calls or reply to messages.';
+
+  static const String pricingSubtitle =
+      "Coins are deducted from the user's wallet at these rates.";
+  static const String audioCallRateField = 'Audio call (coins per second)';
+  static const String videoCallRateField = 'Video call (coins per second)';
+  static const String messageRateField = 'Message (coins per message)';
+  static const String savePrices = 'Save prices';
+
+  static String _coins(int count) => count == 1 ? 'coin' : 'coins';
+
+  static String audioRateSummary(int coins) =>
+      'Audio $coins ${_coins(coins)}/sec';
+
+  static String videoRateSummary(int coins) =>
+      'Video $coins ${_coins(coins)}/sec';
+
+  static String messageRateSummary(int coins) =>
+      'Message $coins ${_coins(coins)}';
+
+  static const String hostDetails = 'Host Details';
+  static const String backToHosts = 'Back to hosts';
+  static const String online = 'Online';
+  static const String offline = 'Offline';
+  static const String hostUploadedDocuments = 'Host Uploaded Documents';
+  static const String aadhaarCard = 'Aadhaar card';
+  static const String aadhaarCardFront = 'Aadhaar card · Front';
+  static const String selfie = 'Selfie';
+  static const String totalRevenue = 'Total Revenue';
+  static const String totalSuccessfulWithdrawals =
+      'Total Successful Withdrawals';
+  static const String totalPendingWithdrawals = 'Total Pending Withdrawals';
+  static const String availableWalletAmount = 'Available Wallet Amount';
+  static const String withdrawalHistory = 'Withdrawal History';
+  static const String walletHistory = 'Wallet History';
+  static const String busy = 'Busy';
+
+  static const String credit = 'Credit';
+  static const String debit = 'Debit';
+  static const String amount = 'Amount';
+  static const String description = 'Description';
+  static const String typeHint = 'Type';
+  static const String save = 'Save';
+  static const String enterAmount = 'Enter an amount.';
+
+  static const String withdrawDate = 'Withdraw Date';
+  static const String callCount = 'Call Count';
+  static const String amountEarned = 'Amount Earned';
+  static const String surgeChargeSession = 'Surge Charge Session';
+  static const String withdrawAmount = 'Withdraw Amount';
+  static const String branchName = 'Branch Name';
+  static const String accountHolderName = 'Account Holder Name';
+  static const String accountNumber = 'Account Number';
+  static const String ifscCode = 'IFSC Code';
+  static const String withdrawId = 'Withdraw ID';
+  static const String pending = 'Pending';
+  static const String success = 'Success';
+  static const String creditDebit = 'Credit / Debit';
+  static const String adminCredit = 'Admin credit';
+  static const String adminDebit = 'Admin debit';
+
+  static String minutes(int count) => '$count min';
+
+  static const String close = 'Close';
+  static const String fullNameField = 'Full name';
+  static const String nickNameField = 'Nick name';
+  static const String mobileNumberField = 'Mobile number';
+  static const String dateOfBirthField = 'Date of birth';
+  static const String districtField = 'District';
+  static const String stateField = 'State';
+  static const String genderField = 'Gender';
+  static const String motherTongueField = 'Mother tongue';
+  static const String speakLanguagesField = 'Speak languages';
+  static const String selectHint = 'Select';
+  static const String female = 'Female';
+  static const String male = 'Male';
+  static const String otherGender = 'Other';
+  static const String english = 'English';
+  static const String malayalam = 'Malayalam';
+  static const String tamil = 'Tamil';
+  static const String hindi = 'Hindi';
+  static const String kannada = 'Kannada';
+  static const String telugu = 'Telugu';
+
+  static String documentPreviewTitle(String document, String name) =>
+      '$document · $name';
+
+  static const String peakHourSurgeCharges = 'Peak-hour surge charges';
+  static const String surgeIntro =
+      'Set a start and end time for each session. During an active session '
+      'the surge charge applies automatically, and users see it before they '
+      'start a call. Changes go live without an app update.';
+  static const String createSession = 'Create session';
+  static const String session = 'Session';
+  static const String startTime = 'Start Time';
+  static const String endTime = 'End Time';
+  static const String surgeCharge = 'Surge Charge';
+  static const String shownToUsersBeforeCall = 'Shown to users before a call';
+  static const String actions = 'Actions';
+  static const String enabled = 'Enabled';
+  static const String disabled = 'Disabled';
+  static const String noSurgeSessions = 'No surge sessions yet';
+  static const String createSurgeSession = 'Create surge session';
+  static const String editSurgeSession = 'Edit surge session';
+  static const String surgeSheetSubtitle = 'Peak-hour start and end time';
+  static const String startTimeField = 'Start time';
+  static const String endTimeField = 'End time';
+  static const String surgeChargeField = 'Surge charge (%)';
+  static const String surgeChargeHint = 'e.g. 20';
+  static const String surgeChargeHelper =
+      'Added on top of the call price during this session.';
+  static const String saveSession = 'Save session';
+  static const String enterSurgeCharge = 'Enter a surge charge.';
+  static const String endTimeMustDiffer =
+      'End time must be different from the start time.';
+  static const String surgePreviewLead = 'Users will see ';
+  static const String removeSurgeSessionTitle = 'Remove this surge session?';
+  static const String removeSession = 'Remove session';
+
+  static String sessionName(int number) => 'Session $number';
+
+  static const String yesterday = 'Yesterday';
+  static const String day = 'Day';
+  static const String week = 'Week';
+  static const String month = 'Month';
+  static const String completedCalls = 'Completed Calls';
+  static const String busyCalls = 'Busy Calls';
+  static const String notAnsweredCalls = 'Not Answered Calls';
+  static const String lowBalanceCalls = 'Low Balance Calls';
+  static const String callsType = 'Calls Type';
+  static const String audioCall = 'Audio Call';
+  static const String videoCall = 'Video Call';
+  static const String totalCalls = 'Total Calls';
+  static const String number = 'Number';
+  static const String spendInrChat = 'Spend INR Chat';
+  static const String adminRevenue = 'Admin Revenue';
+  static const String missed = 'Missed';
+  static const String noCallsFound = 'No calls found';
+
+  static String scrollSidewaysForFields(int count) =>
+      'Scroll sideways to see all $count call fields';
+
+  static String perMinute(String amount) => '$amount/min';
+
+  static String hostWithCallType(String type) => ' · $type';
+
+  static const String callDetails = 'Call Details';
+  static const String backToCalls = 'Back to calls';
+  static const String audioCallTitle = 'Audio call';
+  static const String videoCallTitle = 'Video call';
+  static const String callTimeline = 'Call timeline';
+  static const String userSpend = 'User spend';
+  static const String revenueSplit = 'Revenue split';
+  static const String callId = 'Call ID';
+  static const String sessionId = 'Session ID';
+  static const String callTypeField = 'Call type';
+  static const String totalHostRevenue = 'Total Host Revenue';
+  static const String userRole = 'User';
+  static const String hostRole = 'Host';
+  static const String metaSeparator = ' · ';
+
+  static String coinsAmount(String coins) => '$coins coins';
+
+  static const String hostRequests = 'Host Requests';
+  static const String payoutReview = 'Payout Review';
+  static const String profilePhotoReview = 'Profile Photo Review';
+  static const String filters = 'Filters';
+  static const String allDates = 'All Dates';
+  static const String last7Days = 'Last 7 Days';
+  static const String last30Days = 'Last 30 Days';
+  static const String realName = 'Real Name';
+  static const String nickName = 'Nick Name';
+  static const String mobileNumber = 'Mobile Number';
+  static const String dateOfBirth = 'Date of Birth';
+  static const String city = 'City';
+  static const String gender = 'Gender';
+  static const String speakLanguages = 'Speak Languages';
+  static const String review = 'Review';
+  static const String approved = 'Approved';
+  static const String noHostRequests = 'No host requests found';
+  static const String hostRequest = 'Host request';
+  static const String aadhaarCardImage = 'Aadhaar Card Image';
+  static const String selfieUpload = 'Selfie Upload';
+  static const String reject = 'Reject';
+  static const String approve = 'Approve';
+  static const String view = 'View';
+  static const String approveRequestTitle = 'Approve host request?';
+  static const String rejectRequestTitle = 'Reject host request?';
+  static const String hostRequestApproved = 'Host request approved';
+  static const String statusNowSuffix = '.';
+
+  static String approveRequestMessage(String name) =>
+      '$name will become an approved host and can sign in to the host app.';
+
+  static String rejectRequestMessage(String name) =>
+      "$name's request to become a host will be rejected.";
+
+  static String statusNowLead(String name) => 'Status for $name is now ';
+
+  static const String accountHolderNameField = 'Account Holder Name';
+  static const String noPayoutRequests = 'No payout requests found';
+  static const String payoutReviewTitle = 'Payout review';
+  static const String hostBasicInfo = 'Host basic info';
+  static const String bankAccount = 'Bank account';
+  static const String realNameField = 'Real name';
+  static const String location = 'Location';
+  static const String viewHost = 'View host';
+  static const String accept = 'Accept';
+  static const String accepted = 'Accepted';
+  static const String acceptPayoutTitle = 'Accept payout request?';
+  static const String rejectPayoutTitle = 'Reject payout request?';
+
+  static String acceptPayoutMessage(String name, String lastDigits) =>
+      "$name's payout to the account ending $lastDigits will be accepted.";
+
+  static String rejectPayoutMessage(String name) =>
+      "$name's payout request will be rejected.";
+
+  static const String noProfilePhotos = 'No profile photos to review';
+  static const String acceptPhotoTitle = 'Accept profile photo?';
+  static const String rejectPhotoTitle = 'Reject profile photo?';
+
+  static String acceptPhotoMessage(String name) =>
+      "The new photo will appear on $name's profile.";
+
+  static String rejectPhotoMessage(String name) =>
+      "$name's new photo will be rejected and the current photo stays.";
+
+  static String languagesSubmitted(String languages, String date) =>
+      '$languages · Submitted $date';
+
+  static const String allReportTypes = 'All report types';
+  static const String fakeProfile = 'Fake profile';
+  static const String harassment = 'Harassment';
+  static const String abusiveLanguage = 'Abusive language';
+  static const String otherReason = 'Other';
+  static const String reportedByName = 'Reported by Name';
+  static const String reported = 'Reported';
+  static const String reportType = 'Report Type';
+  static const String receivedTotalReportCount = 'Received Total Report Count';
+  static const String noReportsFound = 'No reports found';
+
+  static const String packageList = 'Package List';
+  static const String couponList = 'Coupon List';
+  static const String addPackage = 'Add Package';
+  static const String addPackageTitle = 'Add package';
+  static const String editPackageTitle = 'Edit package';
+  static const String packageSheetSubtitle =
+      'Show on the recharge screen in the user app';
+  static const String payableAmount = 'Payable Amount';
+  static const String receivableAmount = 'Receivable Amount';
+  static const String receivableCoin = 'Receivable Coin';
+  static const String tagline = 'Tagline';
+  static const String packageRechargeCount =
+      'Package-wise Total Recharge Count';
+  static const String payableAmountField = 'Payable Amount (₹)';
+  static const String receivableAmountField = 'Receivable Amount (₹)';
+  static const String gstToggleTitle = 'GST (18%)';
+  static const String gstToggleHelper =
+      'Enter either amount and the other one is calculated for you';
+  static const String offerHelper =
+      'Optional. Shown as an offer tag on the pack.';
+  static const String preview = 'Preview';
+  static const String refreshPreview = 'Refresh preview';
+  static const String savePackage = 'Save package';
+  static const String previewBlank = '__';
+  static const String enterValue = 'Enter a value.';
+  static const String noPackages = 'No packages yet';
+
+  static const String previewOfferBlank = '+__ Bonus';
+  static const String packageUpdated = 'Package updated';
+
+  static const String totalRechargeCount = 'Total Recharge Count';
+  static const String totalRechargeAmount = 'Total Recharge Amount';
+  static const String totalCreditAmount = 'Total Credit Amount';
+  static const String totalDebitAmount = 'Total Debit Amount';
+  static const String paymentGateway = 'Payment Gateway';
+  static const String adminRecharges = 'Admin Recharges';
+  static const String admin = 'Admin';
+  static const String razorpay = 'Razorpay';
+  static const String adminCreditDebit = 'Admin Credit & Debit';
+  static const String gatewayPayments = 'Payment Gateway Payments';
+  static const String failed = 'Failed';
+  static const String created = 'Created';
+  static const String rechargeDetails = 'Recharge details';
+  static const String viewUser = 'View user';
+  static const String creditAmount = 'Credit Amount';
+  static const String debitAmount = 'Debit Amount';
+  static const String noRechargesFound = 'No recharges found';
+  static const String couponListPendingTitle =
+      'Coupon List fields are not confirmed yet';
+  static const String couponListPendingMessage =
+      'The proposal lists a Coupon List but not its fields. This tab will '
+      'show the coupons once the fields are confirmed.';
+
+  static String packagePriceAndCoins(String price, String coins) =>
+      '$price · $coins coins';
+
+  static String packageSaved(String price, String coins) =>
+      '$price for $coins coins is saved.';
+
+  static String packagesSummary(int packages, String recharges) =>
+      '$packages packages · $recharges total recharges';
+
+  static String hostRequestSubtitle(String id, String date) =>
+      '$id · Submitted $date';
+
+  static String nameAndCity(String nickName, String city) =>
+      '$nickName · $city';
+
+  static String dateRangeLabel(String start, String end) => '$start – $end';
+
+  static String participantRole(String role, String id) => '$role · $id';
+
+  static String surgePercent(int percent) => '+$percent%';
+
+  static String surgeUserLabel(int percent) =>
+      'Peak hours · +$percent% surge charge';
+
+  static String surgePreviewTail(String start, String end) =>
+      ' before starting a call between $start and $end.';
+
+  static String removeSurgeSessionMessage(
+    String start,
+    String end,
+    int percent,
+  ) =>
+      'The $start – $end session (+$percent%) will stop applying and be '
+      'removed.';
+
+  static String signedAmount(String amount, {required bool isCredit}) =>
+      isCredit ? '+$amount' : '−$amount';
+
+  static String debitExceedsBalance(String balance) =>
+      'Debit cannot be more than the wallet balance of $balance.';
+
   static const String signInSecurely = 'Sign in securely';
   static const String loginFailed =
       'Email or password is incorrect. Check your details and try again. '

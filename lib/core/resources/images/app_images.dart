@@ -13,4 +13,6 @@ abstract final class AppImages {
   static const String settingsIcon = '$_icons/settings_icon.svg';
   static const String takeActionIcon = '$_icons/take_action_icon.svg';
   static const String editIcon = '$_icons/edit_icon.svg';
+  static const String dbIcon = '$_icons/db_icon.svg';
+  static const String surgeChargeIcon = '$_icons/surge_charge_icon.svg';
 }

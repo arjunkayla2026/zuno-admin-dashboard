@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 
@@ -16,10 +17,14 @@ class AppLabeledTextField extends StatelessWidget {
     this.suffix,
     this.onChanged,
     this.dense = false,
+    this.inputFormatters,
+    this.errorText,
+    this.readOnly = false,
+    this.onTap,
   });
 
   static const double _labelGap = 5;
-  static const EdgeInsets _densePadding = EdgeInsets.symmetric(
+  static const EdgeInsets densePadding = EdgeInsets.symmetric(
     horizontal: 10,
     vertical: 9,
   );
@@ -35,6 +40,10 @@ class AppLabeledTextField extends StatelessWidget {
   final Widget? suffix;
   final ValueChanged<String>? onChanged;
   final bool dense;
+  final List<TextInputFormatter>? inputFormatters;
+  final String? errorText;
+  final bool readOnly;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -53,12 +62,17 @@ class AppLabeledTextField extends StatelessWidget {
           autofillHints: autofillHints,
           onSubmitted: onSubmitted,
           onChanged: onChanged,
+          inputFormatters: inputFormatters,
+          readOnly: readOnly,
+          onTap: onTap,
           style: AppTextStyles.fieldValue.copyWith(color: textColor),
           decoration: InputDecoration(
             hintText: hint,
+            errorText: errorText,
+            errorMaxLines: 3,
             suffixIcon: suffix,
             suffixIconConstraints: const BoxConstraints(),
-            contentPadding: dense ? _densePadding : null,
+            contentPadding: dense ? densePadding : null,
           ),
         ),
       ],

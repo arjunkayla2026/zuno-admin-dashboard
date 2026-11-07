@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
-import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_close_button.dart';
 
 Future<T?> showAppSideSheet<T>({
   required BuildContext context,
@@ -104,7 +104,7 @@ class AppSideSheet extends StatelessWidget {
                           ],
                         ),
                       ),
-                      _CloseButton(
+                      AppCloseButton(
                         size: _closeSize,
                         iconSize: _closeIconSize,
                         onPressed: () => Navigator.of(context).pop(),
@@ -130,41 +130,6 @@ class AppSideSheet extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CloseButton extends StatelessWidget {
-  const _CloseButton({
-    required this.size,
-    required this.iconSize,
-    required this.onPressed,
-  });
-
-  final double size;
-  final double iconSize;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(AppTheme.radiusField);
-
-    return InkWell(
-      onTap: onPressed,
-      borderRadius: radius,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          borderRadius: radius,
-          border: Border.all(color: AppColors.cardBorder),
-        ),
-        child: Icon(
-          Icons.close_rounded,
-          size: iconSize,
-          color: context.colorScheme.onSurface,
         ),
       ),
     );

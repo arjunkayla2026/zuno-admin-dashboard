@@ -7,14 +7,16 @@ import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
 Future<void> showAppSuccessDialog({
   required BuildContext context,
   required String title,
-  required String message,
   required String actionLabel,
+  String? message,
+  InlineSpan? messageSpan,
 }) {
   return showAppDialog<void>(
     context: context,
     builder: (_) => AppSuccessDialog(
       title: title,
       message: message,
+      messageSpan: messageSpan,
       actionLabel: actionLabel,
     ),
   );
@@ -24,9 +26,10 @@ class AppSuccessDialog extends StatelessWidget {
   const AppSuccessDialog({
     super.key,
     required this.title,
-    required this.message,
     required this.actionLabel,
-  });
+    this.message,
+    this.messageSpan,
+  }) : assert(message != null || messageSpan != null);
 
   static const double _iconCircleSize = 72;
   static const double _iconSize = 38;
@@ -37,7 +40,8 @@ class AppSuccessDialog extends StatelessWidget {
   static const EdgeInsets _padding = EdgeInsets.fromLTRB(32, 34, 32, 29);
 
   final String title;
-  final String message;
+  final String? message;
+  final InlineSpan? messageSpan;
   final String actionLabel;
 
   @override
@@ -71,8 +75,8 @@ class AppSuccessDialog extends StatelessWidget {
             ),
           ),
           const SizedBox(height: _titleGap),
-          Text(
-            message,
+          Text.rich(
+            messageSpan ?? TextSpan(text: message),
             textAlign: TextAlign.center,
             style: AppTextStyles.tableCell.copyWith(
               color: colors.textSecondary,

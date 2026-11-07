@@ -10,6 +10,7 @@ class AppSegmentedControl<T> extends StatelessWidget {
     required this.options,
     required this.value,
     required this.onChanged,
+    this.segmentWidth,
   });
 
   static const double _padding = 3;
@@ -21,6 +22,7 @@ class AppSegmentedControl<T> extends StatelessWidget {
   final Map<T, String> options;
   final T value;
   final ValueChanged<T> onChanged;
+  final double? segmentWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +48,7 @@ class AppSegmentedControl<T> extends StatelessWidget {
                 onTap: () => onChanged(option),
                 borderRadius: radius,
                 child: SizedBox(
+                  width: segmentWidth,
                   height: _segmentHeight,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(

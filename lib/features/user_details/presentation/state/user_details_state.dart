@@ -1,16 +1,13 @@
+import 'package:zuno_admin_dashboard/core/enums/call_filter.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_stat_cards.dart';
 import 'package:zuno_admin_dashboard/features/user_details/data/mock/user_details_mock_data.dart';
 import 'package:zuno_admin_dashboard/features/user_details/data/models/call_record.dart';
 import 'package:zuno_admin_dashboard/features/user_details/data/models/recharge_record.dart';
-import 'package:zuno_admin_dashboard/features/user_details/data/models/user_stat.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
 
 enum UserDetailsTab { calls, recharges }
-
-enum CallTypeFilter { all, audio, video }
-
-enum CallDateMode { single, range }
 
 class UserDetailsState {
   const UserDetailsState({
@@ -41,34 +38,34 @@ class UserDetailsState {
   final CallDateMode dateMode;
   final String rechargeQuery;
 
-  List<UserStat> get stats => [
-    UserStat(
+  List<AppStat> get stats => [
+    AppStat(
       label: AppStrings.totalRecharge,
       value: NumberFormatter.rupees(totalRecharge),
     ),
-    UserStat(
+    AppStat(
       label: AppStrings.availableCoins,
       value: NumberFormatter.grouped(availableCoins),
     ),
-    UserStat(
+    AppStat(
       label: AppStrings.availableCoinsAmount,
       value: NumberFormatter.rupees(
         (availableCoins * UserDetailsMockData.coinValue).floor(),
       ),
     ),
-    UserStat(
+    AppStat(
       label: AppStrings.receivableTopUp,
       value: NumberFormatter.rupees(UserDetailsMockData.receivableTopUp),
     ),
-    UserStat(
+    AppStat(
       label: AppStrings.totalCreditFromAdmin,
       value: NumberFormatter.rupees(UserDetailsMockData.totalCreditFromAdmin),
     ),
-    UserStat(
+    AppStat(
       label: AppStrings.totalDebitFromAdmin,
       value: NumberFormatter.rupees(UserDetailsMockData.totalDebitFromAdmin),
     ),
-    UserStat(
+    AppStat(
       label: AppStrings.deletedAccountAdminProfit,
       value: NumberFormatter.rupees(
         UserDetailsMockData.deletedAccountAdminProfit,

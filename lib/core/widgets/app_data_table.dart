@@ -12,7 +12,12 @@ class AppTableColumn {
 }
 
 class AppDataTable extends StatelessWidget {
-  const AppDataTable({super.key, required this.columns, required this.rows});
+  const AppDataTable({
+    super.key,
+    required this.columns,
+    required this.rows,
+    this.onRowTap,
+  });
 
   static const double _leftInset = 10;
   static const double _endColumnInset = 20;
@@ -21,6 +26,7 @@ class AppDataTable extends StatelessWidget {
 
   final List<AppTableColumn> columns;
   final List<List<Widget>> rows;
+  final ValueChanged<int>? onRowTap;
 
   double get _rightInset => columns.last.alignEnd ? _endColumnInset : 0;
 
@@ -47,6 +53,15 @@ class AppDataTable extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+
+  Widget _tappable(int index, Widget row) {
+    final onTap = onRowTap;
+    if (onTap == null) return row;
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(onTap: () => onTap(index), child: row),
     );
   }
 
@@ -83,15 +98,18 @@ class AppDataTable extends StatelessWidget {
                       Text(column.label, style: headerStyle),
                   ], extraWidth),
                 ),
-                for (final cells in rows)
-                  Container(
-                    constraints: const BoxConstraints(minHeight: _rowHeight),
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(color: AppColors.cardBorder),
+                for (final (index, cells) in rows.indexed)
+                  _tappable(
+                    index,
+                    Container(
+                      constraints: const BoxConstraints(minHeight: _rowHeight),
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          bottom: BorderSide(color: AppColors.cardBorder),
+                        ),
                       ),
+                      child: _row(cells, extraWidth),
                     ),
-                    child: _row(cells, extraWidth),
                   ),
               ],
             ),

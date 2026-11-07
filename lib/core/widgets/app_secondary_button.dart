@@ -11,24 +11,53 @@ class AppSecondaryButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.leading,
+    this.destructive = false,
+    this.small = false,
+    this.backgroundColor,
   });
 
   static const double _padding = 18;
+  static const double _smallPadding = 10;
+  static const double _smallHeight = 28;
+  static const double _smallRadius = 8;
 
   final String label;
   final VoidCallback? onPressed;
   final Widget? leading;
+  final bool destructive;
+  final bool small;
+  final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.appColors;
+
     return OutlinedButton(
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
-        minimumSize: const Size(0, AppTheme.compactButtonHeight),
-        padding: const EdgeInsets.symmetric(horizontal: _padding),
-        foregroundColor: context.colorScheme.onSurface,
-        textStyle: AppTextStyles.compactButton,
-        side: const BorderSide(color: AppColors.cardBorder),
+        backgroundColor: backgroundColor,
+
+        minimumSize: Size(
+          0,
+          small ? _smallHeight : AppTheme.compactButtonHeight,
+        ),
+        padding: EdgeInsets.symmetric(
+          horizontal: small ? _smallPadding : _padding,
+        ),
+        foregroundColor: destructive
+            ? colors.errorText
+            : context.colorScheme.onSurface,
+        textStyle: small
+            ? AppTextStyles.tableFootnote.copyWith(fontWeight: FontWeight.w700)
+            : AppTextStyles.compactButton,
+        side: BorderSide(
+          color: destructive ? colors.errorBadge : AppColors.cardBorder,
+        ),
+        shape: small
+            ? RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(_smallRadius),
+              )
+            : null,
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
       child: Row(

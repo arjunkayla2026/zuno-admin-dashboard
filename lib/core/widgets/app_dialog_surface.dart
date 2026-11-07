@@ -23,12 +23,12 @@ class AppDialogSurface extends StatelessWidget {
     super.key,
     required this.padding,
     required this.child,
+    this.width = 500,
   });
-
-  static const double _width = 500;
 
   final EdgeInsets padding;
   final Widget child;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +37,7 @@ class AppDialogSurface extends StatelessWidget {
       child: Material(
         type: MaterialType.transparency,
         child: Container(
-          width: _width,
+          width: width,
           padding: padding,
           decoration: BoxDecoration(
             color: context.colorScheme.surface,

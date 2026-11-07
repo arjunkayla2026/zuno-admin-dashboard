@@ -5,10 +5,10 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_stat_cards.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_details_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/widgets/user_history_card.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/widgets/user_profile_card.dart';
-import 'package:zuno_admin_dashboard/features/user_details/presentation/widgets/user_stat_cards.dart';
 
 class UserDetailsContent extends StatelessWidget {
   const UserDetailsContent({super.key});
@@ -62,7 +62,7 @@ class UserDetailsContent extends StatelessWidget {
           const SizedBox(height: _backGap),
           UserProfileCard(user: user),
           const SizedBox(height: _sectionGap),
-          UserStatCards(
+          AppStatCards(
             stats: context.select(
               (UserDetailsCubit cubit) => cubit.state.stats,
             ),

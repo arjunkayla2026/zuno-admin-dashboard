@@ -4,6 +4,7 @@ import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_nav_item.dart';
+import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_sidebar_submenu.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_sidebar_tile.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_brand_logo.dart';
 
@@ -13,7 +14,9 @@ class AdminSidebar extends StatelessWidget {
     required this.selectedItem,
     required this.userName,
     required this.userRole,
+    this.selectedSubItem,
     this.onItemSelected,
+    this.onSubItemSelected,
   });
 
   static const double width = 264;
@@ -28,7 +31,9 @@ class AdminSidebar extends StatelessWidget {
   final AdminNavItem selectedItem;
   final String userName;
   final String userRole;
+  final AdminSubNavItem? selectedSubItem;
   final ValueChanged<AdminNavItem>? onItemSelected;
+  final ValueChanged<AdminSubNavItem>? onSubItemSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -80,10 +85,24 @@ class AdminSidebar extends StatelessWidget {
                 separatorBuilder: (_, _) => const SizedBox(height: _tileGap),
                 itemBuilder: (_, index) {
                   final item = AdminNavItem.values[index];
-                  return AdminSidebarTile(
+                  final selected = item == selectedItem;
+                  final tile = AdminSidebarTile(
                     item: item,
-                    selected: item == selectedItem,
+                    selected: selected,
                     onTap: () => onItemSelected?.call(item),
+                  );
+                  if (!selected || item.subItems.isEmpty) return tile;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      tile,
+                      AdminSidebarSubmenu(
+                        items: item.subItems,
+                        selectedItem: selectedSubItem,
+                        onItemSelected: (subItem) =>
+                            onSubItemSelected?.call(subItem),
+                      ),
+                    ],
                   );
                 },
               ),
