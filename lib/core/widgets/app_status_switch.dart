@@ -7,10 +7,12 @@ class AppStatusSwitch extends StatelessWidget {
     super.key,
     required this.value,
     required this.onChanged,
+    this.activeTrackColor,
   });
 
   final bool value;
   final ValueChanged<bool> onChanged;
+  final Color? activeTrackColor;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +26,7 @@ class AppStatusSwitch extends StatelessWidget {
       thumbIcon: const WidgetStatePropertyAll(Icon(null)),
       trackColor: WidgetStateProperty.resolveWith(
         (states) => states.contains(WidgetState.selected)
-            ? colors.activeText
+            ? activeTrackColor ?? colors.activeText
             : colors.inactiveBadge,
       ),
       trackOutlineColor: const WidgetStatePropertyAll(AppColors.transparent),

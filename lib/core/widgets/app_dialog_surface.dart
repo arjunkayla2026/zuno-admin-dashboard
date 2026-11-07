@@ -23,8 +23,10 @@ class AppDialogSurface extends StatelessWidget {
     super.key,
     required this.padding,
     required this.child,
-    this.width = 500,
+    this.width = defaultWidth,
   });
+
+  static const double defaultWidth = 500;
 
   final EdgeInsets padding;
   final Widget child;

@@ -16,6 +16,7 @@ class AdminShell extends StatelessWidget {
     this.title,
     this.breadcrumb,
     this.onSubItemSelected,
+    this.topBarNotice,
   });
 
   final AdminNavItem selectedItem;
@@ -27,6 +28,7 @@ class AdminShell extends StatelessWidget {
   final Widget child;
   final String? title;
   final List<String>? breadcrumb;
+  final Widget? topBarNotice;
 
   void _navigate(BuildContext context, String? route) {
     if (route == null || ModalRoute.of(context)?.settings.name == route) return;
@@ -65,6 +67,7 @@ class AdminShell extends StatelessWidget {
                     userInitials: userInitials,
                     title: title,
                     breadcrumb: breadcrumb,
+                    notice: topBarNotice,
                     onMenuPressed: isDesktop
                         ? null
                         : () => Scaffold.of(context).openDrawer(),

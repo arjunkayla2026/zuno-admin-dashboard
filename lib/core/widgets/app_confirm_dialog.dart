@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
@@ -10,20 +11,28 @@ import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
 
 Future<bool> showAppConfirmDialog({
   required BuildContext context,
-  required IconData icon,
+  IconData? icon,
+  String? iconAsset,
   required String title,
   required InlineSpan message,
   required String confirmLabel,
   bool positive = false,
+  bool brand = false,
+  Widget? details,
+  double? width,
 }) async {
   final confirmed = await showAppDialog<bool>(
     context: context,
     builder: (_) => AppConfirmDialog(
       icon: icon,
+      iconAsset: iconAsset,
       title: title,
       message: message,
       confirmLabel: confirmLabel,
       positive: positive,
+      brand: brand,
+      details: details,
+      width: width,
     ),
   );
   return confirmed ?? false;
@@ -32,35 +41,55 @@ Future<bool> showAppConfirmDialog({
 class AppConfirmDialog extends StatelessWidget {
   const AppConfirmDialog({
     super.key,
-    required this.icon,
+    this.icon,
+    this.iconAsset,
     required this.title,
     required this.message,
     required this.confirmLabel,
     this.positive = false,
-  });
+    this.brand = false,
+    this.details,
+    this.width,
+  }) : assert(icon != null || iconAsset != null);
 
   static const double _iconTileSize = 44;
   static const double _iconSize = 24;
   static const double _iconGap = 14;
   static const double _titleInset = 2;
   static const double _messageGap = 18;
+  static const double _detailsGap = 14;
   static const double _actionsGap = 22;
   static const double _actionSpacing = 10;
   static const EdgeInsets _padding = EdgeInsets.all(AppUtils.spacingXl);
 
-  final IconData icon;
+  final IconData? icon;
+  final String? iconAsset;
   final String title;
   final InlineSpan message;
   final String confirmLabel;
   final bool positive;
+  final bool brand;
+  final Widget? details;
+  final double? width;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
-    final tileColor = positive ? colors.activeBadge : colors.errorBadge;
-    final iconColor = positive ? colors.activeText : colors.errorText;
+    final tileColor = brand
+        ? colors.primarySoft
+        : positive
+        ? colors.activeBadge
+        : colors.errorBadge;
+    final iconColor = brand
+        ? colors.onPrimarySoft
+        : positive
+        ? colors.activeText
+        : colors.errorText;
+
+    final iconAsset = this.iconAsset;
 
     return AppDialogSurface(
+      width: width ?? AppDialogSurface.defaultWidth,
       padding: _padding,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -76,7 +105,18 @@ class AppConfirmDialog extends StatelessWidget {
                   color: tileColor,
                   borderRadius: AppUtils.radiusSmall,
                 ),
-                child: Icon(icon, size: _iconSize, color: iconColor),
+                alignment: Alignment.center,
+                child: iconAsset != null
+                    ? SvgPicture.asset(
+                        iconAsset,
+                        width: _iconSize,
+                        height: _iconSize,
+                        colorFilter: ColorFilter.mode(
+                          iconColor,
+                          BlendMode.srcIn,
+                        ),
+                      )
+                    : Icon(icon, size: _iconSize, color: iconColor),
               ),
               const SizedBox(width: _iconGap),
               Expanded(
@@ -99,6 +139,10 @@ class AppConfirmDialog extends StatelessWidget {
               color: AppColors.dialogMessage,
             ),
           ),
+          if (details case final details?) ...[
+            const SizedBox(height: _detailsGap),
+            details,
+          ],
           const SizedBox(height: _actionsGap),
           Wrap(
             alignment: WrapAlignment.end,
@@ -112,8 +156,8 @@ class AppConfirmDialog extends StatelessWidget {
               AppPrimaryButton(
                 label: confirmLabel,
                 compact: true,
-                destructive: !positive,
-                positive: positive,
+                destructive: !positive && !brand,
+                positive: positive && !brand,
                 onPressed: () => Navigator.of(context).pop(true),
               ),
             ],

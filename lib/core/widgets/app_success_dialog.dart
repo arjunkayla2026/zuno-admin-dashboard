@@ -10,6 +10,7 @@ Future<void> showAppSuccessDialog({
   required String actionLabel,
   String? message,
   InlineSpan? messageSpan,
+  Widget? details,
 }) {
   return showAppDialog<void>(
     context: context,
@@ -17,6 +18,7 @@ Future<void> showAppSuccessDialog({
       title: title,
       message: message,
       messageSpan: messageSpan,
+      details: details,
       actionLabel: actionLabel,
     ),
   );
@@ -29,6 +31,7 @@ class AppSuccessDialog extends StatelessWidget {
     required this.actionLabel,
     this.message,
     this.messageSpan,
+    this.details,
   }) : assert(message != null || messageSpan != null);
 
   static const double _iconCircleSize = 72;
@@ -37,11 +40,13 @@ class AppSuccessDialog extends StatelessWidget {
   static const double _iconGap = 18;
   static const double _titleGap = 13;
   static const double _messageGap = 25;
+  static const double _detailsGap = 20;
   static const EdgeInsets _padding = EdgeInsets.fromLTRB(32, 34, 32, 29);
 
   final String title;
   final String? message;
   final InlineSpan? messageSpan;
+  final Widget? details;
   final String actionLabel;
 
   @override
@@ -82,6 +87,10 @@ class AppSuccessDialog extends StatelessWidget {
               color: colors.textSecondary,
             ),
           ),
+          if (details case final details?) ...[
+            const SizedBox(height: _detailsGap),
+            details,
+          ],
           const SizedBox(height: _messageGap),
           SizedBox(
             width: _actionWidth,

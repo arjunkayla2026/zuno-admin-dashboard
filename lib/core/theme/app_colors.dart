@@ -30,6 +30,7 @@ abstract final class AppColors {
 
   static const Color pendingBadge = Color(0xFFFFF0D6);
   static const Color pendingText = Color(0xFFA86200);
+  static const Color pendingBorder = Color(0xFFF2D9A8);
 
   static const Color errorBadge = Color(0xFFFBE5E5);
   static const Color errorText = Color(0xFFC3343A);

@@ -7,6 +7,8 @@ import 'package:zuno_admin_dashboard/features/dashboard/presentation/pages/dashb
 import 'package:zuno_admin_dashboard/features/host_details/presentation/pages/host_details_page.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/pages/host_management_page.dart';
 import 'package:zuno_admin_dashboard/features/packages/presentation/pages/packages_page.dart';
+import 'package:zuno_admin_dashboard/features/payment/presentation/pages/payment_page.dart';
+import 'package:zuno_admin_dashboard/features/settings/presentation/pages/settings_page.dart';
 import 'package:zuno_admin_dashboard/features/recharge/presentation/pages/recharge_page.dart';
 import 'package:zuno_admin_dashboard/features/reports/presentation/pages/reports_page.dart';
 import 'package:zuno_admin_dashboard/features/surge_charge_sessions/presentation/pages/surge_charge_sessions_page.dart';
@@ -27,6 +29,8 @@ abstract final class AppRoutes {
   static const String reports = '/reports';
   static const String packages = '/packages';
   static const String recharge = '/recharge';
+  static const String payment = '/payment';
+  static const String settings = '/settings';
 
   static final Map<String, WidgetBuilder> routes = {
     login: (_) => const AdminLoginPage(),
@@ -42,5 +46,7 @@ abstract final class AppRoutes {
     reports: (_) => const ReportsPage(),
     packages: (_) => const PackagesPage(),
     recharge: (_) => const RechargePage(),
+    payment: (_) => const PaymentPage(),
+    settings: (_) => const SettingsPage(),
   };
 }

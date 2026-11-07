@@ -12,6 +12,7 @@ class AppLabeledDropdownField<T> extends StatelessWidget {
     required this.options,
     required this.labelOf,
     required this.onChanged,
+    this.labelStyle,
   });
 
   static const double _labelGap = 5;
@@ -23,6 +24,7 @@ class AppLabeledDropdownField<T> extends StatelessWidget {
   final List<T> options;
   final String Function(T option) labelOf;
   final ValueChanged<T?> onChanged;
+  final TextStyle? labelStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +33,11 @@ class AppLabeledDropdownField<T> extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTextStyles.labelSmall.copyWith(color: textColor)),
+        Text(
+          label,
+          style:
+              labelStyle ?? AppTextStyles.labelSmall.copyWith(color: textColor),
+        ),
         const SizedBox(height: _labelGap),
         DropdownButtonFormField<T>(
           initialValue: value,

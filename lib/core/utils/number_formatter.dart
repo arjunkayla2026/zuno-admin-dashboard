@@ -24,6 +24,16 @@ abstract final class NumberFormatter {
     return '${rupees(whole)}.$fraction';
   }
 
+  static String rupeesPaise(int paise) {
+    const paisePerRupee = 100;
+    final rupeesPart = rupees(paise ~/ paisePerRupee);
+    final remainder = paise.abs() % paisePerRupee;
+    if (remainder == 0) return rupeesPart;
+    final fraction = remainder.toString().padLeft(2, '0');
+    final trimmed = fraction.endsWith('0') ? fraction[0] : fraction;
+    return '$rupeesPart.$trimmed';
+  }
+
   static int parse(String value) =>
       int.tryParse(value.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
 }

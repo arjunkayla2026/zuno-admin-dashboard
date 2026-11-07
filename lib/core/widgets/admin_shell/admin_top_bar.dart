@@ -16,6 +16,7 @@ class AdminTopBar extends StatelessWidget {
     this.title,
     this.breadcrumb,
     this.onMenuPressed,
+    this.notice,
   });
 
   static const double _height = 74;
@@ -33,6 +34,7 @@ class AdminTopBar extends StatelessWidget {
   final String? title;
   final List<String>? breadcrumb;
   final VoidCallback? onMenuPressed;
+  final Widget? notice;
 
   @override
   Widget build(BuildContext context) {
@@ -91,6 +93,10 @@ class AdminTopBar extends StatelessWidget {
                     ],
                   ),
           ),
+          if (notice case final notice?) ...[
+            notice,
+            const SizedBox(width: AppUtils.spacingLg),
+          ],
           if (!isCompact) ...[
             Text(
               DateFormatter.long(DateTime.now()),

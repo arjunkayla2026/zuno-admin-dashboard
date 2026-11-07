@@ -12,7 +12,14 @@ enum AdminSubNavItem {
   payoutReview(AppStrings.payoutReview),
   profilePhotoReview(AppStrings.profilePhotoReview),
   packageList(AppStrings.packageList, route: AppRoutes.packages),
-  couponList(AppStrings.couponList);
+  couponList(AppStrings.couponList),
+  withdrawalList(AppStrings.withdrawalList, route: AppRoutes.payment),
+  pendingWithdrawals(AppStrings.pendingWithdrawals),
+  successfulWithdrawals(AppStrings.successfulWithdrawals),
+  maintenanceMode(AppStrings.maintenanceMode, route: AppRoutes.settings),
+  adminManagement(AppStrings.adminManagement),
+  notificationManagement(AppStrings.notificationManagement),
+  bannerImageManagement(AppStrings.bannerImageManagement);
 
   const AdminSubNavItem(this.label, {this.route});
 
@@ -60,8 +67,27 @@ enum AdminNavItem {
     AppImages.rechargeIcon,
     route: AppRoutes.recharge,
   ),
-  payment(AppStrings.payment, AppImages.paymentIcon),
-  settings(AppStrings.settings, AppImages.settingsIcon);
+  payment(
+    AppStrings.payment,
+    AppImages.paymentIcon,
+    route: AppRoutes.payment,
+    subItems: [
+      AdminSubNavItem.withdrawalList,
+      AdminSubNavItem.pendingWithdrawals,
+      AdminSubNavItem.successfulWithdrawals,
+    ],
+  ),
+  settings(
+    AppStrings.settings,
+    AppImages.settingsIcon,
+    route: AppRoutes.settings,
+    subItems: [
+      AdminSubNavItem.maintenanceMode,
+      AdminSubNavItem.adminManagement,
+      AdminSubNavItem.notificationManagement,
+      AdminSubNavItem.bannerImageManagement,
+    ],
+  );
 
   const AdminNavItem(
     this.label,

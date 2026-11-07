@@ -5,14 +5,20 @@ import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 
 class AppStat {
-  const AppStat({required this.label, required this.value});
+  const AppStat({required this.label, required this.value, this.unit});
 
   final String label;
   final String value;
+  final String? unit;
 }
 
 class AppStatCards extends StatelessWidget {
-  const AppStatCards({super.key, required this.stats, this.dense = false});
+  const AppStatCards({
+    super.key,
+    required this.stats,
+    this.dense = false,
+    this.filled = false,
+  });
 
   static const double _gap = 14;
   static const double _minWidth = 150;
@@ -27,9 +33,12 @@ class AppStatCards extends StatelessWidget {
 
   final List<AppStat> stats;
   final bool dense;
+  final bool filled;
 
   @override
   Widget build(BuildContext context) {
+    final muted = context.appColors.textSecondary;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final maxWidth = constraints.maxWidth;
@@ -51,9 +60,13 @@ class AppStatCards extends StatelessWidget {
                 ),
                 padding: _padding,
                 decoration: BoxDecoration(
-                  color: context.colorScheme.surface,
+                  color: filled
+                      ? AppColors.statTileBackground
+                      : context.colorScheme.surface,
                   borderRadius: AppUtils.radiusSmall,
-                  border: Border.all(color: AppColors.cardBorder),
+                  border: filled
+                      ? null
+                      : Border.all(color: AppColors.cardBorder),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,12 +78,23 @@ class AppStatCards extends StatelessWidget {
                       child: Text(
                         stat.label,
                         style: AppTextStyles.tableFootnote.copyWith(
-                          color: context.appColors.textSecondary,
+                          color: muted,
                         ),
                       ),
                     ),
-                    Text(
-                      stat.value,
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(text: stat.value),
+                          if (stat.unit case final unit?)
+                            TextSpan(
+                              text: ' $unit',
+                              style: AppTextStyles.captionSmall.copyWith(
+                                color: muted,
+                              ),
+                            ),
+                        ],
+                      ),
                       style: AppTextStyles.statValue.copyWith(
                         color: context.colorScheme.onSurface,
                       ),

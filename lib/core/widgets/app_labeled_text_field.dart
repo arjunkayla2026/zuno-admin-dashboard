@@ -21,6 +21,9 @@ class AppLabeledTextField extends StatelessWidget {
     this.errorText,
     this.readOnly = false,
     this.onTap,
+    this.maxLines = 1,
+    this.minLines,
+    this.labelStyle,
   });
 
   static const double _labelGap = 5;
@@ -44,6 +47,9 @@ class AppLabeledTextField extends StatelessWidget {
   final String? errorText;
   final bool readOnly;
   final VoidCallback? onTap;
+  final int? maxLines;
+  final int? minLines;
+  final TextStyle? labelStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +58,11 @@ class AppLabeledTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTextStyles.labelSmall.copyWith(color: textColor)),
+        Text(
+          label,
+          style:
+              labelStyle ?? AppTextStyles.labelSmall.copyWith(color: textColor),
+        ),
         const SizedBox(height: _labelGap),
         TextField(
           controller: controller,
@@ -65,6 +75,8 @@ class AppLabeledTextField extends StatelessWidget {
           inputFormatters: inputFormatters,
           readOnly: readOnly,
           onTap: onTap,
+          maxLines: maxLines,
+          minLines: minLines,
           style: AppTextStyles.fieldValue.copyWith(color: textColor),
           decoration: InputDecoration(
             hintText: hint,

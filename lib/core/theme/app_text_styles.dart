@@ -190,6 +190,20 @@ abstract final class AppTextStyles {
     fontWeight: FontWeight.w600,
   );
 
+  static const TextStyle noteText = TextStyle(
+    fontFamily: dmSans,
+    fontSize: 13,
+    fontWeight: FontWeight.w400,
+    height: 19.5 / 13,
+  );
+
+  static const TextStyle summaryValue = TextStyle(
+    fontFamily: dmSans,
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
+    height: 23.25 / 15,
+  );
+
   static const TextStyle labelLarge = TextStyle(
     fontFamily: dmSans,
     fontSize: 16,
@@ -207,6 +221,13 @@ abstract final class AppTextStyles {
     fontFamily: dmSans,
     fontSize: 12.5,
     fontWeight: FontWeight.w600,
+  );
+
+  static const TextStyle formLabel = TextStyle(
+    fontFamily: dmSans,
+    fontSize: 12.5,
+    fontWeight: FontWeight.w600,
+    height: 1,
   );
 
   static const TextTheme textTheme = TextTheme(

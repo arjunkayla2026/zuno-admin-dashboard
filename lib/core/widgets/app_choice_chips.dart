@@ -11,6 +11,7 @@ class AppChoiceChips<T> extends StatelessWidget {
     required this.selected,
     required this.labelOf,
     required this.onChanged,
+    this.labelStyle,
   });
 
   static const double _gap = 6;
@@ -19,6 +20,7 @@ class AppChoiceChips<T> extends StatelessWidget {
   final Set<T> selected;
   final String Function(T option) labelOf;
   final ValueChanged<Set<T>> onChanged;
+  final TextStyle? labelStyle;
 
   void _toggle(T option) {
     final next = {...selected};
@@ -37,6 +39,7 @@ class AppChoiceChips<T> extends StatelessWidget {
             label: labelOf(option),
             selected: selected.contains(option),
             onTap: () => _toggle(option),
+            labelStyle: labelStyle,
           ),
       ],
     );
@@ -48,6 +51,7 @@ class _Chip extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.labelStyle,
   });
 
   static const double _height = 30;
@@ -58,10 +62,14 @@ class _Chip extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final TextStyle? labelStyle;
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.white : context.colorScheme.onSurface;
+    final style = labelStyle ?? AppTextStyles.labelSmall;
+    final color = selected
+        ? AppColors.white
+        : style.color ?? context.colorScheme.onSurface;
 
     return Material(
       color: selected ? AppColors.selectedOption : context.colorScheme.surface,
@@ -83,10 +91,7 @@ class _Chip extends StatelessWidget {
                 Icon(Icons.check_rounded, size: _iconSize, color: color),
                 const SizedBox(width: _iconGap),
               ],
-              Text(
-                label,
-                style: AppTextStyles.labelSmall.copyWith(color: color),
-              ),
+              Text(label, style: style.copyWith(color: color)),
             ],
           ),
         ),

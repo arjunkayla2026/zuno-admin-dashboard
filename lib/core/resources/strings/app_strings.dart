@@ -487,6 +487,74 @@ abstract final class AppStrings {
   static const String adminRecharges = 'Admin Recharges';
   static const String admin = 'Admin';
   static const String razorpay = 'Razorpay';
+  static const String withdrawalList = 'Withdrawal List';
+  static const String pendingWithdrawals = 'Pending Withdrawals';
+  static const String successfulWithdrawals = 'Successful Withdrawals';
+  static const String pendingTab = 'Pending';
+  static const String successTab = 'Success';
+  static const String upcomingWithdrawalOverview =
+      'Upcoming Withdrawal Overview';
+  static const String duration = 'Duration';
+  static const String minutesUnit = 'min';
+  static const String totalHostCredit = 'Total Host Credit';
+  static const String totalHostRevenueStat = 'Total Host Revenue';
+  static const String totalWithdraw = 'Total Withdraw';
+  static const String searchWithdrawalsHint =
+      'Search host, host ID or withdraw ID';
+  static const String exportWithdrawalSheet = 'Export Withdrawal Sheet';
+  static const String totalCallsCount = 'Total Calls Count';
+  static const String callDurationMinutes = 'Call Duration (min)';
+  static const String totalAmount = 'Total Amount';
+  static const String withdraw = 'Withdraw';
+  static const String noWithdrawals = 'No withdrawals found';
+  static const String withdrawalDetails = 'Withdrawal details';
+  static const String earnings = 'Earnings';
+  static const String bank = 'Bank';
+  static const String reviewWithdrawalTitle = 'Review withdrawal';
+  static const String reviewWithdrawalPrefix = 'Confirm the withdrawal for ';
+  static const String totalReceivableAmount = 'Total Receivable Amount';
+  static const String confirmWithdrawal = 'Confirm withdrawal';
+  static const String withdrawalCompleted = 'Withdrawal completed';
+  static const String withdrawalAmount = 'Withdrawal Amount';
+  static const String tdsCutAmount = 'TDS Cut Amount';
+  static const String appliedTdsPercent = 'Applied TDS %';
+  static const String withdrawStatus = 'Withdraw Status';
+  static const String exportComplete = 'Export complete';
+  static const String ready = 'Ready';
+  static const String exportScopeAll = 'all';
+  static const String exportScopePending = 'pending';
+  static const String exportScopeSuccess = 'success';
+
+  static String withdrawalOverviewNote(int hosts, String minimum) =>
+      '$hosts hosts waiting · minimum withdrawal $minimum';
+
+  static String dotSeparated(String first, String second) => '$first · $second';
+
+  static String minutesValue(String minutes) => '$minutes min';
+
+  static String reviewWithdrawalSuffix(String hostId) => ' ($hostId).';
+
+  static String ifscSuffix(String ifscCode) => ' ·$ifscCode';
+
+  static String percentValue(int percent) => '$percent%';
+
+  static String withdrawalsExported(int count) =>
+      '$count withdrawals were exported.';
+
+  static String withdrawalSheetRows(int count) =>
+      'Withdrawal sheet · $count rows';
+
+  static String withdrawalSheetFileName(String scope, String date) =>
+      'withdrawal-sheet-$scope-$date.xlsx';
+
+  static String tdsLabel(int percent) => 'TDS ($percent%)';
+
+  static String deduction(String amount) => '– $amount';
+
+  static String withdrawalCompletedMessage(String amount, String hostName) =>
+      '$amount has been sent to $hostName\'s account. You can find it under '
+      'Success.';
+
   static const String adminCreditDebit = 'Admin Credit & Debit';
   static const String gatewayPayments = 'Payment Gateway Payments';
   static const String failed = 'Failed';
@@ -496,6 +564,82 @@ abstract final class AppStrings {
   static const String creditAmount = 'Credit Amount';
   static const String debitAmount = 'Debit Amount';
   static const String noRechargesFound = 'No recharges found';
+  static const String maintenanceMode = 'Maintenance Mode';
+  static const String adminManagement = 'Admin Management';
+  static const String notificationManagement = 'Notification Management';
+  static const String bannerImageManagement = 'Banner Image Management';
+  static const String maintenanceModeIs = 'Maintenance mode is ';
+  static const String maintenanceOff = 'off';
+  static const String maintenanceOn = 'on';
+  static const String maintenanceAvailableTail =
+      '. The user and host apps are available.';
+  static const String maintenanceUnavailableTail =
+      '. The user and host apps are unavailable.';
+  static const String maintenanceNote =
+      'Turn this on during planned updates. A banner in the top bar shows '
+      'while maintenance mode is on.';
+  static const String turnOnMaintenanceTitle = 'Turn on maintenance mode?';
+  static const String turnOnMaintenanceMessage =
+      'The user and host apps will be unavailable until you turn it off.';
+  static const String turnOffMaintenanceTitle = 'Turn off maintenance mode?';
+  static const String turnOffMaintenanceMessage =
+      'The user and host apps will be available again.';
+  static const String turnOn = 'Turn on';
+  static const String turnOff = 'Turn off';
+  static const String maintenanceModeIsOn = 'Maintenance mode is on';
+  static const String maintenanceOnMessage =
+      'The apps are now unavailable to users and hosts.';
+  static const String addAdmin = 'Add admin';
+  static const String role = 'Role';
+  static const String permissions = 'Permissions';
+  static const String allModules = 'All modules';
+  static const String superAdmin = 'Super Admin';
+  static const String financeAdmin = 'Finance Admin';
+  static const String supportAdmin = 'Support Admin';
+  static const String moderator = 'Moderator';
+
+  static const String addAdminSubtitle =
+      'Give a team member access to the admin panel';
+  static const String editAdmin = 'Edit admin';
+  static const String editAdminSubtitle =
+      "Update this team member's access to the admin panel";
+  static const String saveAdmin = 'Save admin';
+  static const String permissionsHelper =
+      'Choose which modules this admin can open.';
+  static const String enterName = 'Enter a name.';
+  static const String enterValidEmail = 'Enter a valid email.';
+  static const String enterValidPhone = 'Enter a valid phone number.';
+  static const String chooseModule = 'Choose at least one module.';
+  static const String sendTo = 'Send to';
+  static const String userAudience = 'User';
+  static const String hostAudience = 'Host';
+  static const String bothAudience = 'Both';
+  static const String hostMotherTongue = 'Host mother tongue';
+  static const String hostMotherTongueHelper =
+      'Send only to hosts whose mother tongue matches. Leave empty to send to '
+      'all hosts.';
+  static const String notificationTitle = 'Title';
+  static const String notificationTitleHint = 'e.g. New bonus packs are live';
+  static const String notificationMessage = 'Message';
+  static const String notificationMessageHint =
+      'Write the notification message';
+  static const String sendNotification = 'Send notification';
+  static const String clear = 'Clear';
+  static const String audience = 'Audience';
+  static const String usersLabel = 'Users';
+  static const String hostsLabel = 'Hosts';
+  static const String totalRecipients = 'Total recipients';
+  static const String audienceNote =
+      'Recipients are counted from active accounts. Type the title and '
+      'message, then send to see the confirmation step.';
+  static const String enterTitle = 'Enter a title.';
+  static const String enterMessage = 'Enter a message.';
+
+  static String adminsCount(int count) => '$count admins';
+
+  static const String settingsSectionPendingTitle = 'Coming soon';
+  static const String settingsSectionPendingMessage =
+      'This settings section has not been built yet.';
   static const String couponListPendingTitle =
       'Coupon List fields are not confirmed yet';
   static const String couponListPendingMessage =
