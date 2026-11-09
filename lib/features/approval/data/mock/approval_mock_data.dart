@@ -238,6 +238,12 @@ abstract final class ApprovalMockData {
   static const HostLanguage _kannada = HostLanguage.kannada;
   static const HostLanguage _telugu = HostLanguage.telugu;
 
+  static const List<HostDocument> _submittedDocuments = [
+    HostDocument(type: HostDocumentType.aadhaarFront),
+    HostDocument(type: HostDocumentType.aadhaarBack),
+    HostDocument(type: HostDocumentType.selfie),
+  ];
+
   static final List<HostRequest> hostRequests = [
     HostRequest(
       requestId: 'HR3301',
@@ -251,6 +257,7 @@ abstract final class ApprovalMockData {
       languages: const [_malayalam, _hindi, _english],
       maskedAadhaar: 'XXXX XXXX 7152',
       avatarIndex: 4,
+      documents: _submittedDocuments,
     ),
     HostRequest(
       requestId: 'HR3302',
@@ -264,6 +271,7 @@ abstract final class ApprovalMockData {
       languages: const [_telugu, _tamil, _english],
       maskedAadhaar: 'XXXX XXXX 2284',
       avatarIndex: 0,
+      documents: _submittedDocuments,
     ),
     HostRequest(
       requestId: 'HR3303',
@@ -277,6 +285,7 @@ abstract final class ApprovalMockData {
       languages: const [_telugu, _kannada, _english],
       maskedAadhaar: 'XXXX XXXX 9031',
       avatarIndex: 7,
+      documents: _submittedDocuments,
     ),
     HostRequest(
       requestId: 'HR3304',
@@ -290,6 +299,7 @@ abstract final class ApprovalMockData {
       languages: const [_kannada, _malayalam, _english],
       maskedAadhaar: 'XXXX XXXX 4417',
       avatarIndex: 5,
+      documents: _submittedDocuments,
     ),
     HostRequest(
       requestId: 'HR3305',
@@ -303,6 +313,7 @@ abstract final class ApprovalMockData {
       languages: const [_tamil, _kannada, _english],
       maskedAadhaar: 'XXXX XXXX 6620',
       avatarIndex: 6,
+      documents: _submittedDocuments,
     ),
     HostRequest(
       requestId: 'HR3306',
@@ -316,6 +327,7 @@ abstract final class ApprovalMockData {
       languages: const [_hindi, _english],
       maskedAadhaar: 'XXXX XXXX 1358',
       avatarIndex: 4,
+      documents: _submittedDocuments,
     ),
     HostRequest(
       requestId: 'HR3307',
@@ -329,6 +341,7 @@ abstract final class ApprovalMockData {
       languages: const [_kannada, _malayalam, _english],
       maskedAadhaar: 'XXXX XXXX 8806',
       avatarIndex: 0,
+      documents: _submittedDocuments,
     ),
     HostRequest(
       requestId: 'HR3308',
@@ -342,6 +355,7 @@ abstract final class ApprovalMockData {
       languages: const [_kannada, _english],
       maskedAadhaar: 'XXXX XXXX 3579',
       avatarIndex: 7,
+      documents: _submittedDocuments,
     ),
     HostRequest(
       requestId: 'HR3309',
@@ -355,6 +369,7 @@ abstract final class ApprovalMockData {
       languages: const [_telugu, _malayalam, _english],
       maskedAadhaar: 'XXXX XXXX 5041',
       avatarIndex: 1,
+      documents: _submittedDocuments,
     ),
   ];
 }

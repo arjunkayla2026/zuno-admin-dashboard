@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
+import 'package:zuno_admin_dashboard/features/approval/data/repositories/approval_repository.dart';
+import 'package:zuno_admin_dashboard/features/approval/presentation/state/approval_cubit.dart';
 import 'package:zuno_admin_dashboard/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/auth/data/repositories/auth_repository.dart';
 import 'package:zuno_admin_dashboard/features/auth/presentation/state/auth_cubit.dart';
@@ -37,6 +39,12 @@ void configureDependencies() {
     )
     ..registerFactory<HostManagementCubit>(
       () => HostManagementCubit(getIt<HostManagementRepository>()),
+    )
+    ..registerLazySingleton<ApprovalRepository>(
+      () => ApprovalRepository(getIt<UsersRemoteDataSource>()),
+    )
+    ..registerFactory<ApprovalCubit>(
+      () => ApprovalCubit(getIt<ApprovalRepository>()),
     )
     ..registerFactory<UserActionsCubit>(
       () => UserActionsCubit(getIt<UserManagementRepository>()),

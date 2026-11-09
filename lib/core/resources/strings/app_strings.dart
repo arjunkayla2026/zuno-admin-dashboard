@@ -388,21 +388,11 @@ abstract final class AppStrings {
   static const String approved = 'Approved';
   static const String noHostRequests = 'No host requests found';
   static const String hostRequest = 'Host request';
-  static const String aadhaarCardImage = 'Aadhaar Card Image';
-  static const String selfieUpload = 'Selfie Upload';
   static const String reject = 'Reject';
   static const String approve = 'Approve';
   static const String view = 'View';
-  static const String approveRequestTitle = 'Approve host request?';
-  static const String rejectRequestTitle = 'Reject host request?';
   static const String hostRequestApproved = 'Host request approved';
   static const String statusNowSuffix = '.';
-
-  static String approveRequestMessage(String name) =>
-      '$name will become an approved host and can sign in to the host app.';
-
-  static String rejectRequestMessage(String name) =>
-      "$name's request to become a host will be rejected.";
 
   static String statusNowLead(String name) => 'Status for $name is now ';
 
@@ -717,6 +707,33 @@ abstract final class AppStrings {
   static const String loginFailed =
       'Email or password is incorrect. Check your details and try again. '
       'Only approved admins can sign in.';
+  static const String aadhaarFront = 'Aadhaar Front';
+  static const String aadhaarBack = 'Aadhaar Back';
+  static const String documentAlreadyReviewed =
+      'This document has already been reviewed.';
+  static const String hostRequestNotReady =
+      'This request has changed. Close it and review it again.';
+  static const String approveRequestTitle = 'Approve host request?';
+  static const String rejectRequestTitle = 'Reject host request?';
+
+  static String approveRequestMessage(String name) =>
+      '$name will become an approved host and can sign in to the host app.';
+
+  static String rejectRequestMessage(String name) =>
+      "$name's request to become a host will be rejected.";
+
+  static String approveDocumentTitle(String document) => 'Approve $document?';
+
+  static String rejectDocumentTitle(String document) => 'Reject $document?';
+
+  static String approveDocumentMessage(String document, String name) =>
+      "$name's $document will be marked as approved. This cannot be changed "
+      'here afterwards.';
+
+  static String rejectDocumentMessage(String document, String name) =>
+      "$name's $document will be marked as rejected. This cannot be changed "
+      'here afterwards.';
+
   static const String unblock = 'Unblock';
   static const String unblockUserAction = 'Unblock user';
   static const String unblockHostAction = 'Unblock host';

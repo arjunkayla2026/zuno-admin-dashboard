@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zuno_admin_dashboard/core/enums/date_range_filter.dart';
+import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/core/utils/date_range_matcher.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/host_request.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/payout_request.dart';
@@ -13,6 +14,9 @@ class ApprovalState {
     required this.payoutRequests,
     required this.profilePhotoRequests,
     required this.today,
+    this.hostRequestsStatus = LoadStatus.loaded,
+    this.hostRequestsError,
+    this.hostRequestsToday,
     this.tab = ApprovalTab.hostRequests,
     this.query = '',
     this.dateFilter = DateRangeFilter.all,
@@ -23,6 +27,9 @@ class ApprovalState {
   final List<PayoutRequest> payoutRequests;
   final List<ProfilePhotoRequest> profilePhotoRequests;
   final DateTime today;
+  final LoadStatus hostRequestsStatus;
+  final String? hostRequestsError;
+  final DateTime? hostRequestsToday;
   final ApprovalTab tab;
   final String query;
   final DateRangeFilter dateFilter;
@@ -55,7 +62,11 @@ class ApprovalState {
   List<HostRequest> get filteredHostRequests => hostRequests
       .where(
         (request) =>
-            _inRange(request.submittedOn) &&
+            dateFilter.includes(
+              request.submittedOn,
+              today: hostRequestsToday ?? today,
+              customRange: customRange,
+            ) &&
             _matches([
               request.realName,
               request.nickName,
@@ -96,6 +107,8 @@ class ApprovalState {
     List<HostRequest>? hostRequests,
     List<PayoutRequest>? payoutRequests,
     List<ProfilePhotoRequest>? profilePhotoRequests,
+    LoadStatus? hostRequestsStatus,
+    String? hostRequestsError,
     ApprovalTab? tab,
     String? query,
     DateRangeFilter? dateFilter,
@@ -106,6 +119,9 @@ class ApprovalState {
       payoutRequests: payoutRequests ?? this.payoutRequests,
       profilePhotoRequests: profilePhotoRequests ?? this.profilePhotoRequests,
       today: today,
+      hostRequestsStatus: hostRequestsStatus ?? this.hostRequestsStatus,
+      hostRequestsError: hostRequestsError ?? this.hostRequestsError,
+      hostRequestsToday: hostRequestsToday,
       tab: tab ?? this.tab,
       query: query ?? this.query,
       dateFilter: dateFilter ?? this.dateFilter,

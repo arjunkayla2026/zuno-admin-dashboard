@@ -6,14 +6,16 @@ import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_confirm_dialog.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_error_banner.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_side_sheet.dart';
-import 'package:zuno_admin_dashboard/core/widgets/documents/app_identity_documents.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/host_request.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/widgets/host_request_details_view.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/widgets/host_request_edit_form.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/widgets/host_request_header.dart';
+import 'package:zuno_admin_dashboard/features/approval/presentation/widgets/host_request_labels.dart';
+import 'package:zuno_admin_dashboard/features/approval/presentation/widgets/host_verification_documents.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/models/host_profile_options.dart';
 
 class HostRequestSheet extends StatefulWidget {
@@ -21,10 +23,23 @@ class HostRequestSheet extends StatefulWidget {
     super.key,
     required this.request,
     required this.onChanged,
+    required this.onReview,
+    required this.onDecide,
   });
 
   final HostRequest request;
   final ValueChanged<HostRequest> onChanged;
+  final Future<String?> Function(
+    HostRequest request,
+    HostDocumentType type,
+    HostRequestStatus decision,
+  )
+  onReview;
+  final Future<String?> Function(
+    HostRequest request,
+    HostRequestStatus decision,
+  )
+  onDecide;
 
   @override
   State<HostRequestSheet> createState() => _HostRequestSheetState();
@@ -39,14 +54,16 @@ class _HostRequestSheetState extends State<HostRequestSheet> {
 
   late HostRequest _request = widget.request;
   bool _editing = false;
+  bool _reviewing = false;
+  String? _errorMessage;
 
   late final _realNameController = TextEditingController();
   late final _nickNameController = TextEditingController();
   late final _phoneController = TextEditingController();
   late final _cityController = TextEditingController();
   late final _dateOfBirthController = TextEditingController();
-  late DateTime _dateOfBirth;
-  late HostGender _gender;
+  DateTime? _dateOfBirth;
+  HostGender? _gender;
   late Set<HostLanguage> _languages;
 
   List<TextEditingController> get _controllers => [
@@ -69,7 +86,7 @@ class _HostRequestSheetState extends State<HostRequestSheet> {
     _phoneController.text = _request.phone;
     _cityController.text = _request.city;
     _dateOfBirth = _request.dateOfBirth;
-    _dateOfBirthController.text = DateFormatter.short(_dateOfBirth);
+    _dateOfBirthController.text = HostRequestLabels.dateOfBirth(_request);
     _gender = _request.gender;
     _languages = {..._request.languages};
     setState(() => _editing = true);
@@ -99,11 +116,12 @@ class _HostRequestSheetState extends State<HostRequestSheet> {
   }
 
   Future<void> _pickDateOfBirth() async {
+    final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: _dateOfBirth,
+      initialDate: _dateOfBirth ?? DateTime(now.year - 20),
       firstDate: _firstBirthDate,
-      lastDate: DateTime.now(),
+      lastDate: now,
     );
     if (picked == null) return;
     setState(() {
@@ -112,9 +130,67 @@ class _HostRequestSheetState extends State<HostRequestSheet> {
     });
   }
 
-  void _decide(HostRequestStatus status) {
-    widget.onChanged(_request.copyWith(status: status));
-    Navigator.of(context).pop(status);
+  Future<void> _review(
+    HostDocument document,
+    HostRequestStatus decision,
+  ) async {
+    final approving = decision == HostRequestStatus.approved;
+    final label = HostRequestLabels.document(document.type);
+    final confirmed = await showAppConfirmDialog(
+      context: context,
+      icon: approving
+          ? Icons.check_circle_outline_rounded
+          : Icons.close_rounded,
+      title: approving
+          ? AppStrings.approveDocumentTitle(label)
+          : AppStrings.rejectDocumentTitle(label),
+      message: TextSpan(
+        text: approving
+            ? AppStrings.approveDocumentMessage(label, _request.realName)
+            : AppStrings.rejectDocumentMessage(label, _request.realName),
+      ),
+      confirmLabel: approving ? AppStrings.approve : AppStrings.reject,
+      positive: approving,
+    );
+    if (!confirmed || !mounted) return;
+
+    setState(() {
+      _reviewing = true;
+      _errorMessage = null;
+    });
+    final error = await widget.onReview(_request, document.type, decision);
+    if (!mounted) return;
+
+    if (error != null) {
+      setState(() {
+        _reviewing = false;
+        _errorMessage = error;
+      });
+      return;
+    }
+
+    setState(() {
+      _reviewing = false;
+      _request = _request.withDocumentStatus(document.type, decision);
+    });
+  }
+
+  Future<void> _decide(HostRequestStatus decision) async {
+    setState(() {
+      _reviewing = true;
+      _errorMessage = null;
+    });
+    final error = await widget.onDecide(_request, decision);
+    if (!mounted) return;
+
+    if (error != null) {
+      setState(() {
+        _reviewing = false;
+        _errorMessage = error;
+      });
+      return;
+    }
+    Navigator.of(context).pop(decision);
   }
 
   Future<void> _approve() async {
@@ -128,7 +204,7 @@ class _HostRequestSheetState extends State<HostRequestSheet> {
       confirmLabel: AppStrings.approve,
       positive: true,
     );
-    if (confirmed && mounted) _decide(HostRequestStatus.approved);
+    if (confirmed && mounted) await _decide(HostRequestStatus.approved);
   }
 
   Future<void> _reject() async {
@@ -141,7 +217,7 @@ class _HostRequestSheetState extends State<HostRequestSheet> {
       ),
       confirmLabel: AppStrings.reject,
     );
-    if (confirmed && mounted) _decide(HostRequestStatus.rejected);
+    if (confirmed && mounted) await _decide(HostRequestStatus.rejected);
   }
 
   Widget _viewFooter() {
@@ -164,7 +240,7 @@ class _HostRequestSheetState extends State<HostRequestSheet> {
               ),
             ),
           ),
-          if (_request.isPending)
+          if (_request.canDecide)
             Wrap(
               spacing: _footerGap,
               runSpacing: AppUtils.spacingSm,
@@ -172,14 +248,14 @@ class _HostRequestSheetState extends State<HostRequestSheet> {
                 AppSecondaryButton(
                   label: AppStrings.reject,
                   destructive: true,
-                  onPressed: _reject,
+                  onPressed: _reviewing ? null : _reject,
                 ),
                 AppPrimaryButton(
                   label: AppStrings.approve,
                   icon: Icons.check_rounded,
                   compact: true,
                   positive: true,
-                  onPressed: _approve,
+                  onPressed: _reviewing ? null : _approve,
                 ),
               ],
             ),
@@ -247,16 +323,15 @@ class _HostRequestSheetState extends State<HostRequestSheet> {
           else
             HostRequestDetailsView(request: request),
           const SizedBox(height: _documentsGap),
-          AppIdentityDocuments(
-            name: request.realName,
-            maskedAadhaar: request.maskedAadhaar,
-            initials: request.initials,
-            avatarIndex: request.avatarIndex,
-            aadhaarImageUrl: request.aadhaarImageUrl,
-            selfieImageUrl: request.selfieImageUrl,
-            aadhaarLabel: AppStrings.aadhaarCardImage,
-            selfieLabel: AppStrings.selfieUpload,
+          HostVerificationDocuments(
+            request: request,
+            isBusy: _reviewing,
+            onReview: _review,
           ),
+          if (_errorMessage case final message?) ...[
+            const SizedBox(height: _documentsGap),
+            AppErrorBanner(message: message),
+          ],
         ],
       ),
       footer: _editing ? _editFooter() : _viewFooter(),

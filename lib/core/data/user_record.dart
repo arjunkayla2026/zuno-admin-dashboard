@@ -39,6 +39,18 @@ class UserRecord {
     );
   }
 
+  static const String documentSubmitted = 'submitted';
+  static const String documentApproved = 'approved';
+  static const String documentRejected = 'rejected';
+  static const String documentStatusField = 'documentStatus';
+  static const String aadhaarFrontField = 'aadharFrontPreview';
+  static const String aadhaarBackField = 'aadharBackPreview';
+  static const String selfieField = 'selfiPreview';
+  static const List<String> hostDocumentFields = [
+    aadhaarFrontField,
+    aadhaarBackField,
+    selfieField,
+  ];
   static const String deletedByField = 'deletedBy';
   static const String deletedByAdmin = 'admin';
   static const Duration _newAccountWindow = Duration(days: 7);
@@ -62,6 +74,45 @@ class UserRecord {
     if (value is! String) return null;
     final text = value.trim();
     return text.isEmpty ? null : text;
+  }
+
+  static Map<String, Object?>? hostDocumentReview(
+    Map<String, dynamic> data, {
+    required String document,
+    required String status,
+  }) {
+    final details = data['hostDetails'];
+    if (details is! Map) return null;
+
+    Object? statusOf(String field) {
+      final entry = details[field];
+      return entry is Map ? entry[documentStatusField] : null;
+    }
+
+    if (statusOf(document) != documentSubmitted) return null;
+
+    return {'hostDetails.$document.$documentStatusField': status};
+  }
+
+  static Map<String, Object?>? hostRequestDecision(
+    Map<String, dynamic> data, {
+    required bool approved,
+  }) {
+    final details = data['hostDetails'];
+    if (details is! Map || details['hostStatus'] != documentSubmitted) {
+      return null;
+    }
+
+    final allDocumentsApproved = hostDocumentFields.every((field) {
+      final entry = details[field];
+      return entry is Map && entry[documentStatusField] == documentApproved;
+    });
+    if (!allDocumentsApproved) return null;
+
+    return {
+      'hostDetails.hostStatus': approved ? documentApproved : documentRejected,
+      if (approved && data['role'] == 'user') 'role': 'host',
+    };
   }
 
   static Map<String, Object?>? phoneFields(String phone) {

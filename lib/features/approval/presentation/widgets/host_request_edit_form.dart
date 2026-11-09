@@ -33,7 +33,7 @@ class HostRequestEditForm extends StatelessWidget {
   final TextEditingController phoneController;
   final TextEditingController dateOfBirthController;
   final TextEditingController cityController;
-  final HostGender gender;
+  final HostGender? gender;
   final Set<HostLanguage> languages;
   final ValueChanged<String> onTextChanged;
   final VoidCallback onPickDateOfBirth;

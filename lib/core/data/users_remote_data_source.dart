@@ -9,6 +9,7 @@ class UsersRemoteDataSource {
 
   static const String _collection = 'users';
   static const String _roleField = 'role';
+  static const String _hostStatusField = 'hostDetails.hostStatus';
   static const String _updatedAtField = 'updatedAt';
   static const String _blockedField = 'isAccountBlocked';
   static const String _deletedField = 'isAccountDeleted';
@@ -39,12 +40,21 @@ class UsersRemoteDataSource {
     return second.compareTo(first);
   }
 
-  Future<Either<Failure, List<UserRecord>>> fetchByRole(String role) async {
+  Future<Either<Failure, List<UserRecord>>> fetchByRole(String role) => _fetch(
+    _firestore.collection(_collection).where(_roleField, isEqualTo: role),
+  );
+
+  Future<Either<Failure, List<UserRecord>>> fetchHostApplicants() => _fetch(
+    _firestore
+        .collection(_collection)
+        .where(_hostStatusField, isEqualTo: UserRecord.documentSubmitted),
+  );
+
+  Future<Either<Failure, List<UserRecord>>> _fetch(
+    Query<Map<String, dynamic>> query,
+  ) async {
     try {
-      final snapshot = await _firestore
-          .collection(_collection)
-          .where(_roleField, isEqualTo: role)
-          .get();
+      final snapshot = await query.get();
       final records = [
         for (final document in snapshot.docs)
           UserRecord.fromDocument(document.id, document.data()),
@@ -73,6 +83,58 @@ class UsersRemoteDataSource {
     } catch (_) {
       return left(const DataFailure(AppStrings.recordsSaveFailed));
     }
+  }
+
+  Future<Either<Failure, Unit>> reviewHostDocument(
+    String id, {
+    required String document,
+    required String status,
+  }) => _transact(
+    id,
+    (data) =>
+        UserRecord.hostDocumentReview(data, document: document, status: status),
+    refusedMessage: AppStrings.documentAlreadyReviewed,
+  );
+
+  Future<Either<Failure, Unit>> decideHostRequest(
+    String id, {
+    required bool approved,
+  }) => _transact(
+    id,
+    (data) => UserRecord.hostRequestDecision(data, approved: approved),
+    refusedMessage: AppStrings.hostRequestNotReady,
+  );
+
+  Future<Either<Failure, Unit>> _transact(
+    String id,
+    Map<String, Object?>? Function(Map<String, dynamic> data) buildUpdate, {
+    required String refusedMessage,
+  }) async {
+    final reference = _firestore.collection(_collection).doc(id);
+    Failure? refused;
+    try {
+      await _firestore.runTransaction((transaction) async {
+        final snapshot = await transaction.get(reference);
+        final data = snapshot.data();
+        final update = data == null ? null : buildUpdate(data);
+        if (update == null) {
+          refused = DataFailure(
+            data == null ? AppStrings.recordNotFound : refusedMessage,
+          );
+          return;
+        }
+        transaction.update(reference, {
+          ...update,
+          _updatedAtField: FieldValue.serverTimestamp(),
+        });
+      });
+    } on FirebaseException catch (error) {
+      return left(writeFailureForCode(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsSaveFailed));
+    }
+    final failure = refused;
+    return failure == null ? right(unit) : left(failure);
   }
 
   Future<Either<Failure, Unit>> setBlocked(
