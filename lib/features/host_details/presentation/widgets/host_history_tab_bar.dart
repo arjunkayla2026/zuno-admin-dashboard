@@ -1,0 +1,72 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:zuno_admin_dashboard/core/resources/images/app_images.dart';
+import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
+import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_underline_tabs.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_wallet_adjustment_dialog.dart';
+import 'package:zuno_admin_dashboard/features/host_details/presentation/state/host_details_cubit.dart';
+import 'package:zuno_admin_dashboard/features/host_details/presentation/state/host_details_state.dart';
+
+class HostHistoryTabBar extends StatelessWidget {
+  const HostHistoryTabBar({super.key});
+
+  static const double _walletIconSize = 16;
+  static const EdgeInsets _buttonPadding = EdgeInsets.symmetric(
+    horizontal: AppUtils.spacingMd,
+    vertical: AppUtils.spacingXs,
+  );
+
+  Future<void> _adjustWallet(BuildContext context) async {
+    final cubit = context.read<HostDetailsCubit>();
+    final adjustment = await showWalletAdjustmentDialog(
+      context: context,
+      walletBalance: cubit.state.host.walletBalance,
+    );
+    if (adjustment != null) cubit.adjustWallet(adjustment);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.watch<HostDetailsCubit>().state;
+
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        AppUnderlineTabs<HostDetailsTab>(
+          tabs: const {
+            HostDetailsTab.calls: AppStrings.callHistory,
+            HostDetailsTab.withdrawals: AppStrings.withdrawalHistory,
+            HostDetailsTab.wallet: AppStrings.walletHistory,
+          },
+          counts: {
+            HostDetailsTab.calls: state.calls.length,
+            HostDetailsTab.withdrawals: state.withdrawals.length,
+          },
+          value: state.tab,
+          onChanged: context.read<HostDetailsCubit>().selectTab,
+        ),
+        Padding(
+          padding: _buttonPadding,
+          child: AppSecondaryButton(
+            label: AppStrings.creditDebitWallet,
+            onPressed: () => _adjustWallet(context),
+            leading: SvgPicture.asset(
+              AppImages.paymentIcon,
+              width: _walletIconSize,
+              height: _walletIconSize,
+              colorFilter: ColorFilter.mode(
+                context.colorScheme.onSurface,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

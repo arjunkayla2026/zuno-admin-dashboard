@@ -8,11 +8,15 @@ class AppInitialsAvatar extends StatelessWidget {
     required this.initials,
     required this.color,
     this.size = 34,
+    this.borderRadius,
+    this.textStyle,
   });
 
   final String initials;
   final Color color;
   final double size;
+  final BorderRadius? borderRadius;
+  final TextStyle? textStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -20,10 +24,16 @@ class AppInitialsAvatar extends StatelessWidget {
       width: size,
       height: size,
       alignment: Alignment.center,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      decoration: BoxDecoration(
+        color: color,
+        shape: borderRadius == null ? BoxShape.circle : BoxShape.rectangle,
+        borderRadius: borderRadius,
+      ),
       child: Text(
         initials,
-        style: AppTextStyles.labelSmall.copyWith(color: AppColors.white),
+        style: (textStyle ?? AppTextStyles.labelSmall).copyWith(
+          color: AppColors.white,
+        ),
       ),
     );
   }

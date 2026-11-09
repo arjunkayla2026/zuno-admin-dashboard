@@ -13,17 +13,10 @@ class UserManagementCubit extends Cubit<UserManagementState> {
 
   void goToPage(int page) => emit(state.copyWith(page: page));
 
-  void blockUser(AdminUser user) => _setStatus(user, UserStatus.blocked);
-
-  void deleteUser(AdminUser user) =>
-      _setStatus(user, UserStatus.deletedByAdmin);
-
-  void _setStatus(AdminUser user, UserStatus status) {
+  void replaceUser(AdminUser replacement) {
     final users = [
       for (final current in state.users)
-        current.userId == user.userId
-            ? current.copyWith(status: status)
-            : current,
+        current.userId == replacement.userId ? replacement : current,
     ];
     final updated = state.copyWith(users: users);
     emit(

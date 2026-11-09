@@ -9,14 +9,15 @@ class AppSearchField extends StatelessWidget {
     super.key,
     required this.hint,
     required this.onChanged,
+    this.verticalPadding = 14,
   });
 
   static const double _iconSize = 16;
   static const double _iconSlotWidth = 34;
-  static const double _verticalPadding = 14;
 
   final String hint;
   final ValueChanged<String> onChanged;
+  final double verticalPadding;
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +37,7 @@ class AppSearchField extends StatelessWidget {
         hintStyle: AppTextStyles.bodySmall.copyWith(
           color: context.appColors.formFieldHint,
         ),
-        contentPadding: const EdgeInsets.symmetric(vertical: _verticalPadding),
+        contentPadding: EdgeInsets.symmetric(vertical: verticalPadding),
         prefixIcon: Icon(
           Icons.search_rounded,
           size: _iconSize,

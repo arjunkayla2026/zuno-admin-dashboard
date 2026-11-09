@@ -4,10 +4,10 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_date_field.dart';
 import 'package:zuno_admin_dashboard/features/dashboard/presentation/state/dashboard_cubit.dart';
 import 'package:zuno_admin_dashboard/features/dashboard/presentation/state/dashboard_state.dart';
 import 'package:zuno_admin_dashboard/features/dashboard/presentation/widgets/date_range_dropdown.dart';
-import 'package:zuno_admin_dashboard/features/dashboard/presentation/widgets/date_range_field.dart';
 
 class DateRangeControls extends StatelessWidget {
   const DateRangeControls({super.key});
@@ -31,7 +31,7 @@ class DateRangeControls extends StatelessWidget {
                 runSpacing: AppUtils.spacingSm,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  DateRangeField(
+                  AppDateField(
                     date: state.customStart,
                     lastDate: state.customEnd,
                     onChanged: cubit.setCustomStart,
@@ -42,7 +42,7 @@ class DateRangeControls extends StatelessWidget {
                       color: context.appColors.textSecondary,
                     ),
                   ),
-                  DateRangeField(
+                  AppDateField(
                     date: state.customEnd,
                     firstDate: state.customStart,
                     onChanged: cubit.setCustomEnd,

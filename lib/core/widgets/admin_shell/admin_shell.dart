@@ -12,19 +12,26 @@ class AdminShell extends StatelessWidget {
     required this.userRole,
     required this.userInitials,
     required this.child,
+    this.selectedSubItem,
     this.title,
+    this.breadcrumb,
+    this.onSubItemSelected,
+    this.topBarNotice,
   });
 
   final AdminNavItem selectedItem;
+  final ValueChanged<AdminSubNavItem>? onSubItemSelected;
+  final AdminSubNavItem? selectedSubItem;
   final String userName;
   final String userRole;
   final String userInitials;
   final Widget child;
   final String? title;
+  final List<String>? breadcrumb;
+  final Widget? topBarNotice;
 
-  void _navigate(BuildContext context, AdminNavItem item) {
-    final route = item.route;
-    if (route == null || item == selectedItem) return;
+  void _navigate(BuildContext context, String? route) {
+    if (route == null || ModalRoute.of(context)?.settings.name == route) return;
     Navigator.of(context).pushReplacementNamed(route);
   }
 
@@ -32,9 +39,12 @@ class AdminShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final sidebar = AdminSidebar(
       selectedItem: selectedItem,
+      selectedSubItem: selectedSubItem,
       userName: userName,
       userRole: userRole,
-      onItemSelected: (item) => _navigate(context, item),
+      onItemSelected: (item) => _navigate(context, item.route),
+      onSubItemSelected:
+          onSubItemSelected ?? (item) => _navigate(context, item.route),
     );
     final isDesktop = AppUtils.isDesktop(context);
 
@@ -56,6 +66,8 @@ class AdminShell extends StatelessWidget {
                     userRole: userRole,
                     userInitials: userInitials,
                     title: title,
+                    breadcrumb: breadcrumb,
+                    notice: topBarNotice,
                     onMenuPressed: isDesktop
                         ? null
                         : () => Scaffold.of(context).openDrawer(),

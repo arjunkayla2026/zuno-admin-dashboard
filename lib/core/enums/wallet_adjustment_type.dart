@@ -1,0 +1,1 @@
+enum WalletAdjustmentType { credit, debit }

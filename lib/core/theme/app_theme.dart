@@ -15,6 +15,7 @@ abstract final class AppTheme {
   static const double radiusMenu = 20;
   static const double radiusLarge = 24;
   static const double buttonHeight = 50;
+  static const double compactButtonHeight = 38;
 
   static ThemeData get light => _build(
     colorScheme: const ColorScheme(

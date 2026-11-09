@@ -1,3 +1,5 @@
+import 'package:zuno_admin_dashboard/core/utils/name_formatter.dart';
+
 enum UserStatus { active, newUser, blocked, deletedByAdmin, deletedByUser }
 
 class AdminUser {
@@ -26,13 +28,25 @@ class AdminUser {
   bool get hasActions =>
       status != UserStatus.deletedByAdmin && status != UserStatus.deletedByUser;
 
-  AdminUser copyWith({UserStatus? status}) {
+  AdminUser withEditedDetails({required String name, required String phone}) =>
+      copyWith(
+        name: name,
+        initials: NameFormatter.initials(name),
+        phone: phone,
+      );
+
+  AdminUser copyWith({
+    String? name,
+    String? initials,
+    String? phone,
+    UserStatus? status,
+  }) {
     return AdminUser(
       createdDate: createdDate,
-      name: name,
-      initials: initials,
+      name: name ?? this.name,
+      initials: initials ?? this.initials,
       userId: userId,
-      phone: phone,
+      phone: phone ?? this.phone,
       recharges: recharges,
       walletBalance: walletBalance,
       status: status ?? this.status,

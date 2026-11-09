@@ -30,6 +30,7 @@ abstract final class AppColors {
 
   static const Color pendingBadge = Color(0xFFFFF0D6);
   static const Color pendingText = Color(0xFFA86200);
+  static const Color pendingBorder = Color(0xFFF2D9A8);
 
   static const Color errorBadge = Color(0xFFFBE5E5);
   static const Color errorText = Color(0xFFC3343A);
@@ -81,6 +82,10 @@ abstract final class AppColors {
 
   static const Color modalScrim = Color(0x6B0D1624);
   static const Color menuText = Color(0xFF202020);
+  static const Color iconTileBackground = Color(0xFFFFF7D1);
+  static const Color selectedOption = sidebarBackground;
+  static const Color segmentText = Color(0xFF3B475C);
+  static const Color dialogMessage = Color(0xFF4B5668);
   static const Color tableActionIcon = Color(0xFF64748B);
   static const Color tableMutedText = Color(0xFFAEB1BA);
   static const Color formFieldReadOnly = Color(0xFFF4F6F9);
@@ -101,9 +106,14 @@ abstract final class AppColors {
   static const Color tealGradientStart = Color(0xFF0E5C66);
   static const Color tealGradientEnd = sidebarBackground;
 
+  static const Color bannerCircle = Color(0x1AFFFFFF);
+  static const Color bannerSubheading = Color(0xD9FFFFFF);
+
   static const Color cardShadow = Color(0x0F17243A);
   static const Color popoverShadow = Color(0x241F2430);
-  static const Color menuShadow = Color(0x2E0D1624);
+  static const Color menuShadow = Color(0x4D0D1624);
+  static const Color sheetShadow = Color(0x400D1624);
+  static const Color dialogShadow = Color(0x4D0D1624);
 
   static const Color darkBackground = Color(0xFF111318);
   static const Color darkSurface = Color(0xFF1B1E25);
@@ -154,8 +164,16 @@ abstract final class AppColors {
     BoxShadow(color: cardShadow, offset: Offset(0, 2), blurRadius: 12),
   ];
 
+  static const List<BoxShadow> sheetShadows = [
+    BoxShadow(color: sheetShadow, offset: Offset(-12, 0), blurRadius: 60),
+  ];
+
+  static const List<BoxShadow> dialogShadows = [
+    BoxShadow(color: dialogShadow, offset: Offset(0, 16), blurRadius: 48),
+  ];
+
   static const List<BoxShadow> menuShadows = [
-    BoxShadow(color: menuShadow, offset: Offset(0, 12), blurRadius: 40),
+    BoxShadow(color: menuShadow, offset: Offset(0, 16), blurRadius: 48),
   ];
 
   static const List<BoxShadow> popoverShadows = [

@@ -5,8 +5,7 @@ import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
-import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
-import 'package:zuno_admin_dashboard/core/widgets/app_pagination.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_table_footer.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_management_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_management_state.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/widgets/user_table.dart';
@@ -14,7 +13,6 @@ import 'package:zuno_admin_dashboard/features/user_management/presentation/widge
 class UserTableCard extends StatelessWidget {
   const UserTableCard({super.key});
 
-  static const double _footerHeight = 50;
   static const double _emptyHeight = 160;
 
   @override
@@ -22,7 +20,6 @@ class UserTableCard extends StatelessWidget {
     return BlocBuilder<UserManagementCubit, UserManagementState>(
       builder: (context, state) {
         final users = state.pageUsers;
-        final total = state.filteredUsers.length;
 
         return Container(
           clipBehavior: Clip.antiAlias,
@@ -48,36 +45,13 @@ class UserTableCard extends StatelessWidget {
                   ),
                 )
               else
-                Container(
-                  constraints: const BoxConstraints(minHeight: _footerHeight),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppUtils.spacingLg,
-                    vertical: AppUtils.spacingSm,
-                  ),
-                  child: Wrap(
-                    alignment: WrapAlignment.spaceBetween,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    runSpacing: AppUtils.spacingSm,
-                    children: [
-                      Text(
-                        AppStrings.showingRange(
-                          state.firstIndex + 1,
-                          state.firstIndex + users.length,
-                          total,
-                        ),
-                        style: AppTextStyles.tableFootnote.copyWith(
-                          color: context.appColors.textSecondary,
-                        ),
-                      ),
-                      AppPagination(
-                        currentPage: state.page,
-                        totalPages: state.totalPages,
-                        onPageChanged: context
-                            .read<UserManagementCubit>()
-                            .goToPage,
-                      ),
-                    ],
-                  ),
+                AppTableFooter(
+                  firstIndex: state.firstIndex,
+                  shownCount: users.length,
+                  totalCount: state.filteredUsers.length,
+                  currentPage: state.page,
+                  totalPages: state.totalPages,
+                  onPageChanged: context.read<UserManagementCubit>().goToPage,
                 ),
             ],
           ),
