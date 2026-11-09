@@ -606,6 +606,36 @@ abstract final class AppStrings {
   static const String enterValidEmail = 'Enter a valid email.';
   static const String enterValidPhone = 'Enter a valid phone number.';
   static const String chooseModule = 'Choose at least one module.';
+  static const String adminEmailExists =
+      'An admin with this email already exists.';
+  static const String adminPasswordHelper =
+      'At least 12 characters. Share it with the admin so they can sign in. '
+      'If this email already has a login, its current password is kept.';
+  static const String editAdminPasswordHelper =
+      'Optional. Creates a login with this password if the admin does not '
+      'have one yet. Leave blank to keep their current login.';
+  static const String adminLoginExists =
+      'This admin already has a login, and its password cannot be changed '
+      'here. Clear the password field to save the other changes.';
+  static const String passwordTooShort = 'Use at least 12 characters.';
+  static const String adminLoginWeakPassword =
+      'This password was rejected. Choose a stronger one.';
+  static const String adminLoginsDisabled =
+      'Email and password sign-in is turned off for this project.';
+  static const String adminLoginCreateFailed =
+      'Could not create the login for this admin. Try again.';
+  static const String noAdminsTitle = 'No admins yet';
+  static const String noAdminsMessage =
+      'Add a team member to give them access to the admin panel.';
+  static const String superAdminsManageAdmins =
+      'Only super admins can add or edit admins.';
+  static const String noModuleAccessTitle = 'No access to this module';
+  static const String noModuleAccessMessage =
+      'Your account does not have permission to open this module. Ask a '
+      'super admin to update your permissions in Settings.';
+  static const String loginNoAccess =
+      'This account has not been given access to the admin panel. Ask a '
+      'super admin to add you in Settings > Admin Management.';
   static const String sendTo = 'Send to';
   static const String userAudience = 'User';
   static const String hostAudience = 'Host';

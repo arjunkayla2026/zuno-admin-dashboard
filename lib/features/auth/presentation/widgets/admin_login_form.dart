@@ -6,7 +6,7 @@ import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_error_banner.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_labeled_text_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
-import 'package:zuno_admin_dashboard/features/auth/presentation/widgets/password_visibility_toggle.dart';
+import 'package:zuno_admin_dashboard/core/widgets/password_visibility_toggle.dart';
 
 class AdminLoginForm extends StatefulWidget {
   const AdminLoginForm({

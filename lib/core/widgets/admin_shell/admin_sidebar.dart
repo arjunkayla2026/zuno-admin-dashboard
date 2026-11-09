@@ -14,6 +14,7 @@ class AdminSidebar extends StatelessWidget {
     required this.selectedItem,
     required this.userName,
     required this.userRole,
+    this.items = AdminNavItem.values,
     this.selectedSubItem,
     this.onItemSelected,
     this.onSubItemSelected,
@@ -28,6 +29,7 @@ class AdminSidebar extends StatelessWidget {
   static const double _brandTop = 23;
   static const double _brandBottom = 24;
 
+  final List<AdminNavItem> items;
   final AdminNavItem selectedItem;
   final String userName;
   final String userRole;
@@ -81,10 +83,10 @@ class AdminSidebar extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(
                   horizontal: _horizontalInset,
                 ),
-                itemCount: AdminNavItem.values.length,
+                itemCount: items.length,
                 separatorBuilder: (_, _) => const SizedBox(height: _tileGap),
                 itemBuilder: (_, index) {
-                  final item = AdminNavItem.values[index];
+                  final item = items[index];
                   final selected = item == selectedItem;
                   final tile = AdminSidebarTile(
                     item: item,

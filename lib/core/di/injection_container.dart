@@ -1,11 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
+import 'package:zuno_admin_dashboard/core/data/admins_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/repositories/approval_repository.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/state/approval_cubit.dart';
 import 'package:zuno_admin_dashboard/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/auth/data/repositories/auth_repository.dart';
+import 'package:zuno_admin_dashboard/features/auth/presentation/state/admin_session_cubit.dart';
 import 'package:zuno_admin_dashboard/features/auth/presentation/state/auth_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/repositories/host_management_repository.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/host_actions_cubit.dart';
@@ -13,6 +15,8 @@ import 'package:zuno_admin_dashboard/features/host_management/presentation/state
 import 'package:zuno_admin_dashboard/features/packages/data/datasources/packages_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/packages/data/repositories/packages_repository.dart';
 import 'package:zuno_admin_dashboard/features/packages/presentation/state/packages_cubit.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/repositories/settings_repository.dart';
+import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/repositories/user_management_repository.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_actions_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_management_cubit.dart';
@@ -24,10 +28,25 @@ void configureDependencies() {
     ..registerLazySingleton<AuthRemoteDataSource>(
       () => AuthRemoteDataSource(FirebaseAuth.instance),
     )
+    ..registerLazySingleton<AdminsRemoteDataSource>(
+      () => AdminsRemoteDataSource(FirebaseFirestore.instance),
+    )
     ..registerLazySingleton<AuthRepository>(
-      () => AuthRepository(getIt<AuthRemoteDataSource>()),
+      () => AuthRepository(
+        getIt<AuthRemoteDataSource>(),
+        getIt<AdminsRemoteDataSource>(),
+      ),
     )
     ..registerFactory<AuthCubit>(() => AuthCubit(getIt<AuthRepository>()))
+    ..registerFactory<AdminSessionCubit>(
+      () => AdminSessionCubit(getIt<AuthRepository>()),
+    )
+    ..registerLazySingleton<SettingsRepository>(
+      () => SettingsRepository(getIt<AdminsRemoteDataSource>()),
+    )
+    ..registerFactory<SettingsCubit>(
+      () => SettingsCubit(getIt<SettingsRepository>()),
+    )
     ..registerLazySingleton<UsersRemoteDataSource>(
       () => UsersRemoteDataSource(FirebaseFirestore.instance),
     )

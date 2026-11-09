@@ -7,19 +7,22 @@ import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_nav_item.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_choice_chips.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_error_banner.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_field_row.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_labeled_dropdown_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_labeled_text_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_read_only_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_side_sheet.dart';
-import 'package:zuno_admin_dashboard/features/settings/data/models/admin_account.dart';
-import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/admin_labels.dart';
+import 'package:zuno_admin_dashboard/core/widgets/password_visibility_toggle.dart';
+import 'package:zuno_admin_dashboard/core/data/admin_account.dart';
 
 class AdminSheet extends StatefulWidget {
-  const AdminSheet({super.key, this.admin});
+  const AdminSheet({super.key, this.admin, required this.onSave});
 
   final AdminAccount? admin;
+  final Future<String?> Function(AdminAccount admin, String? password) onSave;
 
   @override
   State<AdminSheet> createState() => _AdminSheetState();
@@ -40,9 +43,13 @@ class _AdminSheetState extends State<AdminSheet> {
   late final _phoneController = TextEditingController(
     text: widget.admin?.phone ?? '',
   );
+  final _passwordController = TextEditingController();
+  bool _obscurePassword = true;
   late AdminRole _role = widget.admin?.role ?? AdminRole.supportAdmin;
   late Set<AdminNavItem> _modules = {...?widget.admin?.modules};
   bool _submitted = false;
+  bool _saving = false;
+  String? _errorMessage;
 
   bool get _nameValid => _nameController.text.trim().isNotEmpty;
 
@@ -52,29 +59,58 @@ class _AdminSheetState extends State<AdminSheet> {
       _phoneController.text.replaceAll(RegExp(r'[^0-9]'), '').length >=
       _minPhoneDigits;
 
+  bool get _isAdding => widget.admin == null;
+
+  String get _password => _passwordController.text;
+
+  bool get _passwordValid =>
+      (!_isAdding && _password.isEmpty) ||
+      _password.length >= AdminAccount.minPasswordLength;
+
   bool get _modulesValid =>
       _role == AdminRole.superAdmin || _modules.isNotEmpty;
 
   String? _error(bool valid, String message) =>
       _submitted && !valid ? message : null;
 
-  void _save() {
-    if (!_nameValid || !_emailValid || !_phoneValid || !_modulesValid) {
+  Future<void> _save() async {
+    if (!_nameValid ||
+        !_emailValid ||
+        !_phoneValid ||
+        !_passwordValid ||
+        !_modulesValid) {
       setState(() => _submitted = true);
       return;
     }
-    Navigator.of(context).pop(
-      AdminAccount(
-        name: _nameController.text.trim(),
-        email: _emailController.text.trim(),
-        role: _role,
-        phone: _phoneController.text.trim(),
-        modules: [
-          for (final item in AdminNavItem.values)
-            if (_modules.contains(item)) item,
-        ],
-      ),
+    final admin = AdminAccount(
+      name: _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      role: _role,
+      phone: _phoneController.text.trim(),
+      modules: [
+        for (final item in AdminNavItem.values)
+          if (_modules.contains(item)) item,
+      ],
+      createdAt: widget.admin?.createdAt,
     );
+    setState(() {
+      _saving = true;
+      _errorMessage = null;
+    });
+
+    final error = await widget.onSave(
+      admin,
+      _password.isEmpty ? null : _password,
+    );
+    if (!mounted) return;
+    if (error == null) {
+      Navigator.of(context).pop(admin);
+      return;
+    }
+    setState(() {
+      _saving = false;
+      _errorMessage = error;
+    });
   }
 
   @override
@@ -82,6 +118,7 @@ class _AdminSheetState extends State<AdminSheet> {
     _nameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -113,16 +150,21 @@ class _AdminSheetState extends State<AdminSheet> {
           ),
           const SizedBox(height: _fieldGap),
           AppFieldRow(
-            first: AppLabeledTextField(
-              label: AppStrings.email,
-              labelStyle: formLabel,
-              hint: '',
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-              errorText: _error(_emailValid, AppStrings.enterValidEmail),
-              onChanged: (_) => setState(() {}),
-            ),
+            first: isEditing
+                ? AppReadOnlyField(
+                    label: AppStrings.email,
+                    value: _emailController.text,
+                  )
+                : AppLabeledTextField(
+                    label: AppStrings.email,
+                    labelStyle: formLabel,
+                    hint: '',
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    textInputAction: TextInputAction.next,
+                    errorText: _error(_emailValid, AppStrings.enterValidEmail),
+                    onChanged: (_) => setState(() {}),
+                  ),
             second: AppLabeledTextField(
               label: AppStrings.phoneNumber,
               labelStyle: formLabel,
@@ -137,13 +179,37 @@ class _AdminSheetState extends State<AdminSheet> {
             ),
           ),
           const SizedBox(height: _fieldGap),
+          AppLabeledTextField(
+            label: AppStrings.password,
+            labelStyle: formLabel,
+            hint: '',
+            controller: _passwordController,
+            obscureText: _obscurePassword,
+            autofillHints: const [AutofillHints.newPassword],
+            textInputAction: TextInputAction.next,
+            errorText: _error(_passwordValid, AppStrings.passwordTooShort),
+            onChanged: (_) => setState(() {}),
+            suffix: PasswordVisibilityToggle(
+              obscured: _obscurePassword,
+              onPressed: () =>
+                  setState(() => _obscurePassword = !_obscurePassword),
+            ),
+          ),
+          const SizedBox(height: _helperGap),
+          Text(
+            _isAdding
+                ? AppStrings.adminPasswordHelper
+                : AppStrings.editAdminPasswordHelper,
+            style: AppTextStyles.captionSmall.copyWith(color: muted),
+          ),
+          const SizedBox(height: _fieldGap),
           AppLabeledDropdownField<AdminRole>(
             label: AppStrings.role,
             labelStyle: formLabel,
             hint: AppStrings.role,
             value: _role,
             options: AdminRole.values,
-            labelOf: (role) => AdminLabels.role(role).$1,
+            labelOf: (role) => role.label,
             onChanged: (role) {
               if (role != null) setState(() => _role = role);
             },
@@ -172,6 +238,10 @@ class _AdminSheetState extends State<AdminSheet> {
               ),
             ),
           ],
+          if (_errorMessage case final message?) ...[
+            const SizedBox(height: _fieldGap),
+            AppErrorBanner(message: message),
+          ],
         ],
       ),
       footer: Wrap(
@@ -183,9 +253,9 @@ class _AdminSheetState extends State<AdminSheet> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           AppPrimaryButton(
-            label: AppStrings.saveAdmin,
+            label: _saving ? AppStrings.saving : AppStrings.saveAdmin,
             compact: true,
-            onPressed: _save,
+            onPressed: _saving ? null : _save,
           ),
         ],
       ),

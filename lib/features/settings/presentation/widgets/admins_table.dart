@@ -9,13 +9,13 @@ import 'package:zuno_admin_dashboard/core/widgets/app_data_table.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_initials_avatar.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_status_badge.dart';
-import 'package:zuno_admin_dashboard/features/settings/data/models/admin_account.dart';
+import 'package:zuno_admin_dashboard/core/data/admin_account.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/admin_flow.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/admin_labels.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/admin_permission_tag.dart';
 
 class AdminsTable extends StatelessWidget {
-  const AdminsTable({super.key, required this.admins});
+  const AdminsTable({super.key, required this.admins, this.canManage = false});
 
   static const double _avatarSize = 26;
   static const double _avatarGap = 8;
@@ -32,6 +32,7 @@ class AdminsTable extends StatelessWidget {
   ];
 
   final List<AdminAccount> admins;
+  final bool canManage;
 
   Widget _nameCell(BuildContext context, AdminAccount admin) {
     return Row(
@@ -94,17 +95,20 @@ class AdminsTable extends StatelessWidget {
             }(),
             Text(admin.phone, style: mono),
             _permissions(admin),
-            AppSecondaryButton(
-              label: AppStrings.edit,
-              small: true,
-              leading: SvgPicture.asset(
-                AppImages.editIcon,
-                width: _editIconSize,
-                height: _editIconSize,
-                colorFilter: ColorFilter.mode(textColor, BlendMode.srcIn),
-              ),
-              onPressed: () => openAdminSheet(context, admin: admin),
-            ),
+            if (canManage)
+              AppSecondaryButton(
+                label: AppStrings.edit,
+                small: true,
+                leading: SvgPicture.asset(
+                  AppImages.editIcon,
+                  width: _editIconSize,
+                  height: _editIconSize,
+                  colorFilter: ColorFilter.mode(textColor, BlendMode.srcIn),
+                ),
+                onPressed: () => openAdminSheet(context, admin: admin),
+              )
+            else
+              const SizedBox.shrink(),
           ],
       ],
     );

@@ -32,6 +32,15 @@ class AuthRemoteDataSource {
     return unit;
   });
 
+  Future<Either<Failure, ({String email, String? displayName})?>>
+  restoreSession() => _guard(() async {
+    final user = await _auth.authStateChanges().first;
+    final email = user?.email;
+    return email == null
+        ? null
+        : (email: email, displayName: user?.displayName);
+  });
+
   Future<Either<Failure, bool>> isCurrentUserAdmin() => _guard(() async {
     final token = await _auth.currentUser?.getIdTokenResult();
     return token?.claims?[_adminClaim] == true;

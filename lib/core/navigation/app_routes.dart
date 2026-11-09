@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_nav_item.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/pages/approval_page.dart';
 import 'package:zuno_admin_dashboard/features/auth/presentation/pages/admin_login_page.dart';
+import 'package:zuno_admin_dashboard/features/auth/presentation/widgets/admin_access_gate.dart';
 import 'package:zuno_admin_dashboard/features/call_details/presentation/pages/call_details_page.dart';
 import 'package:zuno_admin_dashboard/features/calls/presentation/pages/calls_page.dart';
 import 'package:zuno_admin_dashboard/features/dashboard/presentation/pages/dashboard_page.dart';
@@ -34,19 +36,31 @@ abstract final class AppRoutes {
 
   static final Map<String, WidgetBuilder> routes = {
     login: (_) => const AdminLoginPage(),
-    dashboard: (_) => const DashboardPage(),
-    userManagement: (_) => const UserManagementPage(),
-    userDetails: (_) => const UserDetailsPage(),
-    hostManagement: (_) => const HostManagementPage(),
-    hostDetails: (_) => const HostDetailsPage(),
-    surgeChargeSessions: (_) => const SurgeChargeSessionsPage(),
-    calls: (_) => const CallsPage(),
-    callDetails: (_) => const CallDetailsPage(),
-    approval: (_) => const ApprovalPage(),
-    reports: (_) => const ReportsPage(),
-    packages: (_) => const PackagesPage(),
-    recharge: (_) => const RechargePage(),
-    payment: (_) => const PaymentPage(),
-    settings: (_) => const SettingsPage(),
+    dashboard: _gated(AdminNavItem.dashboard, const DashboardPage()),
+    userManagement: _gated(
+      AdminNavItem.userManagement,
+      const UserManagementPage(),
+    ),
+    userDetails: _gated(AdminNavItem.userManagement, const UserDetailsPage()),
+    hostManagement: _gated(
+      AdminNavItem.hostManagement,
+      const HostManagementPage(),
+    ),
+    hostDetails: _gated(AdminNavItem.hostManagement, const HostDetailsPage()),
+    surgeChargeSessions: _gated(
+      AdminNavItem.hostManagement,
+      const SurgeChargeSessionsPage(),
+    ),
+    calls: _gated(AdminNavItem.calls, const CallsPage()),
+    callDetails: _gated(AdminNavItem.calls, const CallDetailsPage()),
+    approval: _gated(AdminNavItem.approval, const ApprovalPage()),
+    reports: _gated(AdminNavItem.reports, const ReportsPage()),
+    packages: _gated(AdminNavItem.packages, const PackagesPage()),
+    recharge: _gated(AdminNavItem.recharge, const RechargePage()),
+    payment: _gated(AdminNavItem.payment, const PaymentPage()),
+    settings: _gated(AdminNavItem.settings, const SettingsPage()),
   };
+
+  static WidgetBuilder _gated(AdminNavItem module, Widget page) =>
+      (_) => AdminAccessGate(module: module, child: page);
 }

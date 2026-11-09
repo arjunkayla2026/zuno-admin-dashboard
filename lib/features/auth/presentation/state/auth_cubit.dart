@@ -27,7 +27,8 @@ class AuthCubit extends Cubit<AuthState> {
 
     result.match(
       (failure) => _fail(failure.message),
-      (_) => emit(const AuthState(status: AuthStatus.success)),
+      (account) =>
+          emit(AuthState(status: AuthStatus.success, account: account)),
     );
   }
 

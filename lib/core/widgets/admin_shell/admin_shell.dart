@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zuno_admin_dashboard/core/data/admin_account.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_nav_item.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_sidebar.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_top_bar.dart';
+import 'package:zuno_admin_dashboard/features/auth/presentation/state/admin_session_cubit.dart';
 
 class AdminShell extends StatelessWidget {
   const AdminShell({
@@ -37,11 +40,18 @@ class AdminShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final account = context.select<AdminSessionCubit, AdminAccount?>(
+      (cubit) => cubit.state.account,
+    );
+    final name = account?.name ?? userName;
+    final role = account?.role.label ?? userRole;
+    final initials = account?.initials ?? userInitials;
     final sidebar = AdminSidebar(
+      items: account?.accessibleModules ?? AdminNavItem.values,
       selectedItem: selectedItem,
       selectedSubItem: selectedSubItem,
-      userName: userName,
-      userRole: userRole,
+      userName: name,
+      userRole: role,
       onItemSelected: (item) => _navigate(context, item.route),
       onSubItemSelected:
           onSubItemSelected ?? (item) => _navigate(context, item.route),
@@ -62,9 +72,9 @@ class AdminShell extends StatelessWidget {
               children: [
                 Builder(
                   builder: (context) => AdminTopBar(
-                    userName: userName,
-                    userRole: userRole,
-                    userInitials: userInitials,
+                    userName: name,
+                    userRole: role,
+                    userInitials: initials,
                     title: title,
                     breadcrumb: breadcrumb,
                     notice: topBarNotice,
