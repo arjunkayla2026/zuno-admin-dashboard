@@ -1,3 +1,4 @@
+import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/models/admin_host.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/models/call_pricing.dart';
 
@@ -7,6 +8,8 @@ class HostManagementState {
   const HostManagementState({
     required this.hosts,
     required this.pricing,
+    this.status = LoadStatus.loaded,
+    this.errorMessage,
     this.filter = HostFilter.today,
     this.query = '',
     this.page = 1,
@@ -16,6 +19,8 @@ class HostManagementState {
 
   final List<AdminHost> hosts;
   final CallPricing pricing;
+  final LoadStatus status;
+  final String? errorMessage;
   final HostFilter filter;
   final String query;
   final int page;
@@ -57,6 +62,8 @@ class HostManagementState {
   HostManagementState copyWith({
     List<AdminHost>? hosts,
     CallPricing? pricing,
+    LoadStatus? status,
+    String? errorMessage,
     HostFilter? filter,
     String? query,
     int? page,
@@ -64,6 +71,8 @@ class HostManagementState {
     return HostManagementState(
       hosts: hosts ?? this.hosts,
       pricing: pricing ?? this.pricing,
+      status: status ?? this.status,
+      errorMessage: errorMessage ?? this.errorMessage,
       filter: filter ?? this.filter,
       query: query ?? this.query,
       page: page ?? this.page,

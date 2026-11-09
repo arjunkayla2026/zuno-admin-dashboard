@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_action_menu.dart';
@@ -6,6 +7,7 @@ import 'package:zuno_admin_dashboard/core/widgets/app_confirm_dialog.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_side_sheet.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_success_dialog.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
+import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_actions_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/widgets/edit_user_sheet.dart';
 
 Future<void> runUserAction({
@@ -17,8 +19,23 @@ Future<void> runUserAction({
   return switch (action) {
     AppMenuAction.edit => _editUser(context, user, onUserChanged),
     AppMenuAction.block => _confirmBlock(context, user, onUserChanged),
+    AppMenuAction.unblock => _confirmUnblock(context, user, onUserChanged),
     AppMenuAction.delete => _confirmDelete(context, user, onUserChanged),
   };
+}
+
+Future<void> _persist(
+  BuildContext context,
+  Future<String?> Function(UserActionsCubit actions) write,
+  VoidCallback onSaved,
+) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final error = await write(context.read<UserActionsCubit>());
+  if (error != null) {
+    messenger.showSnackBar(SnackBar(content: Text(error)));
+  } else if (context.mounted) {
+    onSaved();
+  }
 }
 
 Future<void> _confirmBlock(
@@ -33,7 +50,35 @@ Future<void> _confirmBlock(
     message: const TextSpan(text: AppStrings.blockUserMessage),
     confirmLabel: AppStrings.blockUserAction,
   );
-  if (confirmed) onUserChanged(user.copyWith(status: UserStatus.blocked));
+  if (!confirmed || !context.mounted) return;
+
+  await _persist(
+    context,
+    (actions) => actions.setBlocked(user, blocked: true),
+    () => onUserChanged(user.copyWith(status: UserStatus.blocked)),
+  );
+}
+
+Future<void> _confirmUnblock(
+  BuildContext context,
+  AdminUser user,
+  ValueChanged<AdminUser> onUserChanged,
+) async {
+  final confirmed = await showAppConfirmDialog(
+    context: context,
+    icon: Icons.lock_open_rounded,
+    title: AppStrings.unblockUserTitle(user.name),
+    message: const TextSpan(text: AppStrings.unblockUserMessage),
+    confirmLabel: AppStrings.unblockUserAction,
+    positive: true,
+  );
+  if (!confirmed || !context.mounted) return;
+
+  await _persist(
+    context,
+    (actions) => actions.setBlocked(user, blocked: false),
+    () => onUserChanged(user.copyWith(status: UserStatus.active)),
+  );
 }
 
 Future<void> _confirmDelete(
@@ -60,9 +105,13 @@ Future<void> _confirmDelete(
     ),
     confirmLabel: AppStrings.deleteAccountAction,
   );
-  if (confirmed) {
-    onUserChanged(user.copyWith(status: UserStatus.deletedByAdmin));
-  }
+  if (!confirmed || !context.mounted) return;
+
+  await _persist(
+    context,
+    (actions) => actions.delete(user),
+    () => onUserChanged(user.copyWith(status: UserStatus.deletedByAdmin)),
+  );
 }
 
 Future<void> _editUser(
@@ -70,14 +119,18 @@ Future<void> _editUser(
   AdminUser user,
   ValueChanged<AdminUser> onUserChanged,
 ) async {
+  final actions = context.read<UserActionsCubit>();
   final edited = await showAppSideSheet<EditedUser>(
     context: context,
-    builder: (_) => EditUserSheet(user: user),
+    builder: (_) => EditUserSheet(
+      user: user,
+      onSave: (edited) =>
+          actions.saveDetails(user, name: edited.name, phone: edited.phone),
+    ),
   );
-  if (edited == null) return;
+  if (edited == null || !context.mounted) return;
 
   onUserChanged(user.withEditedDetails(name: edited.name, phone: edited.phone));
-  if (!context.mounted) return;
 
   await showAppSuccessDialog(
     context: context,

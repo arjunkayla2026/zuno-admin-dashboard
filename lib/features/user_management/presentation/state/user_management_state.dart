@@ -1,3 +1,4 @@
+import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
 
 enum UserFilter { all, newUsers, blocked, deletedByAdmin, deletedByUser }
@@ -5,6 +6,8 @@ enum UserFilter { all, newUsers, blocked, deletedByAdmin, deletedByUser }
 class UserManagementState {
   const UserManagementState({
     required this.users,
+    this.status = LoadStatus.loaded,
+    this.errorMessage,
     this.filter = UserFilter.all,
     this.query = '',
     this.page = 1,
@@ -13,6 +16,8 @@ class UserManagementState {
   static const int pageSize = 12;
 
   final List<AdminUser> users;
+  final LoadStatus status;
+  final String? errorMessage;
   final UserFilter filter;
   final String query;
   final int page;
@@ -49,12 +54,16 @@ class UserManagementState {
 
   UserManagementState copyWith({
     List<AdminUser>? users,
+    LoadStatus? status,
+    String? errorMessage,
     UserFilter? filter,
     String? query,
     int? page,
   }) {
     return UserManagementState(
       users: users ?? this.users,
+      status: status ?? this.status,
+      errorMessage: errorMessage ?? this.errorMessage,
       filter: filter ?? this.filter,
       query: query ?? this.query,
       page: page ?? this.page,

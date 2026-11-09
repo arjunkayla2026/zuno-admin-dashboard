@@ -14,6 +14,7 @@ class AdminHost {
     required this.status,
     required this.avatarIndex,
     this.isNew = false,
+    this.isAccountActive = true,
     this.dateOfBirth,
     this.district = '',
     this.state = '',
@@ -33,6 +34,7 @@ class AdminHost {
   final HostStatus status;
   final int avatarIndex;
   final bool isNew;
+  final bool isAccountActive;
   final DateTime? dateOfBirth;
   final String district;
   final String state;
@@ -70,6 +72,7 @@ class AdminHost {
       status: status ?? this.status,
       avatarIndex: avatarIndex,
       isNew: isNew,
+      isAccountActive: isAccountActive,
       dateOfBirth: dateOfBirth ?? this.dateOfBirth,
       district: district ?? this.district,
       state: state ?? this.state,

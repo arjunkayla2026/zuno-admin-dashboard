@@ -12,7 +12,6 @@ import 'package:zuno_admin_dashboard/core/widgets/app_status_badge.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/host_request.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/widgets/host_request_flow.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/widgets/host_request_labels.dart';
-import 'package:zuno_admin_dashboard/features/host_management/presentation/widgets/host_profile_labels.dart';
 
 class HostRequestsTable extends StatelessWidget {
   const HostRequestsTable({super.key, required this.requests});
@@ -64,9 +63,9 @@ class HostRequestsTable extends StatelessWidget {
               ),
               Text(request.nickName, style: cell),
               Text(request.phone, style: mono),
-              Text(DateFormatter.short(request.dateOfBirth), style: cell),
+              Text(HostRequestLabels.dateOfBirth(request), style: cell),
               Text(request.city, style: cell),
-              Text(HostProfileLabels.gender(request.gender), style: cell),
+              Text(HostRequestLabels.gender(request), style: cell),
               Text(HostRequestLabels.languages(request), style: cell),
               AppStatusBadge(label: statusLabel, status: status),
               if (request.isPending)

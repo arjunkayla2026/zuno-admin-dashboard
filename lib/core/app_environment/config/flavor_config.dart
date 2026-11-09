@@ -5,7 +5,7 @@ import 'package:zuno_admin_dashboard/core/app_environment/config/firebase_option
 import 'package:zuno_admin_dashboard/core/enums/app_environment.dart';
 
 class FlavorConfig {
-  Environment environment;
+  final Environment environment;
 
   static FlavorConfig? _instance;
 

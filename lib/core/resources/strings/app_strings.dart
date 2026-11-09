@@ -388,21 +388,11 @@ abstract final class AppStrings {
   static const String approved = 'Approved';
   static const String noHostRequests = 'No host requests found';
   static const String hostRequest = 'Host request';
-  static const String aadhaarCardImage = 'Aadhaar Card Image';
-  static const String selfieUpload = 'Selfie Upload';
   static const String reject = 'Reject';
   static const String approve = 'Approve';
   static const String view = 'View';
-  static const String approveRequestTitle = 'Approve host request?';
-  static const String rejectRequestTitle = 'Reject host request?';
   static const String hostRequestApproved = 'Host request approved';
   static const String statusNowSuffix = '.';
-
-  static String approveRequestMessage(String name) =>
-      '$name will become an approved host and can sign in to the host app.';
-
-  static String rejectRequestMessage(String name) =>
-      "$name's request to become a host will be rejected.";
 
   static String statusNowLead(String name) => 'Status for $name is now ';
 
@@ -717,4 +707,70 @@ abstract final class AppStrings {
   static const String loginFailed =
       'Email or password is incorrect. Check your details and try again. '
       'Only approved admins can sign in.';
+  static const String aadhaarFront = 'Aadhaar Front';
+  static const String aadhaarBack = 'Aadhaar Back';
+  static const String documentAlreadyReviewed =
+      'This document has already been reviewed.';
+  static const String hostRequestNotReady =
+      'This request has changed. Close it and review it again.';
+  static const String approveRequestTitle = 'Approve host request?';
+  static const String rejectRequestTitle = 'Reject host request?';
+
+  static String approveRequestMessage(String name) =>
+      '$name will become an approved host and can sign in to the host app.';
+
+  static String rejectRequestMessage(String name) =>
+      "$name's request to become a host will be rejected.";
+
+  static String approveDocumentTitle(String document) => 'Approve $document?';
+
+  static String rejectDocumentTitle(String document) => 'Reject $document?';
+
+  static String approveDocumentMessage(String document, String name) =>
+      "$name's $document will be marked as approved. This cannot be changed "
+      'here afterwards.';
+
+  static String rejectDocumentMessage(String document, String name) =>
+      "$name's $document will be marked as rejected. This cannot be changed "
+      'here afterwards.';
+
+  static const String unblock = 'Unblock';
+  static const String unblockUserAction = 'Unblock user';
+  static const String unblockHostAction = 'Unblock host';
+  static const String unblockUserMessage =
+      'This user will be able to use their account again.';
+  static const String unblockHostMessage =
+      'This host will be able to use their account again.';
+  static const String saving = 'Saving...';
+  static const String recordsSaveFailed =
+      'Could not save this change. Try again.';
+  static const String recordsWriteDenied =
+      'You do not have permission to change this record.';
+  static const String recordNotFound = 'This record no longer exists.';
+
+  static String unblockUserTitle(String name) => 'Unblock $name?';
+
+  static const String retry = 'Retry';
+  static const String recordsLoadFailed =
+      'Could not load these records. Try again.';
+  static const String recordsNetworkError =
+      'Could not reach the server. Check your connection and try again.';
+  static const String recordsAccessDenied =
+      'You do not have permission to view these records. Sign in again or '
+      'contact your administrator.';
+  static const String signingIn = 'Signing in...';
+  static const String logout = 'Logout';
+  static const String logoutFailed = 'Could not log out. Try again.';
+  static const String enterPassword = 'Enter your password.';
+  static const String loginAccountDisabled =
+      'This account has been disabled. Contact your administrator.';
+  static const String loginTooManyAttempts =
+      'Too many attempts. Wait a few minutes and try again.';
+  static const String loginNetworkError =
+      'Could not reach the server. Check your connection and try again.';
+  static const String loginSecondFactorRequired =
+      'This account needs a second verification step that this sign-in page '
+      'does not support yet. Contact your administrator.';
+  static const String loginUnavailable =
+      'Sign-in is unavailable right now. Try again in a moment.';
 }

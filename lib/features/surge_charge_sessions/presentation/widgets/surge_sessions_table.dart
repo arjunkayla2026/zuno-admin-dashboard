@@ -77,7 +77,7 @@ class SurgeSessionsTable extends StatelessWidget {
               onSelected: (action) => switch (action) {
                 AppMenuAction.edit => editSurgeSession(context, session),
                 AppMenuAction.delete => removeSurgeSession(context, session),
-                AppMenuAction.block => null,
+                AppMenuAction.block || AppMenuAction.unblock => null,
               },
             ),
           ],

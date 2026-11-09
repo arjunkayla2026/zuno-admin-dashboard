@@ -18,6 +18,11 @@ migrate_working_dir/
 *.iws
 .idea/
 
+# Agent and Claude configuration
+.agents/
+.claude/
+
+
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
 # is commented out by default.
@@ -32,6 +37,7 @@ migrate_working_dir/
 .pub/
 /build/
 /coverage/
+test/
 
 # Symbolication related
 app.*.symbols
@@ -46,3 +52,8 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Firebase Admin tooling and credentials
+node_modules/
+*service-account*.json
+*firebase-adminsdk*.json

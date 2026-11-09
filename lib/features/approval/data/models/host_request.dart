@@ -3,6 +3,31 @@ import 'package:zuno_admin_dashboard/features/host_management/data/models/host_p
 
 enum HostRequestStatus { pending, approved, rejected }
 
+enum HostDocumentType { aadhaarFront, aadhaarBack, selfie }
+
+class HostDocument {
+  const HostDocument({
+    required this.type,
+    this.imageUrl,
+    this.status = HostRequestStatus.pending,
+    this.isAvailable = true,
+  });
+
+  final HostDocumentType type;
+  final String? imageUrl;
+  final HostRequestStatus status;
+  final bool isAvailable;
+
+  bool get canReview => isAvailable && status == HostRequestStatus.pending;
+
+  HostDocument withStatus(HostRequestStatus status) => HostDocument(
+    type: type,
+    imageUrl: imageUrl,
+    status: status,
+    isAvailable: isAvailable,
+  );
+}
+
 class HostRequest {
   const HostRequest({
     required this.requestId,
@@ -17,8 +42,7 @@ class HostRequest {
     required this.maskedAadhaar,
     required this.avatarIndex,
     this.status = HostRequestStatus.pending,
-    this.aadhaarImageUrl,
-    this.selfieImageUrl,
+    this.documents = const [],
   });
 
   final String requestId;
@@ -26,19 +50,35 @@ class HostRequest {
   final String realName;
   final String nickName;
   final String phone;
-  final DateTime dateOfBirth;
+  final DateTime? dateOfBirth;
   final String city;
-  final HostGender gender;
+  final HostGender? gender;
   final List<HostLanguage> languages;
   final String maskedAadhaar;
   final int avatarIndex;
   final HostRequestStatus status;
-  final String? aadhaarImageUrl;
-  final String? selfieImageUrl;
+  final List<HostDocument> documents;
 
   String get initials => NameFormatter.initials(realName);
 
   bool get isPending => status == HostRequestStatus.pending;
+
+  bool get canDecide =>
+      isPending &&
+      documents.isNotEmpty &&
+      documents.every((doc) => doc.status == HostRequestStatus.approved);
+
+  HostRequest withDocumentStatus(
+    HostDocumentType type,
+    HostRequestStatus decision,
+  ) {
+    return copyWith(
+      documents: [
+        for (final document in documents)
+          document.type == type ? document.withStatus(decision) : document,
+      ],
+    );
+  }
 
   HostRequest copyWith({
     String? realName,
@@ -49,6 +89,7 @@ class HostRequest {
     HostGender? gender,
     List<HostLanguage>? languages,
     HostRequestStatus? status,
+    List<HostDocument>? documents,
   }) {
     return HostRequest(
       requestId: requestId,
@@ -63,8 +104,7 @@ class HostRequest {
       maskedAadhaar: maskedAadhaar,
       avatarIndex: avatarIndex,
       status: status ?? this.status,
-      aadhaarImageUrl: aadhaarImageUrl,
-      selfieImageUrl: selfieImageUrl,
+      documents: documents ?? this.documents,
     );
   }
 }

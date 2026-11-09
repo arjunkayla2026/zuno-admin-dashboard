@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_error_banner.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_labeled_text_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_profile_header.dart';
@@ -12,9 +13,10 @@ import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_
 typedef EditedUser = ({String name, String phone});
 
 class EditUserSheet extends StatefulWidget {
-  const EditUserSheet({super.key, required this.user});
+  const EditUserSheet({super.key, required this.user, required this.onSave});
 
   final AdminUser user;
+  final Future<String?> Function(EditedUser edited) onSave;
 
   @override
   State<EditUserSheet> createState() => _EditUserSheetState();
@@ -32,14 +34,31 @@ class _EditUserSheetState extends State<EditUserSheet> {
       _nameController.text.trim().isNotEmpty &&
       _phoneController.text.trim().isNotEmpty;
 
+  bool _saving = false;
+  String? _errorMessage;
+
   void _onChanged(String _) => setState(() {});
 
-  void _save() {
+  Future<void> _save() async {
     final EditedUser edited = (
       name: _nameController.text.trim(),
       phone: _phoneController.text.trim(),
     );
-    Navigator.of(context).pop(edited);
+    setState(() {
+      _saving = true;
+      _errorMessage = null;
+    });
+
+    final error = await widget.onSave(edited);
+    if (!mounted) return;
+    if (error == null) {
+      Navigator.of(context).pop(edited);
+      return;
+    }
+    setState(() {
+      _saving = false;
+      _errorMessage = error;
+    });
   }
 
   @override
@@ -90,6 +109,10 @@ class _EditUserSheetState extends State<EditUserSheet> {
             value: user.userId,
             helper: AppStrings.userIdCannotBeChanged,
           ),
+          if (_errorMessage case final message?) ...[
+            const SizedBox(height: _fieldGap),
+            AppErrorBanner(message: message),
+          ],
         ],
       ),
       footer: Wrap(
@@ -101,9 +124,9 @@ class _EditUserSheetState extends State<EditUserSheet> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           AppPrimaryButton(
-            label: AppStrings.saveChanges,
+            label: _saving ? AppStrings.saving : AppStrings.saveChanges,
             compact: true,
-            onPressed: _canSave ? _save : null,
+            onPressed: _canSave && !_saving ? _save : null,
           ),
         ],
       ),

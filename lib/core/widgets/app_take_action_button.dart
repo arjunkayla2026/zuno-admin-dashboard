@@ -10,7 +10,7 @@ class AppTakeActionButton extends StatelessWidget {
   const AppTakeActionButton({
     super.key,
     required this.onSelected,
-    this.actions = AppMenuAction.values,
+    this.actions = AppActionMenu.defaultActions,
   });
 
   static const double _iconSize = 15;

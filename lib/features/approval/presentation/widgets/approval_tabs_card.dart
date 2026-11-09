@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_table_load_state.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_underline_tabs.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/state/approval_cubit.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/state/approval_state.dart';
@@ -63,6 +65,16 @@ class ApprovalTabsCard extends StatelessWidget {
               ),
               const Divider(color: AppColors.cardBorder),
               switch (state.tab) {
+                ApprovalTab.hostRequests
+                    when state.hostRequestsStatus == LoadStatus.loading =>
+                  const AppTableLoadingState(),
+                ApprovalTab.hostRequests
+                    when state.hostRequestsStatus == LoadStatus.failure =>
+                  AppTableErrorState(
+                    message:
+                        state.hostRequestsError ?? AppStrings.recordsLoadFailed,
+                    onRetry: context.read<ApprovalCubit>().loadHostRequests,
+                  ),
                 ApprovalTab.hostRequests when requests.isEmpty => empty(
                   AppStrings.noHostRequests,
                 ),

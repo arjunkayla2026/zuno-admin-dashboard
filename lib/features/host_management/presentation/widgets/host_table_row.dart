@@ -7,6 +7,7 @@ import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_action_menu.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_initials_avatar.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_take_action_button.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/models/admin_host.dart';
@@ -97,6 +98,9 @@ class HostTableRow extends StatelessWidget {
             ),
             action: host.hasActions
                 ? AppTakeActionButton(
+                    actions: AppActionMenu.accountActions(
+                      isBlocked: host.status == HostStatus.blocked,
+                    ),
                     onSelected: (action) => runHostAction(
                       context: context,
                       action: action,

@@ -5,6 +5,7 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_action_menu.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_initials_avatar.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_take_action_button.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
@@ -91,7 +92,10 @@ class UserTableRow extends StatelessWidget {
             ),
             userId: Text(user.userId, style: mono),
             phone: Text(user.phone, style: mono),
-            recharges: Text('${user.recharges}', style: cell),
+            recharges: Text(
+              user.recharges?.toString() ?? AppStrings.emptyValue,
+              style: cell,
+            ),
             wallet: Text.rich(
               TextSpan(
                 style: cell.copyWith(color: mutedColor),
@@ -113,6 +117,9 @@ class UserTableRow extends StatelessWidget {
                     child: Padding(
                       padding: const EdgeInsets.only(left: _actionInset),
                       child: AppTakeActionButton(
+                        actions: AppActionMenu.accountActions(
+                          isBlocked: user.status == UserStatus.blocked,
+                        ),
                         onSelected: (action) => runUserAction(
                           context: context,
                           action: action,

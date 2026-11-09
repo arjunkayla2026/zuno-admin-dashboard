@@ -12,21 +12,22 @@ Future<void> openHostRequest(BuildContext context, HostRequest request) async {
   final cubit = context.read<ApprovalCubit>();
   final decision = await showAppSideSheet<HostRequestStatus>(
     context: context,
-    builder: (_) =>
-        HostRequestSheet(request: request, onChanged: cubit.updateRequest),
+    builder: (_) => HostRequestSheet(
+      request: request,
+      onChanged: cubit.updateRequest,
+      onReview: cubit.reviewDocument,
+      onDecide: cubit.decideRequest,
+    ),
   );
   if (decision != HostRequestStatus.approved || !context.mounted) return;
 
-  final approved = cubit.state.hostRequests.firstWhere(
-    (current) => current.requestId == request.requestId,
-  );
   await showAppSuccessDialog(
     context: context,
     title: AppStrings.hostRequestApproved,
     actionLabel: AppStrings.done,
     messageSpan: TextSpan(
       children: [
-        TextSpan(text: AppStrings.statusNowLead(approved.realName)),
+        TextSpan(text: AppStrings.statusNowLead(request.realName)),
         TextSpan(
           text: AppStrings.approved,
           style: TextStyle(

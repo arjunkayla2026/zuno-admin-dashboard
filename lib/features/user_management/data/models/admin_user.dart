@@ -20,7 +20,7 @@ class AdminUser {
   final String initials;
   final String userId;
   final String phone;
-  final int recharges;
+  final int? recharges;
   final String walletBalance;
   final UserStatus status;
   final int avatarIndex;
