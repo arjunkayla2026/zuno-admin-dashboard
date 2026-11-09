@@ -12,21 +12,15 @@ Future<void> openPackageSheet(BuildContext context, {PackagePlan? plan}) async {
   final cubit = context.read<PackagesCubit>();
   final saved = await showAppSideSheet<PackagePlan>(
     context: context,
-    builder: (_) => PackageSheet(plan: plan),
+    builder: (_) => PackageSheet(plan: plan, onSave: cubit.savePackage),
   );
-  if (saved == null) return;
-  if (plan == null) {
-    cubit.addPackage(saved);
-    return;
-  }
+  if (saved == null || plan == null || !context.mounted) return;
 
-  cubit.updatePackage(saved);
-  if (!context.mounted) return;
   await showAppSuccessDialog(
     context: context,
     title: AppStrings.packageUpdated,
     message: AppStrings.packageSaved(
-      NumberFormatter.rupees(saved.payableAmount),
+      NumberFormatter.rupeesAmount(saved.payableAmount),
       NumberFormatter.grouped(saved.coins),
     ),
     actionLabel: AppStrings.done,

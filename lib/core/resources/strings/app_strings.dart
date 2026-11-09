@@ -449,22 +449,28 @@ abstract final class AppStrings {
   static const String payableAmount = 'Payable Amount';
   static const String receivableAmount = 'Receivable Amount';
   static const String receivableCoin = 'Receivable Coin';
-  static const String tagline = 'Tagline';
-  static const String packageRechargeCount =
-      'Package-wise Total Recharge Count';
+  static const String offerTag = 'Offer Tag';
+  static const String offerPercentage = 'Offer %';
+  static const String offerPercentageField = 'Offer Percentage (%)';
+  static const String offerPercentageTooHigh = 'Enter 100 or less.';
+  static const String packageActiveTitle = 'Active';
+  static const String packageActiveHelper =
+      'Only active packages are shown in the user app';
   static const String payableAmountField = 'Payable Amount (₹)';
   static const String receivableAmountField = 'Receivable Amount (₹)';
   static const String gstToggleTitle = 'GST (18%)';
   static const String gstToggleHelper =
       'Enter either amount and the other one is calculated for you';
   static const String offerHelper =
-      'Optional. Shown as an offer tag on the pack.';
+      'Optional. The offer tag is shown on the pack.';
   static const String preview = 'Preview';
   static const String refreshPreview = 'Refresh preview';
   static const String savePackage = 'Save package';
   static const String previewBlank = '__';
   static const String enterValue = 'Enter a value.';
   static const String noPackages = 'No packages yet';
+  static const String noPackagesMessage =
+      'Add a package to show it on the recharge screen in the user app.';
 
   static const String previewOfferBlank = '+__ Bonus';
   static const String packageUpdated = 'Package updated';
@@ -668,8 +674,10 @@ abstract final class AppStrings {
   static String packageSaved(String price, String coins) =>
       '$price for $coins coins is saved.';
 
-  static String packagesSummary(int packages, String recharges) =>
-      '$packages packages · $recharges total recharges';
+  static String packagesSummary(int packages, int active) =>
+      '$packages packages · $active active';
+
+  static String offerPercentValue(String percent) => '$percent%';
 
   static String hostRequestSubtitle(String id, String date) =>
       '$id · Submitted $date';

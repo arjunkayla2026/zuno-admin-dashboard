@@ -5,12 +5,7 @@ import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 
 class AppReadOnlyField extends StatelessWidget {
-  const AppReadOnlyField({
-    super.key,
-    required this.label,
-    required this.value,
-    this.helper,
-  });
+  const AppReadOnlyField({super.key, required this.label, required this.value});
 
   static const double _labelGap = 5;
   static const double _helperGap = 5;
@@ -19,7 +14,6 @@ class AppReadOnlyField extends StatelessWidget {
 
   final String label;
   final String value;
-  final String? helper;
 
   @override
   Widget build(BuildContext context) {
@@ -48,15 +42,6 @@ class AppReadOnlyField extends StatelessWidget {
             ),
           ),
         ),
-        if (helper case final helper?) ...[
-          const SizedBox(height: _helperGap),
-          Text(
-            helper,
-            style: AppTextStyles.captionSmall.copyWith(
-              color: context.appColors.textSecondary,
-            ),
-          ),
-        ],
       ],
     );
   }

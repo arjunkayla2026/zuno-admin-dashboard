@@ -6,7 +6,7 @@ import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 
-typedef PackagePreview = ({int price, int coins, String offer});
+typedef PackagePreview = ({double price, int coins, String offerTag});
 
 class PackagePreviewCard extends StatelessWidget {
   const PackagePreviewCard({super.key, required this.preview});
@@ -29,13 +29,13 @@ class PackagePreviewCard extends StatelessWidget {
     final current = preview;
     final price = current == null
         ? '$_rupee${AppStrings.previewBlank}'
-        : NumberFormatter.rupees(current.price);
+        : NumberFormatter.rupeesAmount(current.price);
     final coins = current == null
         ? AppStrings.previewBlank
         : NumberFormatter.grouped(current.coins);
     final offer = current == null
         ? AppStrings.previewOfferBlank
-        : current.offer.trim();
+        : current.offerTag.trim();
 
     return Container(
       width: _width,

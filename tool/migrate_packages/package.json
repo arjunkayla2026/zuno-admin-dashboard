@@ -1,0 +1,12 @@
+{
+  "name": "zuno-migrate-packages",
+  "private": true,
+  "description": "Migrates Firestore packages documents to the current package schema with the Firebase Admin SDK.",
+  "scripts": {
+    "dry-run": "node migrate_packages.js",
+    "apply": "node migrate_packages.js --apply"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0"
+  }
+}

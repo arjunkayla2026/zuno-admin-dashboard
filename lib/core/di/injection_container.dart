@@ -10,6 +10,9 @@ import 'package:zuno_admin_dashboard/features/auth/presentation/state/auth_cubit
 import 'package:zuno_admin_dashboard/features/host_management/data/repositories/host_management_repository.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/host_actions_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/host_management_cubit.dart';
+import 'package:zuno_admin_dashboard/features/packages/data/datasources/packages_remote_data_source.dart';
+import 'package:zuno_admin_dashboard/features/packages/data/repositories/packages_repository.dart';
+import 'package:zuno_admin_dashboard/features/packages/presentation/state/packages_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/repositories/user_management_repository.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_actions_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_management_cubit.dart';
@@ -45,6 +48,15 @@ void configureDependencies() {
     )
     ..registerFactory<ApprovalCubit>(
       () => ApprovalCubit(getIt<ApprovalRepository>()),
+    )
+    ..registerLazySingleton<PackagesRemoteDataSource>(
+      () => PackagesRemoteDataSource(FirebaseFirestore.instance),
+    )
+    ..registerLazySingleton<PackagesRepository>(
+      () => PackagesRepository(getIt<PackagesRemoteDataSource>()),
+    )
+    ..registerFactory<PackagesCubit>(
+      () => PackagesCubit(getIt<PackagesRepository>()),
     )
     ..registerFactory<UserActionsCubit>(
       () => UserActionsCubit(getIt<UserManagementRepository>()),

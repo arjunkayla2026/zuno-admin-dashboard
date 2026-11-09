@@ -1,0 +1,1 @@
+enum PackageStatus { active, inactive }

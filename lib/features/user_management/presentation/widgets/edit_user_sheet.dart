@@ -104,11 +104,7 @@ class _EditUserSheetState extends State<EditUserSheet> {
             dense: true,
           ),
           const SizedBox(height: _fieldGap),
-          AppReadOnlyField(
-            label: AppStrings.userId,
-            value: user.userId,
-            helper: AppStrings.userIdCannotBeChanged,
-          ),
+          AppReadOnlyField(label: AppStrings.userId, value: user.userId),
           if (_errorMessage case final message?) ...[
             const SizedBox(height: _fieldGap),
             AppErrorBanner(message: message),

@@ -1,5 +1,7 @@
 abstract final class NumberFormatter {
   static const String _rupee = '₹';
+  static const int _amountDigits = 2;
+  static const int _centsPerUnit = 100;
 
   static String grouped(int value) {
     final digits = value.abs().toString();
@@ -33,6 +35,35 @@ abstract final class NumberFormatter {
     final trimmed = fraction.endsWith('0') ? fraction[0] : fraction;
     return '$rupeesPart.$trimmed';
   }
+
+  static double roundAmount(double value) =>
+      (value * _centsPerUnit).roundToDouble() / _centsPerUnit;
+
+  static String amountInput(double value) =>
+      roundAmount(value).toStringAsFixed(_amountDigits);
+
+  static double? tryParseAmount(String value) {
+    final text = value.trim();
+    if (text.isEmpty || text == '.') return null;
+    final parsed = double.tryParse(text.endsWith('.') ? '${text}0' : text);
+    return parsed == null ? null : roundAmount(parsed);
+  }
+
+  static String groupedAmount(double value) {
+    final cents = (value.abs() * _centsPerUnit).round();
+    final sign = value < 0 && cents > 0 ? '-' : '';
+    final whole = grouped(cents ~/ _centsPerUnit);
+    final fraction = (cents % _centsPerUnit).toString().padLeft(
+      _amountDigits,
+      '0',
+    );
+    return '$sign$whole.$fraction';
+  }
+
+  static String rupeesAmount(double value) => '$_rupee${groupedAmount(value)}';
+
+  static String trimmedAmount(double value) =>
+      amountInput(value).replaceFirst(RegExp(r'\.?0+$'), '');
 
   static int parse(String value) =>
       int.tryParse(value.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;

@@ -8,8 +8,7 @@ import 'package:zuno_admin_dashboard/core/widgets/app_empty_state.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_underline_tabs.dart';
 import 'package:zuno_admin_dashboard/features/packages/presentation/state/packages_cubit.dart';
 import 'package:zuno_admin_dashboard/features/packages/presentation/state/packages_state.dart';
-import 'package:zuno_admin_dashboard/features/packages/presentation/widgets/package_list_summary.dart';
-import 'package:zuno_admin_dashboard/features/packages/presentation/widgets/packages_table.dart';
+import 'package:zuno_admin_dashboard/features/packages/presentation/widgets/package_list_section.dart';
 
 class PackagesTabsCard extends StatelessWidget {
   const PackagesTabsCard({super.key});
@@ -39,13 +38,7 @@ class PackagesTabsCard extends StatelessWidget {
               ),
               const Divider(color: AppColors.cardBorder),
               ...switch (state.tab) {
-                PackagesTab.packageList => [
-                  PackageListSummary(
-                    packageCount: state.packages.length,
-                    totalRecharges: state.totalRecharges,
-                  ),
-                  PackagesTable(packages: state.packages),
-                ],
+                PackagesTab.packageList => [PackageListSection(state: state)],
                 PackagesTab.couponList => const [
                   AppEmptyState(
                     icon: Icons.description_outlined,

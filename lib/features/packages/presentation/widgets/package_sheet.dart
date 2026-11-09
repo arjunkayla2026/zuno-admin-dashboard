@@ -1,24 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
+import 'package:zuno_admin_dashboard/core/utils/decimal_input_formatter.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_error_banner.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_field_row.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_labeled_text_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_read_only_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_section_label.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_side_sheet.dart';
 import 'package:zuno_admin_dashboard/features/packages/data/models/package_plan.dart';
-import 'package:zuno_admin_dashboard/features/packages/presentation/widgets/package_gst_toggle.dart';
+import 'package:zuno_admin_dashboard/features/packages/data/models/package_status.dart';
+import 'package:zuno_admin_dashboard/features/packages/presentation/widgets/package_switch_tile.dart';
 import 'package:zuno_admin_dashboard/features/packages/presentation/widgets/package_preview_card.dart';
 
 class PackageSheet extends StatefulWidget {
-  const PackageSheet({super.key, this.plan});
+  const PackageSheet({super.key, this.plan, required this.onSave});
 
   final PackagePlan? plan;
+  final Future<String?> Function(PackagePlan plan) onSave;
 
   @override
   State<PackageSheet> createState() => _PackageSheetState();
@@ -29,64 +33,85 @@ class _PackageSheetState extends State<PackageSheet> {
   static const double _helperGap = 6;
   static const double _previewTopGap = 40;
   static const double _previewGap = 10;
+  static const TextInputType _decimalKeyboard = TextInputType.numberWithOptions(
+    decimal: true,
+  );
 
-  late bool _gst = widget.plan?.gstEnabled ?? true;
+  final _amountFormatter = DecimalInputFormatter();
+  late bool _gst = widget.plan?.isGstEnabled ?? true;
+  late bool _active = widget.plan?.isActive ?? true;
   late final _payableController = TextEditingController(
     text: _initial(widget.plan?.payableAmount),
   );
   late final _receivableController = TextEditingController(
     text: _initial(widget.plan?.receivableAmount),
   );
-  late final _coinsController = TextEditingController(
-    text: _initial(widget.plan?.coins),
+  late final _offerTagController = TextEditingController(
+    text: widget.plan?.offerTag ?? '',
   );
-  late final _offerController = TextEditingController(
-    text: widget.plan?.offer ?? '',
-  );
-  late final _taglineController = TextEditingController(
-    text: widget.plan?.tagline ?? '',
+  late final _offerPercentageController = TextEditingController(
+    text: switch (widget.plan) {
+      final plan? when plan.hasOfferPercentage => NumberFormatter.trimmedAmount(
+        plan.offerPercentage,
+      ),
+      _ => '',
+    },
   );
   late PackagePreview? _preview = switch (widget.plan) {
     final plan? => (
       price: plan.payableAmount,
       coins: plan.coins,
-      offer: plan.offer,
+      offerTag: plan.offerTag,
     ),
     null => null,
   };
   bool _submitted = false;
+  bool _saving = false;
+  String? _errorMessage;
 
-  static String _initial(int? value) => value == null ? '' : '$value';
+  static String _initial(double? value) =>
+      value == null ? '' : NumberFormatter.amountInput(value);
 
-  static int _parse(TextEditingController controller) =>
-      int.tryParse(controller.text) ?? 0;
+  static double _parse(TextEditingController controller) =>
+      NumberFormatter.tryParseAmount(controller.text) ?? 0;
+
+  int get _coins => PackagePlan.coinsFor(_parse(_receivableController));
 
   List<TextEditingController> get _controllers => [
     _payableController,
     _receivableController,
-    _coinsController,
-    _offerController,
-    _taglineController,
+    _offerTagController,
+    _offerPercentageController,
   ];
 
   String? _error(TextEditingController controller) =>
       _submitted && _parse(controller) <= 0 ? AppStrings.enterValue : null;
 
+  String? get _offerPercentageError =>
+      _submitted &&
+          _parse(_offerPercentageController) > PackagePlan.maxOfferPercentage
+      ? AppStrings.offerPercentageTooHigh
+      : null;
+
   void _onPayableChanged(String value) {
-    final payable = int.tryParse(value);
+    final payable = NumberFormatter.tryParseAmount(value);
     setState(() {
       _receivableController.text = payable == null
           ? ''
-          : '${PackagePlan.receivableFor(payable, gst: _gst)}';
+          : NumberFormatter.amountInput(
+              PackagePlan.receivableFor(payable, gst: _gst),
+            );
     });
   }
 
   void _onReceivableChanged(String value) {
-    final receivable = int.tryParse(value);
+    final receivable = NumberFormatter.tryParseAmount(value);
     setState(() {
       _payableController.text = receivable == null
           ? ''
-          : '${PackagePlan.payableFor(receivable, gst: _gst)}';
+          : NumberFormatter.amountInput(
+              PackagePlan.payableFor(receivable, gst: _gst),
+            );
     });
   }
 
@@ -99,47 +124,62 @@ class _PackageSheetState extends State<PackageSheet> {
     setState(
       () => _preview = (
         price: _parse(_payableController),
-        coins: _parse(_coinsController),
-        offer: _offerController.text,
+        coins: _coins,
+        offerTag: _offerTagController.text,
       ),
     );
   }
 
-  void _save() {
-    final required = [
-      _payableController,
-      _receivableController,
-      _coinsController,
-    ];
-    if (required.any((controller) => _parse(controller) <= 0)) {
+  Future<void> _save() async {
+    final payable = _parse(_payableController);
+    final receivable = _parse(_receivableController);
+    final offerPercentage = _parse(_offerPercentageController);
+    if (payable <= 0 ||
+        receivable <= 0 ||
+        offerPercentage > PackagePlan.maxOfferPercentage) {
       setState(() => _submitted = true);
       return;
     }
-    Navigator.of(context).pop(
-      PackagePlan(
-        id: widget.plan?.id ?? 0,
-        payableAmount: _parse(_payableController),
-        receivableAmount: _parse(_receivableController),
-        coins: _parse(_coinsController),
-        offer: _offerController.text.trim(),
-        tagline: _taglineController.text.trim(),
-        totalRecharges: widget.plan?.totalRecharges ?? 0,
-        gstEnabled: _gst,
-      ),
+    final plan = PackagePlan(
+      id: widget.plan?.id ?? '',
+      payableAmount: payable,
+      receivableAmount: receivable,
+      coins: PackagePlan.coinsFor(receivable),
+      offerTag: _offerTagController.text.trim(),
+      offerPercentage: offerPercentage,
+      status: _active ? PackageStatus.active : PackageStatus.inactive,
+      isGstEnabled: _gst,
+      createdAt: widget.plan?.createdAt,
+      updatedAt: widget.plan?.updatedAt,
     );
+    setState(() {
+      _saving = true;
+      _errorMessage = null;
+    });
+
+    final error = await widget.onSave(plan);
+    if (!mounted) return;
+    if (error == null) {
+      Navigator.of(context).pop(plan);
+      return;
+    }
+    setState(() {
+      _saving = false;
+      _errorMessage = error;
+    });
   }
 
-  Widget _numberField(
+  Widget _amountField(
     String label,
     TextEditingController controller, {
-    ValueChanged<String>? onChanged,
+    required ValueChanged<String> onChanged,
   }) {
     return AppLabeledTextField(
       label: label,
       hint: label,
       controller: controller,
-      keyboardType: TextInputType.number,
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      keyboardType: _decimalKeyboard,
+      inputFormatters: [_amountFormatter],
       onChanged: onChanged,
       errorText: _error(controller),
       dense: true,
@@ -174,38 +214,57 @@ class _PackageSheetState extends State<PackageSheet> {
       subtitle: plan == null
           ? AppStrings.packageSheetSubtitle
           : AppStrings.packagePriceAndCoins(
-              NumberFormatter.rupees(plan.payableAmount),
+              NumberFormatter.rupeesAmount(plan.payableAmount),
               NumberFormatter.grouped(plan.coins),
             ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          PackageSwitchTile(
+            title: AppStrings.packageActiveTitle,
+            helper: AppStrings.packageActiveHelper,
+            value: _active,
+            onChanged: (active) => setState(() => _active = active),
+          ),
+          const SizedBox(height: _fieldGap),
           if (plan == null) ...[
-            PackageGstToggle(value: _gst, onChanged: _onGstChanged),
+            PackageSwitchTile(
+              title: AppStrings.gstToggleTitle,
+              helper: AppStrings.gstToggleHelper,
+              value: _gst,
+              onChanged: _onGstChanged,
+            ),
             const SizedBox(height: _fieldGap),
           ],
           AppFieldRow(
-            first: _numberField(
+            first: _amountField(
               AppStrings.payableAmountField,
               _payableController,
               onChanged: _onPayableChanged,
             ),
-            second: _numberField(
+            second: _amountField(
               AppStrings.receivableAmountField,
               _receivableController,
               onChanged: _onReceivableChanged,
             ),
           ),
           const SizedBox(height: _fieldGap),
-          _numberField(
-            AppStrings.receivableCoin,
-            _coinsController,
-            onChanged: (_) => setState(() {}),
+          AppReadOnlyField(
+            label: AppStrings.receivableCoin,
+            value: NumberFormatter.grouped(_coins),
           ),
           const SizedBox(height: _fieldGap),
           AppFieldRow(
-            first: _textField(AppStrings.offer, _offerController),
-            second: _textField(AppStrings.tagline, _taglineController),
+            first: _textField(AppStrings.offerTag, _offerTagController),
+            second: AppLabeledTextField(
+              label: AppStrings.offerPercentageField,
+              hint: AppStrings.offerPercentageField,
+              controller: _offerPercentageController,
+              keyboardType: _decimalKeyboard,
+              inputFormatters: [_amountFormatter],
+              errorText: _offerPercentageError,
+              dense: true,
+            ),
           ),
           const SizedBox(height: _helperGap),
           Text(
@@ -230,6 +289,10 @@ class _PackageSheetState extends State<PackageSheet> {
               onPressed: _refreshPreview,
             ),
           ),
+          if (_errorMessage case final message?) ...[
+            const SizedBox(height: _fieldGap),
+            AppErrorBanner(message: message),
+          ],
         ],
       ),
       footer: Wrap(
@@ -241,9 +304,9 @@ class _PackageSheetState extends State<PackageSheet> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           AppPrimaryButton(
-            label: AppStrings.savePackage,
+            label: _saving ? AppStrings.saving : AppStrings.savePackage,
             compact: true,
-            onPressed: _save,
+            onPressed: _saving ? null : _save,
           ),
         ],
       ),
