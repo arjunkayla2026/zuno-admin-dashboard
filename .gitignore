@@ -19,8 +19,9 @@ migrate_working_dir/
 .idea/
 
 # Agent and Claude configuration
-.agent/
+.agents/
 .claude/
+
 
 # The .vscode folder contains launch configuration and tasks you configure in
 # VS Code which you may wish to be included in version control, so this line
@@ -36,6 +37,7 @@ migrate_working_dir/
 .pub/
 /build/
 /coverage/
+test/
 
 # Symbolication related
 app.*.symbols

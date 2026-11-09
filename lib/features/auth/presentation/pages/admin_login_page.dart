@@ -1,47 +1,49 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zuno_admin_dashboard/core/di/injection_container.dart';
+import 'package:zuno_admin_dashboard/core/navigation/app_routes.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
+import 'package:zuno_admin_dashboard/features/auth/presentation/state/auth_cubit.dart';
+import 'package:zuno_admin_dashboard/features/auth/presentation/state/auth_state.dart';
 import 'package:zuno_admin_dashboard/features/auth/presentation/widgets/admin_login_form.dart';
 import 'package:zuno_admin_dashboard/features/auth/presentation/widgets/login_brand_panel.dart';
-import 'package:zuno_admin_dashboard/features/dashboard/presentation/pages/dashboard_page.dart';
 
-class AdminLoginPage extends StatefulWidget {
+class AdminLoginPage extends StatelessWidget {
   const AdminLoginPage({super.key});
-
-  @override
-  State<AdminLoginPage> createState() => _AdminLoginPageState();
-}
-
-class _AdminLoginPageState extends State<AdminLoginPage> {
-  String? _errorMessage;
-
-  void _onSignIn() => setState(
-    () => Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => DashboardPage()),
-    ),
-  );
 
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: context.pageOverlayStyle,
-      child: Scaffold(
-        backgroundColor: context.colorScheme.surface,
-        body: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (AppUtils.isDesktop(context))
-              const Expanded(child: LoginBrandPanel()),
-            Expanded(
-              child: AdminLoginForm(
-                onSignIn: _onSignIn,
-                errorMessage: _errorMessage,
+      child: BlocProvider(
+        create: (_) => getIt<AuthCubit>(),
+        child: Scaffold(
+          backgroundColor: context.colorScheme.surface,
+          body: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (AppUtils.isDesktop(context))
+                const Expanded(child: LoginBrandPanel()),
+              Expanded(
+                child: BlocConsumer<AuthCubit, AuthState>(
+                  listenWhen: (_, state) => state.status == AuthStatus.success,
+                  listener: (context, _) => Navigator.pushReplacementNamed(
+                    context,
+                    AppRoutes.dashboard,
+                  ),
+                  builder: (context, state) => AdminLoginForm(
+                    onSignIn: (email, password) => context
+                        .read<AuthCubit>()
+                        .signIn(email: email, password: password),
+                    isLoading: state.isLoading,
+                    errorMessage: state.errorMessage,
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -5,10 +5,21 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 
-enum AppMenuAction { edit, block, delete }
+enum AppMenuAction { edit, block, unblock, delete }
 
 class AppActionMenu extends StatelessWidget {
-  const AppActionMenu({super.key, this.actions = AppMenuAction.values});
+  const AppActionMenu({super.key, this.actions = defaultActions});
+
+  static const List<AppMenuAction> defaultActions = [
+    AppMenuAction.edit,
+    AppMenuAction.block,
+    AppMenuAction.delete,
+  ];
+  static const List<AppMenuAction> _blockedAccountActions = [
+    AppMenuAction.edit,
+    AppMenuAction.unblock,
+    AppMenuAction.delete,
+  ];
 
   static const double _itemHeight = 42;
   static const double _padding = 11;
@@ -18,9 +29,11 @@ class AppActionMenu extends StatelessWidget {
   static const double _iconSize = 16;
   static const double _editIconWidth = 14;
   static const double _editIconHeight = 13;
-  static final Size size = sizeFor(AppMenuAction.values);
 
   final List<AppMenuAction> actions;
+
+  static List<AppMenuAction> accountActions({required bool isBlocked}) =>
+      isBlocked ? _blockedAccountActions : defaultActions;
 
   static Size sizeFor(List<AppMenuAction> actions) =>
       Size(_width, _itemHeight * actions.length + _padding * 2);
@@ -55,6 +68,17 @@ class AppActionMenu extends StatelessWidget {
         ),
         label: AppStrings.block,
         style: dangerStyle,
+        gap: _iconGap,
+      ),
+      AppMenuAction.unblock => _ActionItem(
+        action: action,
+        icon: const Icon(
+          Icons.lock_open_rounded,
+          size: _iconSize,
+          color: AppColors.textPrimary,
+        ),
+        label: AppStrings.unblock,
+        style: AppTextStyles.menuItem.copyWith(color: AppColors.menuText),
         gap: _iconGap,
       ),
       AppMenuAction.delete => _ActionItem(

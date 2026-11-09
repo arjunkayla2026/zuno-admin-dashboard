@@ -5,6 +5,7 @@ import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_choice_chips.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_error_banner.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_field_row.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_labeled_dropdown_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_labeled_text_field.dart';
@@ -17,9 +18,10 @@ import 'package:zuno_admin_dashboard/features/host_management/data/models/host_p
 import 'package:zuno_admin_dashboard/features/host_management/presentation/widgets/host_profile_labels.dart';
 
 class EditHostSheet extends StatefulWidget {
-  const EditHostSheet({super.key, required this.host});
+  const EditHostSheet({super.key, required this.host, required this.onSave});
 
   final AdminHost host;
+  final Future<String?> Function(AdminHost edited) onSave;
 
   @override
   State<EditHostSheet> createState() => _EditHostSheetState();
@@ -51,6 +53,8 @@ class _EditHostSheetState extends State<EditHostSheet> {
   late HostGender? _gender = widget.host.gender;
   late HostLanguage? _motherTongue = widget.host.motherTongue;
   late Set<HostLanguage> _languages = widget.host.languages;
+  bool _saving = false;
+  String? _errorMessage;
 
   List<TextEditingController> get _controllers => [
     _fullNameController,
@@ -87,20 +91,33 @@ class _EditHostSheetState extends State<EditHostSheet> {
     });
   }
 
-  void _save() {
-    Navigator.of(context).pop(
-      widget.host.copyWith(
-        fullName: _fullNameController.text.trim(),
-        name: _nickNameController.text.trim(),
-        phone: _phoneController.text.trim(),
-        district: _districtController.text.trim(),
-        state: _stateController.text.trim(),
-        dateOfBirth: _dateOfBirth,
-        gender: _gender,
-        motherTongue: _motherTongue,
-        languages: _languages,
-      ),
+  Future<void> _save() async {
+    final edited = widget.host.copyWith(
+      fullName: _fullNameController.text.trim(),
+      name: _nickNameController.text.trim(),
+      phone: _phoneController.text.trim(),
+      district: _districtController.text.trim(),
+      state: _stateController.text.trim(),
+      dateOfBirth: _dateOfBirth,
+      gender: _gender,
+      motherTongue: _motherTongue,
+      languages: _languages,
     );
+    setState(() {
+      _saving = true;
+      _errorMessage = null;
+    });
+
+    final error = await widget.onSave(edited);
+    if (!mounted) return;
+    if (error == null) {
+      Navigator.of(context).pop(edited);
+      return;
+    }
+    setState(() {
+      _saving = false;
+      _errorMessage = error;
+    });
   }
 
   Widget _textField(
@@ -202,6 +219,10 @@ class _EditHostSheetState extends State<EditHostSheet> {
             labelOf: HostProfileLabels.language,
             onChanged: (languages) => setState(() => _languages = languages),
           ),
+          if (_errorMessage case final message?) ...[
+            const SizedBox(height: _rowGap),
+            AppErrorBanner(message: message),
+          ],
         ],
       ),
       footer: Wrap(
@@ -213,9 +234,9 @@ class _EditHostSheetState extends State<EditHostSheet> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           AppPrimaryButton(
-            label: AppStrings.saveChanges,
+            label: _saving ? AppStrings.saving : AppStrings.saveChanges,
             compact: true,
-            onPressed: _canSave ? _save : null,
+            onPressed: _canSave && !_saving ? _save : null,
           ),
         ],
       ),

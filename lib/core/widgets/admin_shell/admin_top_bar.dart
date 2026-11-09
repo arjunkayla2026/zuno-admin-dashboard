@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
-import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
-import 'package:zuno_admin_dashboard/core/widgets/app_initials_avatar.dart';
+import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_profile_menu.dart';
 
 class AdminTopBar extends StatelessWidget {
   const AdminTopBar({
@@ -22,9 +21,6 @@ class AdminTopBar extends StatelessWidget {
   static const double _height = 74;
   static const double _horizontalPadding = 32;
   static const double _compactPadding = 16;
-  static const double _profileAvatarSize = 34;
-  static const double _chevronSize = 20;
-  static const double _chevronGap = 10;
   static const double _breadcrumbIconSize = 13;
   static const double _breadcrumbGap = 4;
 
@@ -106,49 +102,10 @@ class AdminTopBar extends StatelessWidget {
             ),
             const SizedBox(width: AppUtils.spacingLg),
           ],
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppUtils.spacingSm,
-              vertical: AppUtils.spacingXs,
-            ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
-              border: Border.all(color: AppColors.cardBorder),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AppInitialsAvatar(
-                  initials: userInitials,
-                  color: AppColors.avatarNavy,
-                  size: _profileAvatarSize,
-                ),
-                const SizedBox(width: AppUtils.spacingSm),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      userName,
-                      style: AppTextStyles.profileName.copyWith(
-                        color: context.colorScheme.onSurface,
-                      ),
-                    ),
-                    Text(
-                      userRole,
-                      style: AppTextStyles.captionSmall.copyWith(
-                        color: context.appColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(width: _chevronGap),
-                Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  size: _chevronSize,
-                  color: context.colorScheme.onSurface,
-                ),
-              ],
-            ),
+          AdminProfileMenu(
+            userName: userName,
+            userRole: userRole,
+            userInitials: userInitials,
           ),
         ],
       ),

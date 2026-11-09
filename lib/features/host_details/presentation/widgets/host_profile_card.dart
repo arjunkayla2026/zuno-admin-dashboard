@@ -84,6 +84,9 @@ class HostProfileCard extends StatelessWidget {
               ),
               if (host.hasActions)
                 AppProfileMenuButton(
+                  actions: AppActionMenu.accountActions(
+                    isBlocked: host.status == HostStatus.blocked,
+                  ),
                   onSelected: (action) => _onAction(context, action),
                 ),
             ],

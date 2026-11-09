@@ -717,4 +717,43 @@ abstract final class AppStrings {
   static const String loginFailed =
       'Email or password is incorrect. Check your details and try again. '
       'Only approved admins can sign in.';
+  static const String unblock = 'Unblock';
+  static const String unblockUserAction = 'Unblock user';
+  static const String unblockHostAction = 'Unblock host';
+  static const String unblockUserMessage =
+      'This user will be able to use their account again.';
+  static const String unblockHostMessage =
+      'This host will be able to use their account again.';
+  static const String saving = 'Saving...';
+  static const String recordsSaveFailed =
+      'Could not save this change. Try again.';
+  static const String recordsWriteDenied =
+      'You do not have permission to change this record.';
+  static const String recordNotFound = 'This record no longer exists.';
+
+  static String unblockUserTitle(String name) => 'Unblock $name?';
+
+  static const String retry = 'Retry';
+  static const String recordsLoadFailed =
+      'Could not load these records. Try again.';
+  static const String recordsNetworkError =
+      'Could not reach the server. Check your connection and try again.';
+  static const String recordsAccessDenied =
+      'You do not have permission to view these records. Sign in again or '
+      'contact your administrator.';
+  static const String signingIn = 'Signing in...';
+  static const String logout = 'Logout';
+  static const String logoutFailed = 'Could not log out. Try again.';
+  static const String enterPassword = 'Enter your password.';
+  static const String loginAccountDisabled =
+      'This account has been disabled. Contact your administrator.';
+  static const String loginTooManyAttempts =
+      'Too many attempts. Wait a few minutes and try again.';
+  static const String loginNetworkError =
+      'Could not reach the server. Check your connection and try again.';
+  static const String loginSecondFactorRequired =
+      'This account needs a second verification step that this sign-in page '
+      'does not support yet. Contact your administrator.';
+  static const String loginUnavailable =
+      'Sign-in is unavailable right now. Try again in a moment.';
 }

@@ -30,7 +30,6 @@ class _AdminSheetState extends State<AdminSheet> {
   static const double _helperGap = 4;
   static const double _chipsGap = 10;
   static const int _minPhoneDigits = 10;
-  static final RegExp _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
   late final _nameController = TextEditingController(
     text: widget.admin?.name ?? '',
@@ -47,7 +46,7 @@ class _AdminSheetState extends State<AdminSheet> {
 
   bool get _nameValid => _nameController.text.trim().isNotEmpty;
 
-  bool get _emailValid => _emailPattern.hasMatch(_emailController.text.trim());
+  bool get _emailValid => AppUtils.isValidEmail(_emailController.text);
 
   bool get _phoneValid =>
       _phoneController.text.replaceAll(RegExp(r'[^0-9]'), '').length >=

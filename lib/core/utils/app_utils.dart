@@ -7,6 +7,8 @@ import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 typedef StatusColors = ({Color background, Color foreground});
 
 abstract final class AppUtils {
+  static final RegExp _emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
   static const double mobileBreakpoint = 600;
   static const double desktopBreakpoint = 1024;
 
@@ -38,6 +40,9 @@ abstract final class AppUtils {
 
   static double screenHeight(BuildContext context) =>
       MediaQuery.sizeOf(context).height;
+
+  static bool isValidEmail(String email) =>
+      _emailPattern.hasMatch(email.trim());
 
   static bool isMobile(BuildContext context) =>
       screenWidth(context) < mobileBreakpoint;

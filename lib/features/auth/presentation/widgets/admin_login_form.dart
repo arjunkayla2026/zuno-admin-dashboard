@@ -9,9 +9,15 @@ import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
 import 'package:zuno_admin_dashboard/features/auth/presentation/widgets/password_visibility_toggle.dart';
 
 class AdminLoginForm extends StatefulWidget {
-  const AdminLoginForm({super.key, required this.onSignIn, this.errorMessage});
+  const AdminLoginForm({
+    super.key,
+    required this.onSignIn,
+    this.isLoading = false,
+    this.errorMessage,
+  });
 
-  final VoidCallback onSignIn;
+  final void Function(String email, String password) onSignIn;
+  final bool isLoading;
   final String? errorMessage;
 
   @override
@@ -30,6 +36,9 @@ class _AdminLoginFormState extends State<AdminLoginForm> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+
+  void _submit() =>
+      widget.onSignIn(_emailController.text, _passwordController.text);
 
   @override
   void dispose() {
@@ -86,7 +95,7 @@ class _AdminLoginFormState extends State<AdminLoginForm> {
                     obscureText: _obscurePassword,
                     textInputAction: TextInputAction.done,
                     autofillHints: const [AutofillHints.password],
-                    onSubmitted: (_) => widget.onSignIn(),
+                    onSubmitted: (_) => _submit(),
                     suffix: PasswordVisibilityToggle(
                       obscured: _obscurePassword,
                       onPressed: () =>
@@ -95,9 +104,11 @@ class _AdminLoginFormState extends State<AdminLoginForm> {
                   ),
                   const SizedBox(height: _fieldsToButtonGap),
                   AppPrimaryButton(
-                    label: AppStrings.signInSecurely,
+                    label: widget.isLoading
+                        ? AppStrings.signingIn
+                        : AppStrings.signInSecurely,
                     icon: Icons.lock_outline_rounded,
-                    onPressed: widget.onSignIn,
+                    onPressed: widget.isLoading ? null : _submit,
                   ),
                 ],
               ),
