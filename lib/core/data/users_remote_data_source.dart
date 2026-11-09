@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/firestore_failures.dart';
@@ -14,6 +16,7 @@ class UsersRemoteDataSource {
   static const String _updatedAtField = 'updatedAt';
   static const String _blockedField = 'isAccountBlocked';
   static const String _deletedField = 'isAccountDeleted';
+  static const int _maxIdsPerQuery = 30;
 
   final FirebaseFirestore _firestore;
 
@@ -35,6 +38,37 @@ class UsersRemoteDataSource {
         .collection(_collection)
         .where(_hostStatusField, isEqualTo: UserRecord.documentSubmitted),
   );
+
+  Future<Either<Failure, List<UserRecord>>> fetchByIds(
+    Iterable<String> ids,
+  ) async {
+    final unique = ids.where((id) => id.isNotEmpty).toSet().toList();
+    if (unique.isEmpty) return right(const []);
+    try {
+      final snapshots = await Future.wait([
+        for (var start = 0; start < unique.length; start += _maxIdsPerQuery)
+          _firestore
+              .collection(_collection)
+              .where(
+                FieldPath.documentId,
+                whereIn: unique.sublist(
+                  start,
+                  math.min(start + _maxIdsPerQuery, unique.length),
+                ),
+              )
+              .get(),
+      ]);
+      return right([
+        for (final snapshot in snapshots)
+          for (final document in snapshot.docs)
+            UserRecord.fromDocument(document.id, document.data()),
+      ]);
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.read(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsLoadFailed));
+    }
+  }
 
   Future<Either<Failure, List<UserRecord>>> _fetch(
     Query<Map<String, dynamic>> query,

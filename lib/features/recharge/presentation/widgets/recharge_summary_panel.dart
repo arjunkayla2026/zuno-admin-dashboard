@@ -55,7 +55,7 @@ class RechargeSummaryPanel extends StatelessWidget {
           _figure(
             context,
             RechargeLabels.amountLabel(transaction.kind),
-            NumberFormatter.rupees(transaction.amount),
+            NumberFormatter.rupeesAmount(transaction.amount),
           ),
           _figure(
             context,

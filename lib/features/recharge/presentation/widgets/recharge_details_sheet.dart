@@ -5,7 +5,6 @@ import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
-import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_detail_grid.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_initials_avatar.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
@@ -15,7 +14,6 @@ import 'package:zuno_admin_dashboard/core/widgets/app_status_badge.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/models/recharge_transaction.dart';
 import 'package:zuno_admin_dashboard/features/recharge/presentation/widgets/recharge_labels.dart';
 import 'package:zuno_admin_dashboard/features/recharge/presentation/widgets/recharge_summary_panel.dart';
-import 'package:zuno_admin_dashboard/features/user_management/data/mock/user_mock_data.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_details_arguments.dart';
 
@@ -37,13 +35,6 @@ class RechargeDetailsSheet extends StatelessWidget {
   static const double _sectionGap = 22;
 
   final RechargeTransaction transaction;
-
-  AdminUser? get _user {
-    for (final user in UserMockData.users) {
-      if (user.userId == transaction.userId) return user;
-    }
-    return null;
-  }
 
   void _viewUser(BuildContext context, AdminUser user) {
     final navigator = Navigator.of(context);
@@ -92,7 +83,7 @@ class RechargeDetailsSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = _user;
+    final user = transaction.user;
     final (statusLabel, status) = RechargeLabels.status(transaction.status);
 
     return AppSideSheet(
@@ -109,11 +100,11 @@ class RechargeDetailsSheet extends StatelessWidget {
             items: [
               AppDetailItem(
                 AppStrings.date,
-                value: DateFormatter.short(transaction.dateTime),
+                value: RechargeLabels.date(transaction),
               ),
               AppDetailItem(
                 AppStrings.time,
-                value: DateFormatter.time(transaction.dateTime),
+                value: RechargeLabels.time(transaction),
               ),
               AppDetailItem(AppStrings.name, value: transaction.userName),
               AppDetailItem(
@@ -153,7 +144,7 @@ class RechargeDetailsSheet extends StatelessWidget {
               ),
               AppDetailItem(
                 AppStrings.orderId,
-                value: transaction.orderId,
+                value: transaction.displayOrderId,
                 mono: true,
               ),
               AppDetailItem(

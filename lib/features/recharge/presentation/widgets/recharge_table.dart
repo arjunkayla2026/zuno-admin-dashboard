@@ -3,7 +3,6 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
-import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_data_table.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_initials_avatar.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_status_badge.dart';
@@ -51,8 +50,8 @@ class RechargeTable extends StatelessWidget {
               transaction.status,
             );
             return [
-              Text(DateFormatter.short(transaction.dateTime), style: cell),
-              Text(DateFormatter.time(transaction.dateTime), style: cell),
+              Text(RechargeLabels.date(transaction), style: cell),
+              Text(RechargeLabels.time(transaction), style: cell),
               Row(
                 children: [
                   AppInitialsAvatar(
@@ -82,7 +81,7 @@ class RechargeTable extends StatelessWidget {
               Text(RechargeLabels.coins(transaction), style: cell),
               const SizedBox.shrink(),
               Text(transaction.paymentId ?? AppStrings.emptyValue, style: mono),
-              Text(transaction.orderId, style: mono),
+              Text(transaction.displayOrderId, style: mono),
               Text(RechargeLabels.gateway(transaction.gateway), style: cell),
               AppStatusBadge(label: statusLabel, status: status),
             ];

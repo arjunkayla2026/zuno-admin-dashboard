@@ -152,6 +152,8 @@ abstract final class AppStrings {
   static const String notAnswered = 'Not Answered';
   static const String lowBalance = 'Low Balance';
   static const String searchRechargesHint = 'Search payment ID or amount';
+  static const String searchRechargeTransactionsHint =
+      'Search name, phone or recharge amount';
   static const String creditDebitWallet = 'Credit / Debit Wallet';
   static const String addRecharge = 'Add Recharge';
   static const String time = 'Time';

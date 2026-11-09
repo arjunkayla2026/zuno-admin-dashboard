@@ -1,5 +1,6 @@
 import 'package:zuno_admin_dashboard/core/enums/app_status.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/models/recharge_transaction.dart';
 import 'package:zuno_admin_dashboard/features/recharge/presentation/state/recharge_state.dart';
@@ -44,8 +45,18 @@ abstract final class RechargeLabels {
 
   static String amountFor(RechargeTransaction transaction, RechargeKind kind) =>
       transaction.kind == kind
-      ? NumberFormatter.rupees(transaction.amount)
+      ? NumberFormatter.rupeesAmount(transaction.amount)
       : AppStrings.emptyValue;
+
+  static String date(RechargeTransaction transaction) {
+    final moment = transaction.createdAt;
+    return moment == null ? AppStrings.emptyValue : DateFormatter.short(moment);
+  }
+
+  static String time(RechargeTransaction transaction) {
+    final moment = transaction.createdAt;
+    return moment == null ? AppStrings.emptyValue : DateFormatter.time(moment);
+  }
 
   static String coins(RechargeTransaction transaction) => transaction.coins == 0
       ? AppStrings.emptyValue

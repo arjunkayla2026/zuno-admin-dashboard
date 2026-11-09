@@ -36,15 +36,15 @@ class RechargeContent extends StatelessWidget {
                 ),
                 AppStat(
                   label: AppStrings.totalRechargeAmount,
-                  value: NumberFormatter.rupees(state.rechargeAmount),
+                  value: NumberFormatter.rupeesAmount(state.rechargeAmount),
                 ),
                 AppStat(
                   label: AppStrings.totalCreditAmount,
-                  value: NumberFormatter.rupees(state.creditAmount),
+                  value: NumberFormatter.rupeesAmount(state.creditAmount),
                 ),
                 AppStat(
                   label: AppStrings.totalDebitAmount,
-                  value: NumberFormatter.rupees(state.debitAmount),
+                  value: NumberFormatter.rupeesAmount(state.debitAmount),
                 ),
               ],
             ),

@@ -1,8 +1,27 @@
+import 'package:zuno_admin_dashboard/core/data/user_record.dart';
+import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/name_formatter.dart';
+import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 
 enum UserStatus { active, newUser, blocked, deletedByAdmin, deletedByUser }
 
 class AdminUser {
+  factory AdminUser.fromRecord(UserRecord record) {
+    final name = record.name ?? record.userName ?? AppStrings.emptyValue;
+
+    return AdminUser(
+      createdDate: record.createdDateLabel,
+      name: name,
+      initials: NameFormatter.initials(name),
+      userId: record.id,
+      phone: record.phoneLabel,
+      recharges: null,
+      walletBalance: NumberFormatter.grouped(record.walletBalance.truncate()),
+      status: _statusOf(record),
+      avatarIndex: record.avatarIndex,
+    );
+  }
+
   const AdminUser({
     required this.createdDate,
     required this.name,
@@ -24,6 +43,17 @@ class AdminUser {
   final String walletBalance;
   final UserStatus status;
   final int avatarIndex;
+
+  static UserStatus _statusOf(UserRecord record) {
+    if (record.isDeleted) {
+      return record.isDeletedByAdmin
+          ? UserStatus.deletedByAdmin
+          : UserStatus.deletedByUser;
+    }
+    if (record.isBlocked) return UserStatus.blocked;
+    if (record.isNewAccount) return UserStatus.newUser;
+    return UserStatus.active;
+  }
 
   bool get hasActions =>
       status != UserStatus.deletedByAdmin && status != UserStatus.deletedByUser;

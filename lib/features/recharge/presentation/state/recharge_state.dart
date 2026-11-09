@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zuno_admin_dashboard/core/enums/date_range_filter.dart';
-import 'package:zuno_admin_dashboard/core/utils/date_range_matcher.dart';
+import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
+import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/models/recharge_transaction.dart';
 
 enum RechargeSourceFilter {
@@ -13,9 +14,11 @@ enum RechargeSourceFilter {
 enum RechargeStatusFilter { all, completed, failed, created }
 
 class RechargeState {
-  const RechargeState({
-    required this.transactions,
+  RechargeState({
     required this.today,
+    this.transactions = const [],
+    this.status = LoadStatus.loading,
+    this.errorMessage,
     this.query = '',
     this.dateFilter = DateRangeFilter.all,
     this.customRange,
@@ -25,8 +28,12 @@ class RechargeState {
   });
 
   static const int pageSize = 11;
+  static final RegExp _amountPattern = RegExp(r'^\d+(\.\d{0,2})?$');
+  static final RegExp _separators = RegExp(r'[\s,₹]');
 
   final List<RechargeTransaction> transactions;
+  final LoadStatus status;
+  final String? errorMessage;
   final DateTime today;
   final String query;
   final DateRangeFilter dateFilter;
@@ -34,6 +41,19 @@ class RechargeState {
   final RechargeSourceFilter sourceFilter;
   final RechargeStatusFilter statusFilter;
   final int page;
+
+  late final List<RechargeTransaction> filteredTransactions = transactions
+      .where(
+        (transaction) =>
+            _matchesSource(transaction) &&
+            _matchesStatus(transaction.status) &&
+            _matchesQuery(transaction),
+      )
+      .toList();
+
+  late final List<RechargeTransaction> _completed = filteredTransactions
+      .where((transaction) => transaction.isCompleted)
+      .toList();
 
   bool _matchesSource(RechargeTransaction transaction) =>
       switch (sourceFilter) {
@@ -53,43 +73,34 @@ class RechargeState {
   bool _matchesQuery(RechargeTransaction transaction) {
     final term = query.trim().toLowerCase();
     if (term.isEmpty) return true;
-    final digits = term.replaceAll(' ', '');
-    return [
-          transaction.userName,
-          transaction.orderId,
-          transaction.paymentId ?? '',
-        ].any((text) => text.toLowerCase().contains(term)) ||
-        (digits.isNotEmpty &&
-            transaction.phone.replaceAll(' ', '').contains(digits));
+    if (transaction.userName.toLowerCase().contains(term)) return true;
+    if ([
+      transaction.displayOrderId,
+      transaction.paymentId ?? '',
+    ].any((id) => id.toLowerCase().contains(term))) {
+      return true;
+    }
+
+    final compact = term.replaceAll(_separators, '');
+    if (compact.isEmpty) return false;
+    if (transaction.phone.replaceAll(' ', '').contains(compact)) return true;
+    return _amountPattern.hasMatch(compact) &&
+        NumberFormatter.amountInput(transaction.amount).startsWith(compact);
   }
 
-  List<RechargeTransaction> get filteredTransactions => transactions
-      .where(
-        (transaction) =>
-            dateFilter.includes(
-              transaction.dateTime,
-              today: today,
-              customRange: customRange,
-            ) &&
-            _matchesSource(transaction) &&
-            _matchesStatus(transaction.status) &&
-            _matchesQuery(transaction),
-      )
-      .toList();
-
-  int _sumOf(RechargeKind kind) => filteredTransactions
+  double _sumOf(RechargeKind kind) => _completed
       .where((transaction) => transaction.kind == kind)
       .fold(0, (sum, transaction) => sum + transaction.amount);
 
-  int get rechargeCount => filteredTransactions
+  int get rechargeCount => _completed
       .where((transaction) => transaction.kind == RechargeKind.recharge)
       .length;
 
-  int get rechargeAmount => _sumOf(RechargeKind.recharge);
+  double get rechargeAmount => _sumOf(RechargeKind.recharge);
 
-  int get creditAmount => _sumOf(RechargeKind.credit);
+  double get creditAmount => _sumOf(RechargeKind.credit);
 
-  int get debitAmount => _sumOf(RechargeKind.debit);
+  double get debitAmount => _sumOf(RechargeKind.debit);
 
   int get totalPages {
     final count = filteredTransactions.length;
@@ -103,6 +114,10 @@ class RechargeState {
       filteredTransactions.skip(firstIndex).take(pageSize).toList();
 
   RechargeState copyWith({
+    List<RechargeTransaction>? transactions,
+    LoadStatus? status,
+    String? errorMessage,
+    DateTime? today,
     String? query,
     DateRangeFilter? dateFilter,
     DateTimeRange? customRange,
@@ -111,8 +126,10 @@ class RechargeState {
     int? page,
   }) {
     return RechargeState(
-      transactions: transactions,
-      today: today,
+      transactions: transactions ?? this.transactions,
+      status: status ?? this.status,
+      errorMessage: errorMessage ?? this.errorMessage,
+      today: today ?? this.today,
       query: query ?? this.query,
       dateFilter: dateFilter ?? this.dateFilter,
       customRange: customRange ?? this.customRange,

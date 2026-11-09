@@ -33,7 +33,7 @@ class RechargeToolbar extends StatelessWidget {
                 ? constraints.maxWidth
                 : _searchWidth,
             child: AppSearchField(
-              hint: AppStrings.searchUsersHint,
+              hint: AppStrings.searchRechargeTransactionsHint,
               onChanged: cubit.search,
             ),
           ),
