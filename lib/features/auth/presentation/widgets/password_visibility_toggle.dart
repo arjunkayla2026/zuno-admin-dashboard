@@ -27,7 +27,11 @@ class PasswordVisibilityToggle extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: AppUtils.spacingXs),
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         ),
-        child: Text(obscured ? AppStrings.show : AppStrings.hide),
+        child: IndexedStack(
+          index: obscured ? 0 : 1,
+          alignment: Alignment.center,
+          children: const [Text(AppStrings.show), Text(AppStrings.hide)],
+        ),
       ),
     );
   }
