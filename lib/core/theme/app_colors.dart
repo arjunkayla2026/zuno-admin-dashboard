@@ -106,6 +106,9 @@ abstract final class AppColors {
   static const Color tealGradientStart = Color(0xFF0E5C66);
   static const Color tealGradientEnd = sidebarBackground;
 
+  static const Color bannerCircle = Color(0x1AFFFFFF);
+  static const Color bannerSubheading = Color(0xD9FFFFFF);
+
   static const Color cardShadow = Color(0x0F17243A);
   static const Color popoverShadow = Color(0x241F2430);
   static const Color menuShadow = Color(0x4D0D1624);

@@ -4,11 +4,11 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
-import 'package:zuno_admin_dashboard/core/widgets/app_empty_state.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_underline_tabs.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_cubit.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_state.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/admin_management_section.dart';
+import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/banner_management_section.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/maintenance_mode_section.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/notification_composer_section.dart';
 
@@ -48,11 +48,8 @@ class SettingsTabsCard extends StatelessWidget {
                 SettingsTab.adminManagement => const AdminManagementSection(),
                 SettingsTab.notificationManagement =>
                   const NotificationComposerSection(),
-                SettingsTab.bannerImageManagement => const AppEmptyState(
-                  icon: Icons.image_outlined,
-                  title: AppStrings.settingsSectionPendingTitle,
-                  message: AppStrings.settingsSectionPendingMessage,
-                ),
+                SettingsTab.bannerImageManagement =>
+                  const BannerManagementSection(),
               },
             ],
           ),

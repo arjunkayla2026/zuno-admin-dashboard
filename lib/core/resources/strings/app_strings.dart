@@ -634,12 +634,38 @@ abstract final class AppStrings {
       'message, then send to see the confirmation step.';
   static const String enterTitle = 'Enter a title.';
   static const String enterMessage = 'Enter a message.';
+  static const String sendNotificationTitle = 'Send this notification?';
+  static const String sendNotificationPrefix = 'It will be sent to ';
+  static const String sendNotificationSuffix = ' recipients right away.';
+  static const String sendNow = 'Send now';
+
+  static String hostsForLanguages(String languages) => 'Hosts ($languages)';
+
+  static const String screenPlacement = 'Screen placement';
+  static const String homeScreen = 'Home Screen';
+  static const String screenPlacementHome = '$screenPlacement: $homeScreen';
+  static const String addBanner = 'Add Banner';
+  static const String addBannerImage = 'Add banner image';
+  static const String addBannerAction = 'Add banner';
+  static const String bannerFormatHint = 'PNG or JPG, wide format';
+  static const String bannerDropTitle = 'Drop an image here or click to choose';
+  static const String bannerDropHint = 'PNG or JPG, wide format works best';
+  static const String deleteBannerTitle = 'Delete this banner?';
+  static const String deleteBannerAction = 'Delete banner';
+  static const String deleteBannerMessageTail =
+      ' will be removed from the Home screen.';
+
+  static String bannerName(int number) => 'Banner $number';
+
+  static String bannerMeta(String fileName, String addedOn) =>
+      '$fileName · $homeScreen · Added $addedOn';
+
+  static String bannersSummary(int count) =>
+      '$count ${count == 1 ? 'banner' : 'banners'} · auto-sliding on the Home '
+      'screen';
 
   static String adminsCount(int count) => '$count admins';
 
-  static const String settingsSectionPendingTitle = 'Coming soon';
-  static const String settingsSectionPendingMessage =
-      'This settings section has not been built yet.';
   static const String couponListPendingTitle =
       'Coupon List fields are not confirmed yet';
   static const String couponListPendingMessage =

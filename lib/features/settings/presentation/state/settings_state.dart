@@ -1,5 +1,6 @@
 import 'package:zuno_admin_dashboard/features/host_management/data/models/host_profile_options.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/models/admin_account.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/models/banner_image.dart';
 
 enum SettingsTab {
   maintenanceMode,
@@ -13,6 +14,7 @@ class SettingsState {
     required this.admins,
     required this.activeUsers,
     required this.activeHostsByLanguage,
+    required this.banners,
     this.tab = SettingsTab.maintenanceMode,
     this.maintenanceEnabled = false,
   });
@@ -20,6 +22,7 @@ class SettingsState {
   final List<AdminAccount> admins;
   final int activeUsers;
   final Map<HostLanguage, int> activeHostsByLanguage;
+  final List<BannerImage> banners;
   final SettingsTab tab;
   final bool maintenanceEnabled;
 
@@ -32,6 +35,7 @@ class SettingsState {
 
   SettingsState copyWith({
     List<AdminAccount>? admins,
+    List<BannerImage>? banners,
     SettingsTab? tab,
     bool? maintenanceEnabled,
   }) {
@@ -39,6 +43,7 @@ class SettingsState {
       admins: admins ?? this.admins,
       activeUsers: activeUsers,
       activeHostsByLanguage: activeHostsByLanguage,
+      banners: banners ?? this.banners,
       tab: tab ?? this.tab,
       maintenanceEnabled: maintenanceEnabled ?? this.maintenanceEnabled,
     );

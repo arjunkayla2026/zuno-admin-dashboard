@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zuno_admin_dashboard/core/resources/images/app_images.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
@@ -14,6 +15,7 @@ import 'package:zuno_admin_dashboard/features/host_management/presentation/widge
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_cubit.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_state.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/notification_audience_card.dart';
+import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/notification_flow.dart';
 
 enum NotificationAudience { users, hosts, both }
 
@@ -27,15 +29,20 @@ class NotificationComposerSection extends StatefulWidget {
 
 class _NotificationComposerSectionState
     extends State<NotificationComposerSection> {
-  static const double _audienceWidth = 298;
-  static const double _columnGap = 26;
+  static const double _audienceWidth = 380;
+  static const double _columnGap = 32;
   static const double _stackBreakpoint = 760;
   static const double _labelGap = 8;
   static const double _helperGap = 4;
-  static const double _fieldGap = 18;
-  static const double _actionsGap = 22;
-  static const int _messageLines = 4;
-  static const EdgeInsets _padding = EdgeInsets.fromLTRB(22, 22, 22, 22);
+  static const double _fieldGap = 20;
+  static const double _actionsGap = 20;
+  static const int _messageLines = 5;
+  static const EdgeInsets _padding = EdgeInsets.fromLTRB(28, 24, 28, 24);
+  static const Map<NotificationAudience, String> _audienceLabels = {
+    NotificationAudience.users: AppStrings.userAudience,
+    NotificationAudience.hosts: AppStrings.hostAudience,
+    NotificationAudience.both: AppStrings.bothAudience,
+  };
 
   final _titleController = TextEditingController();
   final _messageController = TextEditingController();
@@ -51,11 +58,33 @@ class _NotificationComposerSectionState
 
   bool get _messageValid => _messageController.text.trim().isNotEmpty;
 
+  String get _languagesLabel => _includesHosts
+      ? HostProfileLabels.languageList(
+          HostLanguage.values.where(_languages.contains),
+        )
+      : '';
+
+  int? _users(SettingsState state) => _includesUsers ? state.activeUsers : null;
+
+  int? _hosts(SettingsState state) =>
+      _includesHosts ? state.activeHostsFor(_languages) : null;
+
   String? _error(bool valid, String message) =>
       _submitted && !valid ? message : null;
 
-  void _send() {
+  Future<void> _send() async {
     setState(() => _submitted = true);
+    if (!_titleValid || !_messageValid) return;
+
+    final state = context.read<SettingsCubit>().state;
+    final confirmed = await confirmSendNotification(
+      context: context,
+      recipients: (_users(state) ?? 0) + (_hosts(state) ?? 0),
+      audience: _audienceLabels[_audience]!,
+      languages: _languagesLabel,
+      title: _titleController.text.trim(),
+    );
+    if (confirmed && mounted) _clear();
   }
 
   void _clear() {
@@ -85,11 +114,7 @@ class _NotificationComposerSectionState
         Text(AppStrings.sendTo, style: label),
         const SizedBox(height: _labelGap),
         AppSegmentedControl<NotificationAudience>(
-          options: const {
-            NotificationAudience.users: AppStrings.userAudience,
-            NotificationAudience.hosts: AppStrings.hostAudience,
-            NotificationAudience.both: AppStrings.bothAudience,
-          },
+          options: _audienceLabels,
           value: _audience,
           onChanged: (audience) => setState(() => _audience = audience),
         ),
@@ -133,12 +158,12 @@ class _NotificationComposerSectionState
         ),
         const SizedBox(height: _actionsGap),
         Wrap(
-          spacing: AppUtils.spacingSm,
+          spacing: AppUtils.spacingMd,
           runSpacing: AppUtils.spacingSm,
           children: [
             AppPrimaryButton(
               label: AppStrings.sendNotification,
-              icon: Icons.send_outlined,
+              iconAsset: AppImages.sendNotificationIcon,
               compact: true,
               onPressed: _send,
             ),
@@ -159,8 +184,9 @@ class _NotificationComposerSectionState
             previous.activeHostsByLanguage != current.activeHostsByLanguage,
         builder: (context, state) {
           final audience = NotificationAudienceCard(
-            users: _includesUsers ? state.activeUsers : 0,
-            hosts: _includesHosts ? state.activeHostsFor(_languages) : 0,
+            users: _users(state),
+            hosts: _hosts(state),
+            hostLanguages: _languagesLabel,
           );
 
           return LayoutBuilder(

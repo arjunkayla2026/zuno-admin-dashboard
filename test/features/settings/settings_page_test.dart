@@ -8,6 +8,7 @@ import 'package:zuno_admin_dashboard/features/settings/presentation/pages/settin
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/admin_sheet.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/admins_table.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/maintenance_top_bar_badge.dart';
+import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/banner_preview.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/notification_audience_card.dart';
 
 void main() {
@@ -176,13 +177,15 @@ void main() {
 
     await tester.tap(find.text(AppStrings.malayalam));
     await tester.pumpAndSettle();
-    expect(inCard('412'), findsOneWidget);
-    expect(inCard('8,652'), findsOneWidget);
+    expect(inCard(AppStrings.hostsForLanguages('Malayalam')), findsOneWidget);
+    expect(inCard('446'), findsOneWidget);
+    expect(inCard('8,686'), findsOneWidget);
 
     await tester.tap(find.text(AppStrings.userAudience));
     await tester.pumpAndSettle();
     expect(find.text(AppStrings.hostMotherTongue), findsNothing);
-    expect(inCard('0'), findsOneWidget);
+    expect(inCard(AppStrings.hostsLabel), findsNothing);
+    expect(inCard(AppStrings.usersLabel), findsOneWidget);
 
     await tester.tap(find.text(AppStrings.sendNotification));
     await tester.pumpAndSettle();
@@ -195,14 +198,119 @@ void main() {
     expect(inCard('9,366'), findsOneWidget);
   });
 
-  testWidgets('other tabs show a placeholder', (tester) async {
+  testWidgets('send confirms the audience and clears the form', (tester) async {
     await pumpPage(tester);
-
-    await tester.tap(find.text(AppStrings.bannerImageManagement).first);
+    await tester.tap(find.text(AppStrings.notificationManagement).first);
     await tester.pumpAndSettle();
 
-    expect(find.text(AppStrings.settingsSectionPendingTitle), findsOneWidget);
+    await tester.tap(find.text(AppStrings.hostAudience));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(AppStrings.malayalam));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(AppStrings.tamil));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, 'Bonus packs');
+    await tester.enterText(find.byType(TextField).last, 'Recharge today.');
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(AppStrings.sendNotification));
+    await tester.pumpAndSettle();
+    expect(find.text(AppStrings.sendNotificationTitle), findsOneWidget);
+    expect(find.text('Malayalam, Tamil'), findsOneWidget);
+
+    await tester.tap(find.text(AppStrings.cancel));
+    await tester.pumpAndSettle();
+    expect(find.text(AppStrings.sendNotificationTitle), findsNothing);
+    expect(find.text('Bonus packs'), findsOneWidget);
+
+    await tester.tap(find.text(AppStrings.sendNotification));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(AppStrings.sendNow));
+    await tester.pumpAndSettle();
+    expect(find.text(AppStrings.sendNotificationTitle), findsNothing);
+    expect(find.text('Bonus packs'), findsNothing);
+  });
+
+  Future<void> openBanners(WidgetTester tester, [Size? size]) async {
+    await pumpPage(tester, size ?? const Size(1440, 900));
+    await tester.tap(find.text(AppStrings.bannerImageManagement).first);
+    await tester.pumpAndSettle();
+  }
+
+  testWidgets('banner tab lists the banners', (tester) async {
+    await openBanners(tester);
+
     expect(find.byType(AppStatusSwitch), findsNothing);
+    expect(find.text(AppStrings.bannersSummary(3)), findsOneWidget);
+    expect(find.text(AppStrings.bannerName(3)), findsOneWidget);
+    expect(find.text('Talk in your language'), findsOneWidget);
+    final actionPill = find
+        .ancestor(of: find.text('Explore'), matching: find.byType(Container))
+        .first;
+    expect(
+      tester.getSize(actionPill).width,
+      lessThan(tester.getSize(find.byType(BannerPreview).at(1)).width / 2),
+    );
+    expect(
+      find.text(AppStrings.bannerMeta('languages.png', '26 Oct 2026')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('delete asks first and renumbers the banners', (tester) async {
+    await openBanners(tester);
+
+    await tester.tap(find.text(AppStrings.delete).at(1));
+    await tester.pumpAndSettle();
+    expect(find.text(AppStrings.deleteBannerTitle), findsOneWidget);
+
+    await tester.tap(find.text(AppStrings.cancel));
+    await tester.pumpAndSettle();
+    expect(find.text(AppStrings.bannersSummary(3)), findsOneWidget);
+
+    await tester.tap(find.text(AppStrings.delete).at(1));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(AppStrings.deleteBannerAction));
+    await tester.pumpAndSettle();
+
+    expect(find.text(AppStrings.bannersSummary(2)), findsOneWidget);
+    expect(find.text('Talk in your language'), findsNothing);
+    expect(find.text('Mega pack is here'), findsOneWidget);
+    expect(find.text(AppStrings.bannerName(3)), findsNothing);
+  });
+
+  testWidgets('add banner needs an image first', (tester) async {
+    await openBanners(tester);
+
+    await tester.tap(find.text(AppStrings.addBanner));
+    await tester.pumpAndSettle();
+
+    ElevatedButton addButton() => tester.widget<ElevatedButton>(
+      find.ancestor(
+        of: find.text(AppStrings.addBannerAction),
+        matching: find.bySubtype<ElevatedButton>(),
+      ),
+    );
+
+    expect(addButton().onPressed, isNull);
+
+    await tester.tap(find.text(AppStrings.bannerDropTitle));
+    await tester.pumpAndSettle();
+    expect(addButton().onPressed, isNotNull);
+
+    await tester.tap(find.text(AppStrings.addBannerAction));
+    await tester.pumpAndSettle();
+    expect(find.text(AppStrings.bannersSummary(4)), findsOneWidget);
+    expect(find.text(AppStrings.bannerName(4)), findsOneWidget);
+  });
+
+  testWidgets('banner tab and dialogs fit a mobile width', (tester) async {
+    await openBanners(tester, const Size(390, 844));
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.text(AppStrings.addBanner));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('fits a mobile width without overflow', (tester) async {

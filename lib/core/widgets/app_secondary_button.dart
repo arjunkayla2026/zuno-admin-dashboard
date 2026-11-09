@@ -11,6 +11,7 @@ class AppSecondaryButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.leading,
+    this.leadingGap = AppUtils.spacingMd,
     this.destructive = false,
     this.small = false,
     this.backgroundColor,
@@ -24,6 +25,7 @@ class AppSecondaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
   final Widget? leading;
+  final double leadingGap;
   final bool destructive;
   final bool small;
   final Color? backgroundColor;
@@ -65,7 +67,7 @@ class AppSecondaryButton extends StatelessWidget {
         children: [
           if (leading case final leading?) ...[
             leading,
-            const SizedBox(width: AppUtils.spacingMd),
+            SizedBox(width: leadingGap),
           ],
           Flexible(child: Text(label)),
         ],

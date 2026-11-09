@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
@@ -10,6 +11,7 @@ class AppPrimaryButton extends StatelessWidget {
     required this.label,
     required this.onPressed,
     this.icon,
+    this.iconAsset,
     this.compact = false,
     this.small = false,
     this.destructive = false,
@@ -25,6 +27,7 @@ class AppPrimaryButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
   final IconData? icon;
+  final String? iconAsset;
   final bool compact;
   final bool small;
   final bool destructive;
@@ -66,11 +69,31 @@ class AppPrimaryButton extends StatelessWidget {
     return null;
   }
 
+  Widget? get _leadingIcon {
+    final asset = iconAsset;
+    if (asset == null) return icon == null ? null : Icon(icon);
+
+    return Builder(
+      builder: (context) {
+        final theme = IconTheme.of(context);
+        final color = theme.color;
+        return SvgPicture.asset(
+          asset,
+          width: theme.size,
+          height: theme.size,
+          colorFilter: color == null
+              ? null
+              : ColorFilter.mode(color, BlendMode.srcIn),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final button = ElevatedButton.icon(
       onPressed: onPressed,
-      icon: icon == null ? null : Icon(icon),
+      icon: _leadingIcon,
       label: Text(label),
       style: ElevatedButton.styleFrom(
         minimumSize: _minimumSize,

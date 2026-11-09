@@ -5,23 +5,26 @@ import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_dashed_divider.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_section_label.dart';
 
 class NotificationAudienceCard extends StatelessWidget {
   const NotificationAudienceCard({
     super.key,
-    required this.users,
-    required this.hosts,
+    this.users,
+    this.hosts,
+    this.hostLanguages = '',
   });
 
   static const double _labelGap = 10;
   static const double _rowGap = 8;
   static const double _totalGap = 10;
   static const double _noteGap = 14;
-  static const EdgeInsets _padding = EdgeInsets.fromLTRB(16, 14, 16, 14);
+  static const EdgeInsets _padding = EdgeInsets.all(22);
 
-  final int users;
-  final int hosts;
+  final int? users;
+  final int? hosts;
+  final String hostLanguages;
 
   Widget _row(
     String label,
@@ -46,6 +49,26 @@ class NotificationAudienceCard extends StatelessWidget {
       color: textColor,
       fontWeight: FontWeight.w700,
     );
+    final users = this.users;
+    final hosts = this.hosts;
+    final rows = [
+      if (users != null)
+        _row(
+          AppStrings.usersLabel,
+          NumberFormatter.grouped(users),
+          label,
+          value,
+        ),
+      if (hosts != null)
+        _row(
+          hostLanguages.isEmpty
+              ? AppStrings.hostsLabel
+              : AppStrings.hostsForLanguages(hostLanguages),
+          NumberFormatter.grouped(hosts),
+          label,
+          value,
+        ),
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -62,25 +85,16 @@ class NotificationAudienceCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _row(
-                AppStrings.usersLabel,
-                NumberFormatter.grouped(users),
-                label,
-                value,
-              ),
-              const SizedBox(height: _rowGap),
-              _row(
-                AppStrings.hostsLabel,
-                NumberFormatter.grouped(hosts),
-                label,
-                value,
-              ),
+              for (final (index, row) in rows.indexed) ...[
+                if (index > 0) const SizedBox(height: _rowGap),
+                row,
+              ],
               const SizedBox(height: _totalGap),
-              const Divider(color: AppColors.cardBorder),
+              const AppDashedDivider(),
               const SizedBox(height: _totalGap),
               _row(
                 AppStrings.totalRecipients,
-                NumberFormatter.grouped(users + hosts),
+                NumberFormatter.grouped((users ?? 0) + (hosts ?? 0)),
                 AppTextStyles.bodySmall.copyWith(
                   color: textColor,
                   fontWeight: FontWeight.w700,

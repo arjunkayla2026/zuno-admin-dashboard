@@ -20,6 +20,7 @@ Future<bool> showAppConfirmDialog({
   bool brand = false,
   Widget? details,
   double? width,
+  bool centerTitle = false,
 }) async {
   final confirmed = await showAppDialog<bool>(
     context: context,
@@ -33,6 +34,7 @@ Future<bool> showAppConfirmDialog({
       brand: brand,
       details: details,
       width: width,
+      centerTitle: centerTitle,
     ),
   );
   return confirmed ?? false;
@@ -50,6 +52,7 @@ class AppConfirmDialog extends StatelessWidget {
     this.brand = false,
     this.details,
     this.width,
+    this.centerTitle = false,
   }) : assert(icon != null || iconAsset != null);
 
   static const double _iconTileSize = 44;
@@ -71,6 +74,7 @@ class AppConfirmDialog extends StatelessWidget {
   final bool brand;
   final Widget? details;
   final double? width;
+  final bool centerTitle;
 
   @override
   Widget build(BuildContext context) {
@@ -96,7 +100,9 @@ class AppConfirmDialog extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: centerTitle
+                ? CrossAxisAlignment.center
+                : CrossAxisAlignment.start,
             children: [
               Container(
                 width: _iconTileSize,
@@ -121,7 +127,7 @@ class AppConfirmDialog extends StatelessWidget {
               const SizedBox(width: _iconGap),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.only(top: _titleInset),
+                  padding: EdgeInsets.only(top: centerTitle ? 0 : _titleInset),
                   child: Text(
                     title,
                     style: AppTextStyles.titleSmall.copyWith(

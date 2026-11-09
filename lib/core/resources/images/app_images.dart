@@ -17,4 +17,8 @@ abstract final class AppImages {
   static const String surgeChargeIcon = '$_icons/surge_charge_icon.svg';
   static const String downloadIcon = '$_icons/download_icon.svg';
   static const String maintenanceModeIcon = '$_icons/maintenance_mode_icon.svg';
+  static const String sendNotificationIcon =
+      '$_icons/send_notification_icon.svg';
+  static const String bannerImageIcon = '$_icons/banner_image_icon.svg';
+  static const String uploadIcon = '$_icons/upload_icon.svg';
 }
