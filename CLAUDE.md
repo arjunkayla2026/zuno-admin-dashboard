@@ -35,10 +35,10 @@ The project uses **Flutter 3.47.7** (bundled Dart SDK 3.13.5; `pubspec.yaml` con
 
 ```text
 lib/
-├── main.dart                     # App entry point; currently the only main()
+├── main.dart                     # flavorMain(Environment): flavor setup, then app start
 │
 ├── core/
-│   ├── app_environment/          # Environment configuration (empty)
+│   ├── app_environment/          # config/ (FlavorConfig, Firebase options), entry_point/ (main_staging, main_production)
 │   ├── enums/                    # Shared enums, including AppStatus
 │   ├── resources/                # images/, icons/, strings/, other shared resources
 │   ├── di/                       # All GetIt registration
@@ -64,17 +64,32 @@ Additional subfolders are fine for organizing resources. Do not add unnecessary 
 
 ## Entry Point and Environments
 
-No flavors or per-environment entry points exist. `lib/main.dart` is the only entry point, and nothing reads a staging or production setting yet.
+The app is Flutter Web only. Two web entry points exist, one per environment. Each calls `flavorMain(Environment.<flavor>)`:
+
+| Environment | Entry point | Firebase |
+| --- | --- | --- |
+| `staging` | `lib/core/app_environment/entry_point/main_staging.dart` | `suno-staging-aaa4d`, configured by `lib/core/app_environment/config/firebase_options_staging.dart` |
+| `production` | `lib/core/app_environment/entry_point/main_production.dart` | None yet; does not initialize Firebase |
+
+`lib/main.dart` has no `main()` function, so always pass the entry point with `-t`. Flutter web does not support `--flavor`:
 
 ```bash
-flutter run -d chrome
-flutter build web --release -t lib/main.dart
+flutter run -d chrome -t lib/core/app_environment/entry_point/main_staging.dart
+flutter run -d chrome -t lib/core/app_environment/entry_point/main_production.dart
+flutter build web --release -t lib/core/app_environment/entry_point/main_staging.dart
+flutter build web --release -t lib/core/app_environment/entry_point/main_production.dart
 ```
+
+Responsibilities:
+
+- **Entry points** call `flavorMain(Environment.<flavor>)`.
+- **`lib/main.dart`** receives the environment, initializes `FlavorConfig`, registers dependencies with `configureDependencies()`, and calls `runApp`.
+- **`FlavorConfig`** (`core/app_environment/config/flavor_config.dart`) performs per-environment setup. Only `staging` initializes Firebase.
 
 Rules:
 
-- Do not assume or invent flavors, entry points, or environment configuration.
-- Add them only when explicitly requested.
+- Never change the environment configuration unless explicitly requested.
+- Do not assume or invent environment names or configurations beyond those above.
 
 ## 1. Architecture Rules
 

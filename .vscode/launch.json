@@ -1,0 +1,72 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Zuno Staging (Chrome)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/core/app_environment/entry_point/main_staging.dart",
+            "args": [
+                "-d",
+                "chrome"
+            ]
+        },
+        {
+            "name": "Zuno Production (Chrome)",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/core/app_environment/entry_point/main_production.dart",
+            "args": [
+                "-d",
+                "chrome"
+            ]
+        },
+        {
+            "name": "Zuno Staging (Chrome, profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile",
+            "program": "lib/core/app_environment/entry_point/main_staging.dart",
+            "args": [
+                "-d",
+                "chrome"
+            ]
+        },
+        {
+            "name": "Zuno Production (Chrome, profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile",
+            "program": "lib/core/app_environment/entry_point/main_production.dart",
+            "args": [
+                "-d",
+                "chrome"
+            ]
+        },
+        {
+            "name": "Zuno Staging (Chrome, release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release",
+            "program": "lib/core/app_environment/entry_point/main_staging.dart",
+            "args": [
+                "-d",
+                "chrome"
+            ]
+        },
+        {
+            "name": "Zuno Production (Chrome, release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release",
+            "program": "lib/core/app_environment/entry_point/main_production.dart",
+            "args": [
+                "-d",
+                "chrome"
+            ]
+        }
+    ]
+}

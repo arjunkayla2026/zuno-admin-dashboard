@@ -2,7 +2,7 @@
   "flutter": {
     "platforms": {
       "dart": {
-        "lib/firebase_options.dart": {
+        "lib/core/app_environment/config/firebase_options_staging.dart": {
           "projectId": "suno-staging-aaa4d",
           "configurations": {
             "web": "1:170664774467:web:90ea5d4166c2cdd3787df6"
