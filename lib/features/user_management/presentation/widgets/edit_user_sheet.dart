@@ -74,7 +74,7 @@ class _EditUserSheetState extends State<EditUserSheet> {
 
     return AppSideSheet(
       title: AppStrings.editUserDetails,
-      subtitle: AppStrings.editUserSubtitle(user.userId, user.createdDate),
+      subtitle: AppStrings.editUserSubtitle(user.userID, user.createdDate),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -82,7 +82,7 @@ class _EditUserSheetState extends State<EditUserSheet> {
             initials: user.initials,
             avatarIndex: user.avatarIndex,
             name: user.name,
-            subtitle: user.userId,
+            subtitle: user.userID,
           ),
           const SizedBox(height: _profileGap),
           AppLabeledTextField(
@@ -104,7 +104,7 @@ class _EditUserSheetState extends State<EditUserSheet> {
             dense: true,
           ),
           const SizedBox(height: _fieldGap),
-          AppReadOnlyField(label: AppStrings.userId, value: user.userId),
+          AppReadOnlyField(label: AppStrings.userId, value: user.userID),
           if (_errorMessage case final message?) ...[
             const SizedBox(height: _fieldGap),
             AppErrorBanner(message: message),

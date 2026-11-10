@@ -150,7 +150,7 @@ class _EditHostSheetState extends State<EditHostSheet> {
 
     return AppSideSheet(
       title: AppStrings.editHostDetails,
-      subtitle: AppStrings.editUserSubtitle(host.hostId, host.createdDate),
+      subtitle: AppStrings.editUserSubtitle(host.userID, host.createdDate),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -158,7 +158,7 @@ class _EditHostSheetState extends State<EditHostSheet> {
             initials: host.initials,
             avatarIndex: host.avatarIndex,
             name: host.name,
-            subtitle: host.hostId,
+            subtitle: host.userID,
           ),
           const SizedBox(height: _profileGap),
           AppFieldRow(

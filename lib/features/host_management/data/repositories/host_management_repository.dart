@@ -76,9 +76,10 @@ class HostManagementRepository {
       name: name,
       fullName: UserRecord.readText(details['fullName']) ?? name,
       hostId: record.id,
+      userID: record.userIDLabel,
       phone: record.phoneLabel,
       walletBalance: record.walletBalance.truncate(),
-      status: _statusOf(record),
+      status: statusOf(record),
       avatarIndex: record.avatarIndex,
       isNew: record.isNewAccount,
       isAccountActive: record.isActive,
@@ -93,7 +94,7 @@ class HostManagementRepository {
     );
   }
 
-  HostStatus _statusOf(UserRecord record) {
+  static HostStatus statusOf(UserRecord record) {
     if (record.isDeleted) {
       return record.isDeletedByAdmin
           ? HostStatus.deletedByAdmin

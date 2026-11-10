@@ -83,7 +83,7 @@ class HostTableRow extends StatelessWidget {
                 ),
               ],
             ),
-            hostId: Text(host.hostId, style: mono),
+            hostId: Text(host.userID, style: mono),
             phone: Text(host.phone, style: mono),
             status: Align(
               alignment: Alignment.centerLeft,

@@ -34,6 +34,16 @@ abstract final class AppStrings {
   static const String today = 'Today';
   static const String customDateRange = 'Custom Date Range';
   static const String dateRangeSeparator = 'to';
+  static const String apply = 'Apply';
+  static const String selectStartDate = 'Select a start date';
+  static const String selectEndDate = 'Select an end date';
+  static const String previousMonth = 'Previous month';
+  static const String nextMonth = 'Next month';
+  static const String previousYear = 'Previous year';
+  static const String nextYear = 'Next year';
+
+  static String dateRangeSummary(String range, int days) =>
+      '$range · $days ${days == 1 ? 'day' : 'days'}';
   static const String revenueSummary = 'Revenue Summary';
   static const String userStatistics = 'User Statistics';
   static const String callStatistics = 'Call Statistics';
@@ -400,6 +410,9 @@ abstract final class AppStrings {
 
   static const String accountHolderNameField = 'Account Holder Name';
   static const String noPayoutRequests = 'No payout requests found';
+  static const String payoutChanged =
+      'This account was already reviewed or changed. Reload the page to see '
+      'the latest request.';
   static const String payoutReviewTitle = 'Payout review';
   static const String hostBasicInfo = 'Host basic info';
   static const String bankAccount = 'Bank account';
@@ -418,6 +431,9 @@ abstract final class AppStrings {
       "$name's payout request will be rejected.";
 
   static const String noProfilePhotos = 'No profile photos to review';
+  static const String profilePhotoChanged =
+      'This photo was already reviewed or replaced. Reload the page to see '
+      'the latest request.';
   static const String acceptPhotoTitle = 'Accept profile photo?';
   static const String rejectPhotoTitle = 'Reject profile photo?';
 
@@ -428,7 +444,7 @@ abstract final class AppStrings {
       "$name's new photo will be rejected and the current photo stays.";
 
   static String languagesSubmitted(String languages, String date) =>
-      '$languages · Submitted $date';
+      [if (languages.isNotEmpty) languages, 'Submitted $date'].join(' · ');
 
   static const String allReportTypes = 'All report types';
   static const String fakeProfile = 'Fake profile';

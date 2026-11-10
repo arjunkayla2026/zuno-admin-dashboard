@@ -32,7 +32,7 @@ class ApprovalPage extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: context.pageOverlayStyle,
       child: BlocProvider(
-        create: (_) => getIt<ApprovalCubit>()..loadHostRequests(),
+        create: (_) => getIt<ApprovalCubit>()..initialize(),
         child: BlocSelector<ApprovalCubit, ApprovalState, ApprovalTab>(
           selector: (state) => state.tab,
           builder: (context, tab) => AdminShell(

@@ -2,11 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:zuno_admin_dashboard/core/enums/date_range_filter.dart';
 
 extension DateRangeMatcher on DateRangeFilter {
+  (DateTime, DateTime)? boundsFor({
+    required DateTime today,
+    DateTimeRange? customRange,
+  }) {
+    final (start, end) = momentBounds(today: today, customRange: customRange);
+    if (start == null || end == null) return null;
+    return (start, end);
+  }
+
   (DateTime?, DateTime?) dayBounds({
     required DateTime today,
     DateTimeRange? customRange,
   }) {
-    final (start, end) = switch (this) {
+    final (DateTime? start, DateTime? end) = switch (this) {
       DateRangeFilter.all => (null, null),
       DateRangeFilter.yesterday => (
         today.subtract(const Duration(days: 1)),

@@ -98,7 +98,7 @@ class HostProfileCard extends StatelessWidget {
             children: [
               AppMetaField(
                 label: AppStrings.hostId,
-                value: host.hostId,
+                value: host.userID,
                 minWidth: 82,
                 mono: true,
               ),

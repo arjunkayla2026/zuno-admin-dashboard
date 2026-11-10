@@ -41,6 +41,7 @@ class HostManagementState {
       return host.name.toLowerCase().contains(term) ||
           host.fullName.toLowerCase().contains(term) ||
           host.hostId.toLowerCase().contains(term) ||
+          host.userID.toLowerCase().contains(term) ||
           (digits.isNotEmpty &&
               host.phone.replaceAll(' ', '').contains(digits));
     }).toList();

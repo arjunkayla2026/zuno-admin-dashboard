@@ -60,7 +60,7 @@ class PayoutRequestsTable extends StatelessWidget {
                   Expanded(child: Text(payout.hostName, style: strong)),
                 ],
               ),
-              Text(payout.hostId, style: mono),
+              Text(payout.userID, style: mono),
               Text(payout.accountHolderName, style: cell),
               Text(payout.branchName, style: cell),
               Text(payout.accountNumber, style: cell),

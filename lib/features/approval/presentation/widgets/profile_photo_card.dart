@@ -84,7 +84,7 @@ class ProfilePhotoCard extends StatelessWidget {
                 ),
                 const SizedBox(height: _idGap),
                 Text(
-                  photo.hostId,
+                  photo.userID,
                   style: AppTextStyles.monoSmall.copyWith(color: muted),
                 ),
                 const SizedBox(height: _lineGap),
@@ -109,8 +109,13 @@ class ProfilePhotoCard extends StatelessWidget {
                           label: AppStrings.reject,
                           destructive: true,
                           small: true,
-                          onPressed: () =>
-                              decideProfilePhoto(context, photo, accept: false),
+                          onPressed: photo.isDeciding
+                              ? null
+                              : () => decideProfilePhoto(
+                                  context,
+                                  photo,
+                                  accept: false,
+                                ),
                         ),
                       ),
                       const SizedBox(width: _buttonGap),
@@ -119,8 +124,13 @@ class ProfilePhotoCard extends StatelessWidget {
                           label: AppStrings.accept,
                           small: true,
                           positive: true,
-                          onPressed: () =>
-                              decideProfilePhoto(context, photo, accept: true),
+                          onPressed: photo.isDeciding
+                              ? null
+                              : () => decideProfilePhoto(
+                                  context,
+                                  photo,
+                                  accept: true,
+                                ),
                         ),
                       ),
                     ],

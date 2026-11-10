@@ -10,6 +10,7 @@ import 'package:zuno_admin_dashboard/core/widgets/app_table_load_state.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_underline_tabs.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/state/approval_cubit.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/state/approval_state.dart';
+import 'package:zuno_admin_dashboard/features/approval/presentation/widgets/approval_paged_section.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/widgets/host_requests_table.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/widgets/payout_requests_table.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/widgets/profile_photo_grid.dart';
@@ -23,9 +24,9 @@ class ApprovalTabsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ApprovalCubit, ApprovalState>(
       builder: (context, state) {
-        final requests = state.filteredHostRequests;
-        final payouts = state.filteredPayoutRequests;
-        final photos = state.filteredProfilePhotoRequests;
+        final requests = state.hostRequests;
+        final payouts = state.payoutRequests;
+        final photos = state.profilePhotoRequests;
 
         Widget empty(String message) => SizedBox(
           height: _emptyHeight,
@@ -78,20 +79,46 @@ class ApprovalTabsCard extends StatelessWidget {
                 ApprovalTab.hostRequests when requests.isEmpty => empty(
                   AppStrings.noHostRequests,
                 ),
-                ApprovalTab.hostRequests => HostRequestsTable(
-                  requests: requests,
+                ApprovalTab.hostRequests => ApprovalPagedSection(
+                  paging: state.hostPaging,
+                  shownCount: requests.length,
+                  child: HostRequestsTable(requests: requests),
                 ),
+                ApprovalTab.payoutReview
+                    when state.payoutsStatus == LoadStatus.loading =>
+                  const AppTableLoadingState(),
+                ApprovalTab.payoutReview
+                    when state.payoutsStatus == LoadStatus.failure =>
+                  AppTableErrorState(
+                    message: state.payoutsError ?? AppStrings.recordsLoadFailed,
+                    onRetry: context.read<ApprovalCubit>().loadPayoutRequests,
+                  ),
                 ApprovalTab.payoutReview when payouts.isEmpty => empty(
                   AppStrings.noPayoutRequests,
                 ),
-                ApprovalTab.payoutReview => PayoutRequestsTable(
-                  payouts: payouts,
+                ApprovalTab.payoutReview => ApprovalPagedSection(
+                  paging: state.payoutPaging,
+                  shownCount: payouts.length,
+                  child: PayoutRequestsTable(payouts: payouts),
                 ),
+                ApprovalTab.profilePhotoReview
+                    when state.profilePhotosStatus == LoadStatus.loading =>
+                  const AppTableLoadingState(),
+                ApprovalTab.profilePhotoReview
+                    when state.profilePhotosStatus == LoadStatus.failure =>
+                  AppTableErrorState(
+                    message:
+                        state.profilePhotosError ??
+                        AppStrings.recordsLoadFailed,
+                    onRetry: context.read<ApprovalCubit>().loadProfilePhotos,
+                  ),
                 ApprovalTab.profilePhotoReview when photos.isEmpty => empty(
                   AppStrings.noProfilePhotos,
                 ),
-                ApprovalTab.profilePhotoReview => ProfilePhotoGrid(
-                  photos: photos,
+                ApprovalTab.profilePhotoReview => ApprovalPagedSection(
+                  paging: state.photoPaging,
+                  shownCount: photos.length,
+                  child: ProfilePhotoGrid(photos: photos),
                 ),
               },
             ],

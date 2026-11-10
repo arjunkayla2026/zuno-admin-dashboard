@@ -45,7 +45,7 @@ class _AddRechargeDialogState extends State<AddRechargeDialog> {
         children: [
           RechargeDialogHeader(
             title: AppStrings.addRecharge,
-            subtitle: AppStrings.rechargeSubtitle(user.name, user.userId),
+            subtitle: AppStrings.rechargeSubtitle(user.name, user.userID),
           ),
           const SizedBox(height: _headerGap),
           Text(

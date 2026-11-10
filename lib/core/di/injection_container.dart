@@ -3,7 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get_it/get_it.dart';
 import 'package:zuno_admin_dashboard/core/data/admins_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
+import 'package:zuno_admin_dashboard/features/approval/data/datasources/payout_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/repositories/approval_repository.dart';
+import 'package:zuno_admin_dashboard/features/approval/data/repositories/payout_repository.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/state/approval_cubit.dart';
 import 'package:zuno_admin_dashboard/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/auth/data/repositories/auth_repository.dart';
@@ -51,7 +53,10 @@ void configureDependencies() {
       () => SettingsCubit(getIt<SettingsRepository>()),
     )
     ..registerLazySingleton<UsersRemoteDataSource>(
-      () => UsersRemoteDataSource(FirebaseFirestore.instance),
+      () => UsersRemoteDataSource(
+        FirebaseFirestore.instance,
+        FirebaseAuth.instance,
+      ),
     )
     ..registerLazySingleton<UserManagementRepository>(
       () => UserManagementRepository(getIt<UsersRemoteDataSource>()),
@@ -65,11 +70,25 @@ void configureDependencies() {
     ..registerFactory<HostManagementCubit>(
       () => HostManagementCubit(getIt<HostManagementRepository>()),
     )
+    ..registerLazySingleton<PayoutRemoteDataSource>(
+      () => PayoutRemoteDataSource(
+        FirebaseFirestore.instance,
+        FirebaseAuth.instance,
+      ),
+    )
+    ..registerLazySingleton<PayoutRepository>(
+      () => PayoutRepository(
+        getIt<PayoutRemoteDataSource>(),
+        getIt<UsersRemoteDataSource>(),
+        getIt<AuthRemoteDataSource>(),
+      ),
+    )
     ..registerLazySingleton<ApprovalRepository>(
       () => ApprovalRepository(getIt<UsersRemoteDataSource>()),
     )
     ..registerFactory<ApprovalCubit>(
-      () => ApprovalCubit(getIt<ApprovalRepository>()),
+      () =>
+          ApprovalCubit(getIt<ApprovalRepository>(), getIt<PayoutRepository>()),
     )
     ..registerLazySingleton<PackagesRemoteDataSource>(
       () => PackagesRemoteDataSource(FirebaseFirestore.instance),
