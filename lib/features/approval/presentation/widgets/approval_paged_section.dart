@@ -27,7 +27,7 @@ class ApprovalPagedSection extends StatelessWidget {
         AppTableFooter(
           firstIndex: paging.firstIndex,
           shownCount: shownCount,
-          totalCount: paging.total,
+          totalCount: null,
           currentPage: paging.page,
           totalPages: paging.totalPages,
           onPageChanged: context.read<ApprovalCubit>().goToPage,

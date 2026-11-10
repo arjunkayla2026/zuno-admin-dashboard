@@ -15,11 +15,14 @@ class PackageListSummary extends StatelessWidget {
 
   static const EdgeInsets _padding = EdgeInsets.fromLTRB(16, 12, 16, 12);
 
-  final int packageCount;
-  final int activeCount;
+  final int? packageCount;
+  final int? activeCount;
 
   @override
   Widget build(BuildContext context) {
+    final total = packageCount;
+    final active = activeCount;
+
     return Padding(
       padding: _padding,
       child: Wrap(
@@ -29,7 +32,9 @@ class PackageListSummary extends StatelessWidget {
         runSpacing: AppUtils.spacingSm,
         children: [
           Text(
-            AppStrings.packagesSummary(packageCount, activeCount),
+            total == null || active == null
+                ? ''
+                : AppStrings.packagesSummary(total, active),
             style: AppTextStyles.bodySmall.copyWith(
               color: context.appColors.textSecondary,
             ),

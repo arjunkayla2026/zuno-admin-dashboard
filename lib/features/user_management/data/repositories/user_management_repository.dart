@@ -20,25 +20,13 @@ class UserManagementRepository {
     UserStatus? status,
     String? term,
     Object? cursor,
-  }) async {
-    final users = <AdminUser>[];
-    var next = cursor;
-    do {
-      final result = await _fetchBatch(status, term, next);
-      switch (result) {
-        case Left(value: final failure):
-          return left(failure);
-        case Right(value: final batch):
-          users.addAll(
-            batch.items
-                .map(AdminUser.fromRecord)
-                .where((user) => status == null || user.status == status),
-          );
-          next = batch.nextCursor;
-      }
-    } while (users.isEmpty && next != null);
-    return right(RecordPage(users, nextCursor: next));
-  }
+  }) => RecordPages.untilMatch(
+    cursor,
+    (next) => _fetchBatch(status, term, next),
+    (records) => records
+        .map(AdminUser.fromRecord)
+        .where((user) => status == null || user.status == status),
+  );
 
   Future<Either<Failure, RecordPage<UserRecord>>> _fetchBatch(
     UserStatus? status,

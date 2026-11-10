@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/firestore_failures.dart';
 import 'package:zuno_admin_dashboard/core/data/search_keywords.dart';
@@ -9,7 +8,7 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 class RecordPageQuery {
   const RecordPageQuery({this.term, this.from, this.until, this.cursor});
 
-  static const int pageSize = 20;
+  static const int pageSize = 10;
 
   final String? term;
   final DateTime? from;
@@ -33,8 +32,9 @@ abstract final class RecordPages {
   static Query<Map<String, dynamic>> _filtered(
     Query<Map<String, dynamic>> base,
     RecordPageQuery page,
-    String sortField,
-  ) {
+    String sortField, {
+    bool descending = true,
+  }) {
     var query = base;
     if (page.term case final term?) {
       query = query.where(SearchKeywords.field, arrayContains: term);
@@ -48,7 +48,7 @@ abstract final class RecordPages {
     if (page.until case final until?) {
       query = query.where(sortField, isLessThan: Timestamp.fromDate(until));
     }
-    return query.orderBy(sortField, descending: true);
+    return query.orderBy(sortField, descending: descending);
   }
 
   static Future<Either<Failure, RecordPage<R>>> fetch<R>(
@@ -57,9 +57,15 @@ abstract final class RecordPages {
     R Function(String id, Map<String, dynamic> data) toRecord, {
     String sortField = _defaultSortField,
     int pageSize = RecordPageQuery.pageSize,
+    bool descending = true,
   }) async {
     try {
-      var query = _filtered(base, page, sortField).limit(pageSize);
+      var query = _filtered(
+        base,
+        page,
+        sortField,
+        descending: descending,
+      ).limit(pageSize);
       if (page.cursor case final DocumentSnapshot cursor) {
         query = query.startAfterDocument(cursor);
       }
@@ -75,12 +81,30 @@ abstract final class RecordPages {
         ),
       );
     } on FirebaseException catch (error) {
-      debugPrint('RECORD_PAGE_ERROR ${error.code}: ${error.message}');
       return left(FirestoreFailures.read(error.code));
-    } catch (error, stackTrace) {
-      debugPrint('RECORD_PAGE_ERROR ${error.runtimeType}: $error\n$stackTrace');
+    } catch (_) {
       return left(const DataFailure(AppStrings.recordsLoadFailed));
     }
+  }
+
+  static Future<Either<Failure, RecordPage<T>>> untilMatch<R, T>(
+    Object? cursor,
+    Future<Either<Failure, RecordPage<R>>> Function(Object? cursor) fetchBatch,
+    Iterable<T> Function(List<R> batch) select,
+  ) async {
+    final matches = <T>[];
+    var next = cursor;
+    do {
+      final result = await fetchBatch(next);
+      switch (result) {
+        case Left(value: final failure):
+          return left(failure);
+        case Right(value: final batch):
+          matches.addAll(select(batch.items));
+          next = batch.nextCursor;
+      }
+    } while (matches.isEmpty && next != null);
+    return right(RecordPage(matches, nextCursor: next));
   }
 
   static Future<Either<Failure, int>> count(

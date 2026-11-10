@@ -20,7 +20,7 @@ class AppTableFooter extends StatelessWidget {
 
   final int firstIndex;
   final int shownCount;
-  final int totalCount;
+  final int? totalCount;
   final int currentPage;
   final int totalPages;
   final ValueChanged<int> onPageChanged;
@@ -39,11 +39,17 @@ class AppTableFooter extends StatelessWidget {
         runSpacing: AppUtils.spacingSm,
         children: [
           Text(
-            AppStrings.showingRange(
-              firstIndex + 1,
-              firstIndex + shownCount,
-              totalCount,
-            ),
+            switch (totalCount) {
+              final total? => AppStrings.showingRange(
+                firstIndex + 1,
+                firstIndex + shownCount,
+                total,
+              ),
+              null => AppStrings.showingWindow(
+                firstIndex + 1,
+                firstIndex + shownCount,
+              ),
+            },
             style: AppTextStyles.tableFootnote.copyWith(
               color: context.appColors.textSecondary,
             ),

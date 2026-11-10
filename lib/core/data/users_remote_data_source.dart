@@ -27,19 +27,6 @@ class UsersRemoteDataSource {
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
 
-  static int newestFirst(UserRecord a, UserRecord b) {
-    final first = a.createdAt;
-    final second = b.createdAt;
-    if (first == null && second == null) return a.id.compareTo(b.id);
-    if (first == null) return 1;
-    if (second == null) return -1;
-    return second.compareTo(first);
-  }
-
-  Future<Either<Failure, List<UserRecord>>> fetchByRole(String role) => _fetch(
-    _firestore.collection(_collection).where(_roleField, isEqualTo: role),
-  );
-
   Future<Either<Failure, RecordPage<UserRecord>>> fetchUsersPage(
     String role,
     RecordPageQuery query, {
@@ -135,23 +122,6 @@ class UsersRemoteDataSource {
           for (final document in snapshot.docs)
             UserRecord.fromDocument(document.id, document.data()),
       ]);
-    } on FirebaseException catch (error) {
-      return left(FirestoreFailures.read(error.code));
-    } catch (_) {
-      return left(const DataFailure(AppStrings.recordsLoadFailed));
-    }
-  }
-
-  Future<Either<Failure, List<UserRecord>>> _fetch(
-    Query<Map<String, dynamic>> query,
-  ) async {
-    try {
-      final snapshot = await query.get();
-      final records = [
-        for (final document in snapshot.docs)
-          UserRecord.fromDocument(document.id, document.data()),
-      ]..sort(newestFirst);
-      return right(records);
     } on FirebaseException catch (error) {
       return left(FirestoreFailures.read(error.code));
     } catch (_) {

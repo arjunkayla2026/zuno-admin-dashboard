@@ -1,9 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/firestore_failures.dart';
+import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/features/packages/data/models/package_plan.dart';
+import 'package:zuno_admin_dashboard/features/packages/data/models/package_status.dart';
 
 class PackagesRemoteDataSource {
   const PackagesRemoteDataSource(this._firestore);
@@ -15,13 +17,31 @@ class PackagesRemoteDataSource {
   CollectionReference<Map<String, dynamic>> get _packages =>
       _firestore.collection(_collection);
 
-  Future<Either<Failure, List<PackagePlan>>> fetchPackages() async {
+  Future<Either<Failure, RecordPage<PackagePlan>>> fetchPage(
+    Object? cursor, {
+    required int pageSize,
+  }) => RecordPages.fetch(
+    _packages,
+    RecordPageQuery(cursor: cursor),
+    PackagePlan.fromDocument,
+    sortField: PackagePlan.payableAmountField,
+    descending: false,
+    pageSize: pageSize,
+  );
+
+  Future<Either<Failure, ({int total, int active})>> fetchCounts() async {
     try {
-      final snapshot = await _packages.get();
-      return right([
-        for (final document in snapshot.docs)
-          PackagePlan.fromDocument(document.id, document.data()),
+      final results = await Future.wait([
+        _packages.count().get(),
+        _packages
+            .where(
+              PackagePlan.packageStatusField,
+              isEqualTo: PackageStatus.active.name,
+            )
+            .count()
+            .get(),
       ]);
+      return right((total: results[0].count ?? 0, active: results[1].count ?? 0));
     } on FirebaseException catch (error) {
       return left(FirestoreFailures.read(error.code));
     } catch (_) {

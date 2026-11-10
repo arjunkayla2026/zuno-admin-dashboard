@@ -4,7 +4,6 @@ import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_stat_cards.dart';
 import 'package:zuno_admin_dashboard/features/user_details/data/mock/user_details_mock_data.dart';
 import 'package:zuno_admin_dashboard/features/user_details/data/models/call_record.dart';
-import 'package:zuno_admin_dashboard/features/user_details/data/models/recharge_record.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
 
 enum UserDetailsTab { calls, recharges }
@@ -13,7 +12,6 @@ class UserDetailsState {
   const UserDetailsState({
     required this.user,
     required this.calls,
-    required this.recharges,
     required this.rangeStart,
     required this.rangeEnd,
     required this.singleDate,
@@ -22,12 +20,10 @@ class UserDetailsState {
     this.tab = UserDetailsTab.calls,
     this.typeFilter = CallTypeFilter.all,
     this.dateMode = CallDateMode.range,
-    this.rechargeQuery = '',
   });
 
   final AdminUser user;
   final List<CallRecord> calls;
-  final List<RechargeRecord> recharges;
   final DateTime rangeStart;
   final DateTime rangeEnd;
   final DateTime singleDate;
@@ -36,7 +32,6 @@ class UserDetailsState {
   final UserDetailsTab tab;
   final CallTypeFilter typeFilter;
   final CallDateMode dateMode;
-  final String rechargeQuery;
 
   List<AppStat> get stats => [
     AppStat(
@@ -88,21 +83,8 @@ class UserDetailsState {
       .where((call) => _matchesType(call.type) && _matchesDate(call.date))
       .toList();
 
-  List<RechargeRecord> get filteredRecharges {
-    final term = rechargeQuery.trim().toLowerCase();
-    if (term.isEmpty) return recharges;
-    final amountTerm = term.replaceAll(RegExp(r'[₹,]'), '');
-    return recharges.where((recharge) {
-      final paymentId = recharge.paymentId?.toLowerCase() ?? '';
-      final amount = recharge.amount.replaceAll(RegExp(r'[₹,]'), '');
-      return paymentId.contains(term) ||
-          (amountTerm.isNotEmpty && amount.contains(amountTerm));
-    }).toList();
-  }
-
   UserDetailsState copyWith({
     AdminUser? user,
-    List<RechargeRecord>? recharges,
     int? totalRecharge,
     int? availableCoins,
     DateTime? rangeStart,
@@ -111,12 +93,10 @@ class UserDetailsState {
     UserDetailsTab? tab,
     CallTypeFilter? typeFilter,
     CallDateMode? dateMode,
-    String? rechargeQuery,
   }) {
     return UserDetailsState(
       user: user ?? this.user,
       calls: calls,
-      recharges: recharges ?? this.recharges,
       totalRecharge: totalRecharge ?? this.totalRecharge,
       availableCoins: availableCoins ?? this.availableCoins,
       rangeStart: rangeStart ?? this.rangeStart,
@@ -125,7 +105,6 @@ class UserDetailsState {
       tab: tab ?? this.tab,
       typeFilter: typeFilter ?? this.typeFilter,
       dateMode: dateMode ?? this.dateMode,
-      rechargeQuery: rechargeQuery ?? this.rechargeQuery,
     );
   }
 }

@@ -98,6 +98,8 @@ abstract final class AppStrings {
   static String showingRange(int start, int end, int total) =>
       'Showing $start–$end of $total';
 
+  static String showingWindow(int start, int end) => 'Showing $start–$end';
+
   static const String editUserDetails = 'Edit user details';
   static const String userNameField = 'User name';
   static const String registeredMobileNumber = 'Registered mobile number';
@@ -161,7 +163,8 @@ abstract final class AppStrings {
   static const String rejected = 'Rejected';
   static const String notAnswered = 'Not Answered';
   static const String lowBalance = 'Low Balance';
-  static const String searchRechargesHint = 'Search payment ID or amount';
+  static const String searchRechargesHint =
+      'Search ID, amount, method or status';
   static const String searchRechargeTransactionsHint =
       'Search name, phone or recharge amount';
   static const String creditDebitWallet = 'Credit / Debit Wallet';
@@ -189,7 +192,6 @@ abstract final class AppStrings {
   static const String offer = 'Offer';
   static const String coinsAdded = 'Coins added';
   static const String rechargeAdded = 'Recharge added';
-  static const String adminRecharge = 'Admin recharge';
   static const String confirmRechargeLead = 'Add this recharge to ';
   static const String confirmRechargeTail = "'s wallet?";
 

@@ -122,7 +122,9 @@ class ApprovalPager<T> {
     final entry =
         cached ?? _PagerEntry<T>(_now(), isUnfiltered: filter.isEmpty);
     final cursor = targetPage == 1 ? null : entry.nextCursors.last;
-    final totalRequest = entry.total == null ? count(filter.query()) : null;
+    final totalRequest = entry.total == null && filter.isEmpty
+        ? count(filter.query())
+        : null;
     final result = await fetch(filter.query(cursor: cursor));
     final totalResult = await totalRequest;
 

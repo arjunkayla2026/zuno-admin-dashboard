@@ -24,7 +24,7 @@ class RechargeTableCard extends StatelessWidget {
       builder: (context, state) {
         final isLoaded = state.status == LoadStatus.loaded;
         final transactions = isLoaded
-            ? state.pageTransactions
+            ? state.transactions
             : const <RechargeTransaction>[];
 
         return Container(
@@ -61,7 +61,7 @@ class RechargeTableCard extends StatelessWidget {
                 AppTableFooter(
                   firstIndex: state.firstIndex,
                   shownCount: transactions.length,
-                  totalCount: state.filteredTransactions.length,
+                  totalCount: null,
                   currentPage: state.page,
                   totalPages: state.totalPages,
                   onPageChanged: context.read<RechargeCubit>().goToPage,

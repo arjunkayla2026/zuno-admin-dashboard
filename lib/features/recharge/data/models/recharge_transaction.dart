@@ -11,6 +11,20 @@ enum RechargeGateway { admin, razorpay }
 
 enum RechargeStatus { completed, failed, created }
 
+class RechargeTotals {
+  const RechargeTotals({
+    required this.rechargeCount,
+    required this.rechargeAmount,
+    required this.creditAmount,
+    required this.debitAmount,
+  });
+
+  final int rechargeCount;
+  final double rechargeAmount;
+  final double creditAmount;
+  final double debitAmount;
+}
+
 class RechargeTransaction {
   const RechargeTransaction({
     required this.id,
@@ -30,7 +44,7 @@ class RechargeTransaction {
     Map<String, dynamic> data,
   ) {
     final createdAt = data[createdAtField];
-    final orderId = UserRecord.readText(data[_razorpayOrderIdField]);
+    final orderId = UserRecord.readText(data[razorpayOrderIdField]);
 
     return RechargeTransaction(
       id: id,
@@ -40,10 +54,10 @@ class RechargeTransaction {
       gateway: orderId == null
           ? RechargeGateway.admin
           : RechargeGateway.razorpay,
-      amount: _readAmount(data[_totalAmountField] ?? data[_amountField]),
+      amount: _readAmount(data[totalAmountField] ?? data[_amountField]),
       createdAt: createdAt is Timestamp ? createdAt.toDate() : null,
       orderId: orderId,
-      paymentId: UserRecord.readText(data[_razorpayPaymentIdField]),
+      paymentId: UserRecord.readText(data[razorpayPaymentIdField]),
     );
   }
 
@@ -52,9 +66,17 @@ class RechargeTransaction {
   static const String statusField = 'status';
   static const String createdAtField = 'createdAt';
   static const String _amountField = 'amount';
-  static const String _totalAmountField = 'totalAmount';
-  static const String _razorpayOrderIdField = 'razorpayOrderId';
-  static const String _razorpayPaymentIdField = 'razorpayPaymentId';
+  static const String totalAmountField = 'totalAmount';
+  static const String razorpayOrderIdField = 'razorpayOrderId';
+  static const String razorpayPaymentIdField = 'razorpayPaymentId';
+
+  static const List<String> rechargeTypes = ['recharge'];
+  static const List<String> creditTypes = ['credit', 'adminCredit'];
+  static const List<String> debitTypes = ['debit', 'adminDebit'];
+  static const List<String> adjustmentTypes = [...creditTypes, ...debitTypes];
+  static const List<String> completedStatuses = ['success', 'completed'];
+  static const List<String> failedStatuses = ['failed'];
+  static const List<String> createdStatuses = ['pending', 'created'];
 
   static const Map<Object?, RechargeKind> _kinds = {
     'recharge': RechargeKind.recharge,

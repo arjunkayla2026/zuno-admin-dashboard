@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:fpdart/fpdart.dart';
+import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
 import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
@@ -11,14 +12,38 @@ class HostManagementRepository {
   const HostManagementRepository(this._dataSource);
 
   static const String _role = 'host';
+  static const int _pageSize = 10;
   static const String _details = 'hostDetails';
 
   final UsersRemoteDataSource _dataSource;
 
-  Future<Either<Failure, List<AdminHost>>> fetchHosts() async {
-    final result = await _dataSource.fetchByRole(_role);
-    return result.map((records) => records.map(_toAdminHost).toList());
-  }
+  Future<Either<Failure, RecordPage<AdminHost>>> fetchHosts({
+    HostStatus? status,
+    bool onlyNew = false,
+    String? term,
+    Object? cursor,
+  }) => RecordPages.untilMatch(
+    cursor,
+    (next) => _dataSource.fetchUsersPage(
+      _role,
+      RecordPageQuery(
+        term: term,
+        from: onlyNew ? UserRecord.newAccountCutoff : null,
+        cursor: next,
+      ),
+      pageSize: _pageSize,
+      onlyBlocked: status == HostStatus.blocked,
+      onlyDeleted:
+          status == HostStatus.deletedByAdmin ||
+          status == HostStatus.deletedByUser,
+      deletedBy: status == HostStatus.deletedByAdmin
+          ? UserRecord.deletedByAdmin
+          : null,
+    ),
+    (records) => records
+        .map(_toAdminHost)
+        .where((host) => status == null || host.status == status),
+  );
 
   Future<Either<Failure, Unit>> updateDetails(
     AdminHost original,

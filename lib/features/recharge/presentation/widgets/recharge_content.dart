@@ -4,6 +4,7 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_stat_cards.dart';
+import 'package:zuno_admin_dashboard/features/recharge/data/models/recharge_transaction.dart';
 import 'package:zuno_admin_dashboard/features/recharge/presentation/state/recharge_cubit.dart';
 import 'package:zuno_admin_dashboard/features/recharge/presentation/state/recharge_state.dart';
 import 'package:zuno_admin_dashboard/features/recharge/presentation/widgets/recharge_table_card.dart';
@@ -27,27 +28,37 @@ class RechargeContent extends StatelessWidget {
           const RechargeToolbar(),
           const SizedBox(height: _toolbarGap),
           BlocBuilder<RechargeCubit, RechargeState>(
-            builder: (context, state) => AppStatCards(
-              dense: true,
-              stats: [
-                AppStat(
-                  label: AppStrings.totalRechargeCount,
-                  value: NumberFormatter.grouped(state.rechargeCount),
-                ),
-                AppStat(
-                  label: AppStrings.totalRechargeAmount,
-                  value: NumberFormatter.rupeesAmount(state.rechargeAmount),
-                ),
-                AppStat(
-                  label: AppStrings.totalCreditAmount,
-                  value: NumberFormatter.rupeesAmount(state.creditAmount),
-                ),
-                AppStat(
-                  label: AppStrings.totalDebitAmount,
-                  value: NumberFormatter.rupeesAmount(state.debitAmount),
-                ),
-              ],
-            ),
+            builder: (context, state) {
+              final totals = state.totals;
+              String amount(double Function(RechargeTotals totals) read) =>
+                  totals == null
+                  ? AppStrings.emptyValue
+                  : NumberFormatter.rupeesAmount(read(totals));
+
+              return AppStatCards(
+                dense: true,
+                stats: [
+                  AppStat(
+                    label: AppStrings.totalRechargeCount,
+                    value: totals == null
+                        ? AppStrings.emptyValue
+                        : NumberFormatter.grouped(totals.rechargeCount),
+                  ),
+                  AppStat(
+                    label: AppStrings.totalRechargeAmount,
+                    value: amount((totals) => totals.rechargeAmount),
+                  ),
+                  AppStat(
+                    label: AppStrings.totalCreditAmount,
+                    value: amount((totals) => totals.creditAmount),
+                  ),
+                  AppStat(
+                    label: AppStrings.totalDebitAmount,
+                    value: amount((totals) => totals.debitAmount),
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: _statsGap),
           const RechargeTableCard(),
