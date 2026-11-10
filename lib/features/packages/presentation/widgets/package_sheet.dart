@@ -41,7 +41,7 @@ class _PackageSheetState extends State<PackageSheet> {
   late bool _gst = widget.plan?.isGstEnabled ?? true;
   late bool _active = widget.plan?.isActive ?? true;
   late final _payableController = TextEditingController(
-    text: _initial(widget.plan?.payableAmount),
+    text: _initial(widget.plan?.rechargeAmount),
   );
   late final _receivableController = TextEditingController(
     text: _initial(widget.plan?.receivableAmount),
@@ -59,7 +59,7 @@ class _PackageSheetState extends State<PackageSheet> {
   );
   late PackagePreview? _preview = switch (widget.plan) {
     final plan? => (
-      price: plan.payableAmount,
+      price: plan.rechargeAmount,
       coins: plan.coins,
       offerTag: plan.offerTag,
     ),
@@ -142,7 +142,7 @@ class _PackageSheetState extends State<PackageSheet> {
     }
     final plan = PackagePlan(
       id: widget.plan?.id ?? '',
-      payableAmount: payable,
+      rechargeAmount: payable,
       receivableAmount: receivable,
       coins: PackagePlan.coinsFor(receivable),
       offerTag: _offerTagController.text.trim(),
@@ -214,7 +214,7 @@ class _PackageSheetState extends State<PackageSheet> {
       subtitle: plan == null
           ? AppStrings.packageSheetSubtitle
           : AppStrings.packagePriceAndCoins(
-              NumberFormatter.rupeesAmount(plan.payableAmount),
+              NumberFormatter.rupeesAmount(plan.rechargeAmount),
               NumberFormatter.grouped(plan.coins),
             ),
       body: Column(

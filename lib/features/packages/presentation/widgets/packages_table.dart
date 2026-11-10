@@ -43,7 +43,7 @@ class PackagesTable extends StatelessWidget {
         for (final plan in packages)
           [
             Text(
-              NumberFormatter.rupeesAmount(plan.payableAmount),
+              NumberFormatter.rupeesAmount(plan.rechargeAmount),
               style: AppTextStyles.labelLarge.copyWith(color: textColor),
             ),
             Text(

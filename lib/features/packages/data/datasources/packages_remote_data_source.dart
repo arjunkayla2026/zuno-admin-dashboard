@@ -24,7 +24,7 @@ class PackagesRemoteDataSource {
     _packages,
     RecordPageQuery(cursor: cursor),
     PackagePlan.fromDocument,
-    sortField: PackagePlan.payableAmountField,
+    sortField: PackagePlan.rechargeAmountField,
     descending: false,
     pageSize: pageSize,
   );

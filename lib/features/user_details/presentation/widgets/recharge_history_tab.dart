@@ -34,7 +34,7 @@ class RechargeHistoryTab extends StatelessWidget {
     final messenger = ScaffoldMessenger.of(context);
     final adjustment = await showWalletAdjustmentDialog(
       context: context,
-      walletBalance: details.state.availableCoins,
+      walletBalance: details.state.walletBalance,
     );
     if (adjustment == null) return;
 

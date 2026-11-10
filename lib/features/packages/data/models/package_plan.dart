@@ -5,7 +5,7 @@ import 'package:zuno_admin_dashboard/features/packages/data/models/package_statu
 class PackagePlan {
   const PackagePlan({
     required this.id,
-    required this.payableAmount,
+    required this.rechargeAmount,
     required this.receivableAmount,
     required this.coins,
     this.offerTag = '',
@@ -20,7 +20,7 @@ class PackagePlan {
   static const double coinsPerRupee = 15;
   static const double maxOfferPercentage = 100;
 
-  static const String payableAmountField = 'payableAmount';
+  static const String rechargeAmountField = 'rechargeAmount';
   static const String receivableAmountField = 'receivableAmount';
   static const String coinsField = 'coins';
   static const String offerTagField = 'offerTag';
@@ -31,7 +31,7 @@ class PackagePlan {
   static const String updatedAtField = 'updatedAt';
 
   final String id;
-  final double payableAmount;
+  final double rechargeAmount;
   final double receivableAmount;
   final int coins;
   final String offerTag;
@@ -61,14 +61,14 @@ class PackagePlan {
       (receivable * coinsPerRupee).round();
 
   static int byPrice(PackagePlan a, PackagePlan b) {
-    final price = a.payableAmount.compareTo(b.payableAmount);
+    final price = a.rechargeAmount.compareTo(b.rechargeAmount);
     return price != 0 ? price : a.id.compareTo(b.id);
   }
 
   factory PackagePlan.fromDocument(String id, Map<String, dynamic> data) {
     return PackagePlan(
       id: id,
-      payableAmount: _amount(data[payableAmountField]),
+      rechargeAmount: _amount(data[rechargeAmountField]),
       receivableAmount: _amount(data[receivableAmountField]),
       coins: switch (data[coinsField]) {
         final num value => value.round(),
@@ -95,7 +95,7 @@ class PackagePlan {
       value is Timestamp ? value.toDate() : null;
 
   Map<String, Object?> toFields() => {
-    payableAmountField: NumberFormatter.roundAmount(payableAmount),
+    rechargeAmountField: NumberFormatter.roundAmount(rechargeAmount),
     receivableAmountField: NumberFormatter.roundAmount(receivableAmount),
     coinsField: coins,
     offerTagField: offerTag.trim(),
@@ -107,7 +107,7 @@ class PackagePlan {
   PackagePlan copyWith({String? id}) {
     return PackagePlan(
       id: id ?? this.id,
-      payableAmount: payableAmount,
+      rechargeAmount: rechargeAmount,
       receivableAmount: receivableAmount,
       coins: coins,
       offerTag: offerTag,

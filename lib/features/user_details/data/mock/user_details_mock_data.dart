@@ -7,7 +7,6 @@ abstract final class UserDetailsMockData {
   static final DateTime rangeStart = DateTime(2026, 10, 5);
   static final DateTime rangeEnd = DateTime(2026, 11, 4);
 
-  static const int totalRecharge = 2943;
   static const double coinValue = 0.5;
   static const int receivableTopUp = 99;
   static const int deletedAccountAdminProfit = 0;

@@ -28,9 +28,11 @@ import 'package:zuno_admin_dashboard/features/settings/data/datasources/notifica
 import 'package:zuno_admin_dashboard/features/settings/data/datasources/settings_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/repositories/settings_repository.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_cubit.dart';
+import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_details_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_recharge_history_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/repositories/user_management_repository.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_actions_cubit.dart';
+import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_details_arguments.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_management_cubit.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -138,6 +140,13 @@ void configureDependencies() {
     )
     ..registerFactory<RechargeCubit>(
       () => RechargeCubit(getIt<RechargeRepository>()),
+    )
+    ..registerFactoryParam<UserDetailsCubit, UserDetailsArguments, void>(
+      (arguments, _) => UserDetailsCubit(
+        getIt<RechargeRepository>(),
+        user: arguments.user,
+        onUserChanged: arguments.onUserChanged,
+      ),
     )
     ..registerFactoryParam<UserRechargeHistoryCubit, String, void>(
       (userId, _) =>

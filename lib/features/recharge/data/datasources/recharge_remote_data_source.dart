@@ -21,6 +21,7 @@ class RechargeRemoteDataSource {
     String? userId,
     String? field,
     Object? value,
+    double? amount,
     Object? cursor,
     required int pageSize,
   }) {
@@ -29,6 +30,15 @@ class RechargeRemoteDataSource {
       base = base.where(RechargeTransaction.userIdField, isEqualTo: userId);
     }
     if (field != null) base = base.where(field, isEqualTo: value);
+    if (amount != null) {
+      base = base.where(
+        Filter.or(
+          Filter(RechargeTransaction.rechargeAmountField, isEqualTo: amount),
+          Filter(RechargeTransaction.adminCreditAmountField, isEqualTo: amount),
+          Filter(RechargeTransaction.adminDebitAmountField, isEqualTo: amount),
+        ),
+      );
+    }
     if (statuses != null) {
       base = base.where(RechargeTransaction.statusField, whereIn: statuses);
     }
@@ -50,7 +60,9 @@ class RechargeRemoteDataSource {
       final snapshot = await _firestore.collection(_collection).doc(id).get();
       final data = snapshot.data();
       return right(
-        data == null ? null : RechargeTransaction.fromDocument(snapshot.id, data),
+        data == null
+            ? null
+            : RechargeTransaction.fromDocument(snapshot.id, data),
       );
     } on FirebaseException catch (error) {
       return left(FirestoreFailures.read(error.code));
@@ -86,21 +98,27 @@ class RechargeRemoteDataSource {
       return query;
     }
 
-    const field = RechargeTransaction.totalAmountField;
+    const rechargeField = RechargeTransaction.rechargeAmountField;
+    const creditField = RechargeTransaction.adminCreditAmountField;
+    const debitField = RechargeTransaction.adminDebitAmountField;
     try {
       final results = await Future.wait([
-        completed(
-          RechargeTransaction.rechargeTypes,
-        ).aggregate(count(), sum(field)).get(),
-        completed(RechargeTransaction.creditTypes).aggregate(sum(field)).get(),
-        completed(RechargeTransaction.debitTypes).aggregate(sum(field)).get(),
+        completed(RechargeTransaction.rechargeTypes)
+            .aggregate(count(), sum(rechargeField))
+            .get(),
+        completed(RechargeTransaction.creditTypes)
+            .aggregate(sum(creditField))
+            .get(),
+        completed(RechargeTransaction.debitTypes)
+            .aggregate(sum(debitField))
+            .get(),
       ]);
       return right(
         RechargeTotals(
           rechargeCount: results[0].count ?? 0,
-          rechargeAmount: results[0].getSum(field) ?? 0,
-          creditAmount: results[1].getSum(field) ?? 0,
-          debitAmount: results[2].getSum(field) ?? 0,
+          rechargeAmount: results[0].getSum(rechargeField) ?? 0,
+          creditAmount: results[1].getSum(creditField) ?? 0,
+          debitAmount: results[2].getSum(debitField) ?? 0,
         ),
       );
     } on FirebaseException catch (error) {
@@ -113,8 +131,12 @@ class RechargeRemoteDataSource {
   Future<Either<Failure, List<RechargeTransaction>>> fetchTransactions({
     DateTime? from,
     DateTime? until,
+    String? userId,
   }) async {
     Query<Map<String, dynamic>> query = _firestore.collection(_collection);
+    if (userId != null) {
+      query = query.where(RechargeTransaction.userIdField, isEqualTo: userId);
+    }
     if (from != null) {
       query = query.where(
         RechargeTransaction.createdAtField,

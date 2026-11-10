@@ -14,7 +14,7 @@ const ALLOWED_FIELDS = new Set([
   'offerPercentage',
   'offerTag',
   'packageStatus',
-  'payableAmount',
+  'rechargeAmount',
   'receivableAmount',
   'isGstEnabled',
 ]);
@@ -35,7 +35,9 @@ function migrate(data) {
   const receivable = round2(toNumber(data.receivableAmount) ?? 0);
   const gstAmount = toNumber(data.gst_amount);
   const payable = round2(
-    toNumber(data.payableAmount) ?? receivable + (gstAmount ?? 0),
+    toNumber(data.rechargeAmount) ??
+      toNumber(data.payableAmount) ??
+      receivable + (gstAmount ?? 0),
   );
   const legacyOffer = toText(data.offer);
   const offerTag = toText(data.offerTag) || legacyOffer;
@@ -53,7 +55,7 @@ function migrate(data) {
     coins: Math.round(
       toNumber(data.coins) ?? receivable * COINS_PER_RUPEE,
     ),
-    payableAmount: payable,
+    rechargeAmount: payable,
     receivableAmount: receivable,
     offerTag,
     offerPercentage,
