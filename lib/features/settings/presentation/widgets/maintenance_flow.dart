@@ -8,6 +8,7 @@ import 'package:zuno_admin_dashboard/features/settings/presentation/state/settin
 
 Future<void> toggleMaintenance(BuildContext context, bool enable) async {
   final cubit = context.read<SettingsCubit>();
+  final messenger = ScaffoldMessenger.of(context);
   final confirmed = await showAppConfirmDialog(
     context: context,
     iconAsset: AppImages.maintenanceModeIcon,
@@ -24,7 +25,11 @@ Future<void> toggleMaintenance(BuildContext context, bool enable) async {
   );
   if (!confirmed) return;
 
-  cubit.setMaintenance(enable);
+  final error = await cubit.setMaintenance(enable);
+  if (error != null) {
+    messenger.showSnackBar(SnackBar(content: Text(error)));
+    return;
+  }
   if (!enable || !context.mounted) return;
 
   await showAppSuccessDialog(

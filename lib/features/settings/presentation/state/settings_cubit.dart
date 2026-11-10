@@ -3,6 +3,7 @@ import 'package:zuno_admin_dashboard/core/data/admin_account.dart';
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/mock/settings_mock_data.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/models/banner_image.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/models/banner_upload.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/repositories/settings_repository.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_state.dart';
 
@@ -13,7 +14,6 @@ class SettingsCubit extends Cubit<SettingsState> {
           admins: const [],
           activeUsers: SettingsMockData.activeUsers,
           activeHostsByLanguage: SettingsMockData.activeHostsByLanguage,
-          banners: SettingsMockData.banners,
         ),
       );
 
@@ -21,8 +21,45 @@ class SettingsCubit extends Cubit<SettingsState> {
 
   void selectTab(SettingsTab tab) => emit(state.copyWith(tab: tab));
 
-  void setMaintenance(bool enabled) =>
-      emit(state.copyWith(maintenanceEnabled: enabled));
+  Future<void> loadMaintenance() async {
+    emit(state.copyWith(maintenanceStatus: LoadStatus.loading));
+    final result = await _repository.fetchMaintenanceMode();
+    if (isClosed) return;
+
+    result.match(
+      (failure) => emit(
+        state.copyWith(
+          maintenanceStatus: LoadStatus.failure,
+          maintenanceError: failure.message,
+        ),
+      ),
+      (enabled) => emit(
+        state.copyWith(
+          maintenanceStatus: LoadStatus.loaded,
+          maintenanceEnabled: enabled,
+        ),
+      ),
+    );
+  }
+
+  Future<String?> setMaintenance(bool enabled) async {
+    emit(state.copyWith(maintenanceSaving: true));
+    final result = await _repository.setMaintenanceMode(enabled);
+    if (isClosed) return null;
+
+    return result.match(
+      (failure) {
+        emit(state.copyWith(maintenanceSaving: false));
+        return failure.message;
+      },
+      (_) {
+        emit(
+          state.copyWith(maintenanceSaving: false, maintenanceEnabled: enabled),
+        );
+        return null;
+      },
+    );
+  }
 
   Future<void> loadAdmins() async {
     emit(state.copyWith(adminsStatus: LoadStatus.loading));
@@ -66,12 +103,46 @@ class SettingsCubit extends Cubit<SettingsState> {
     ];
   }
 
-  void addBanner(BannerAudience audience) {
-    final banner = SettingsMockData.sampleBanner.copyWith(audience: audience);
-    emit(state.copyWith(banners: [...state.banners, banner]));
+  Future<void> loadBanners() async {
+    emit(state.copyWith(bannersStatus: LoadStatus.loading));
+    final result = await _repository.fetchBanners();
+    if (isClosed) return;
+
+    result.match(
+      (failure) => emit(
+        state.copyWith(
+          bannersStatus: LoadStatus.failure,
+          bannersError: failure.message,
+        ),
+      ),
+      (banners) => emit(
+        state.copyWith(bannersStatus: LoadStatus.loaded, banners: banners),
+      ),
+    );
   }
 
-  void deleteBannerAt(int index) {
-    emit(state.copyWith(banners: [...state.banners]..removeAt(index)));
+  Future<String?> addBanner(BannerUpload upload) async {
+    final result = await _repository.addBanner(upload);
+    return result.match((failure) => failure.message, (banner) {
+      if (!isClosed) emit(state.copyWith(banners: [banner, ...state.banners]));
+      return null;
+    });
+  }
+
+  Future<String?> deleteBanner(BannerImage banner) async {
+    final result = await _repository.deleteBanner(banner);
+    return result.match((failure) => failure.message, (_) {
+      if (!isClosed) {
+        emit(
+          state.copyWith(
+            banners: [
+              for (final item in state.banners)
+                if (item.id != banner.id) item,
+            ],
+          ),
+        );
+      }
+      return null;
+    });
   }
 }

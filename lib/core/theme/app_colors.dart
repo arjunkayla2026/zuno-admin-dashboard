@@ -99,16 +99,6 @@ abstract final class AppColors {
   static const Color uploadedBackground = Color(0xFFF3FBF3);
   static const Color aadhaarUploaded = Color(0xFFBFE3BF);
 
-  static const Color navyGradientStart = sidebarBackground;
-  static const Color navyGradientEnd = Color(0xFF2E4A7A);
-  static const Color brownGradientStart = Color(0xFF632900);
-  static const Color brownGradientEnd = Color(0xFFA9561A);
-  static const Color tealGradientStart = Color(0xFF0E5C66);
-  static const Color tealGradientEnd = sidebarBackground;
-
-  static const Color bannerCircle = Color(0x1AFFFFFF);
-  static const Color bannerSubheading = Color(0xD9FFFFFF);
-
   static const Color cardShadow = Color(0x0F17243A);
   static const Color popoverShadow = Color(0x241F2430);
   static const Color menuShadow = Color(0x4D0D1624);
@@ -141,24 +131,6 @@ abstract final class AppColors {
 
   static const Color darkUploadBackground = Color(0x29FDC903);
   static const Color darkAadhaarUploaded = Color(0xFF2D4A2D);
-
-  static const LinearGradient navyGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [navyGradientStart, navyGradientEnd],
-  );
-
-  static const LinearGradient brownGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [brownGradientStart, brownGradientEnd],
-  );
-
-  static const LinearGradient tealGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [tealGradientStart, tealGradientEnd],
-  );
 
   static const List<BoxShadow> cardShadows = [
     BoxShadow(color: cardShadow, offset: Offset(0, 2), blurRadius: 12),

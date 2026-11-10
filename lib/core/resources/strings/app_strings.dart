@@ -696,8 +696,19 @@ abstract final class AppStrings {
   static const String addBannerImage = 'Add banner image';
   static const String addBannerAction = 'Add banner';
   static const String bannerFormatHint = 'PNG or JPG, wide format';
-  static const String bannerDropTitle = 'Drop an image here or click to choose';
-  static const String bannerDropHint = 'PNG or JPG, wide format works best';
+  static const String bannerDropTitle = 'Click to choose an image';
+  static const String bannerDropHint =
+      'PNG or JPG up to 5 MB, wide format works best. Click again to change '
+      'the image.';
+  static const String bannerInvalidType = 'Choose a PNG or JPG image.';
+  static const String bannerTooLarge = 'Choose an image of 5 MB or less.';
+  static const String bannerPickFailed =
+      'Could not open the chosen image. Try another file.';
+  static const String bannerUploadFailed =
+      'Could not upload the image. Try again.';
+  static const String bannerUploadDenied =
+      'You do not have permission to upload banner images.';
+  static const String addingBanner = 'Adding...';
   static const String deleteBannerTitle = 'Delete this banner?';
   static const String deleteBannerAction = 'Delete banner';
   static const String deleteBannerMessageTail =
@@ -705,8 +716,12 @@ abstract final class AppStrings {
 
   static String bannerName(int number) => 'Banner $number';
 
-  static String bannerMeta(String fileName, String addedOn) =>
-      '$fileName · $homeScreen · Added $addedOn';
+  static String bannerMeta(String fileName, String role, String? addedOn) => [
+    fileName,
+    role,
+    homeScreen,
+    if (addedOn != null) 'Added $addedOn',
+  ].join(' · ');
 
   static String bannersSummary(int count) =>
       '$count ${count == 1 ? 'banner' : 'banners'} · auto-sliding on the Home '
