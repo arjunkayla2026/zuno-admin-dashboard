@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zuno_admin_dashboard/core/resources/images/app_images.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_confirm_dialog.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_success_dialog.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/models/notification_request.dart';
+import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_cubit.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/notification_send_summary.dart';
 
 Future<bool> confirmSendNotification({
@@ -34,5 +38,47 @@ Future<bool> confirmSendNotification({
     ),
     confirmLabel: AppStrings.sendNow,
     brand: true,
+  );
+}
+
+Future<bool> sendNotification(
+  BuildContext context,
+  NotificationRequest request,
+) async {
+  final cubit = context.read<SettingsCubit>();
+  final messenger = ScaffoldMessenger.of(context);
+  final result = await cubit.sendNotification(request);
+
+  return result.match(
+    (failure) {
+      messenger.showSnackBar(SnackBar(content: Text(failure.message)));
+      return false;
+    },
+    (sent) {
+      if (context.mounted) _showSentDialog(context, sent);
+      return true;
+    },
+  );
+}
+
+Future<void> _showSentDialog(
+  BuildContext context,
+  NotificationSendResult sent,
+) {
+  final summary = AppStrings.notificationSentMessage(
+    delivered: NumberFormatter.grouped(sent.successCount),
+    recipients: NumberFormatter.grouped(sent.recipientCount),
+  );
+  final hasGaps = sent.failureCount > 0 || sent.missingTokenCount > 0;
+  final note = AppStrings.notificationDeliveryNote(
+    failed: NumberFormatter.grouped(sent.failureCount),
+    withoutDevice: NumberFormatter.grouped(sent.missingTokenCount),
+  );
+
+  return showAppSuccessDialog(
+    context: context,
+    title: AppStrings.notificationSentTitle,
+    message: hasGaps ? '$summary $note' : summary,
+    actionLabel: AppStrings.done,
   );
 }

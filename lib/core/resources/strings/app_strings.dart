@@ -678,14 +678,32 @@ abstract final class AppStrings {
   static const String hostsLabel = 'Hosts';
   static const String totalRecipients = 'Total recipients';
   static const String audienceNote =
-      'Recipients are counted from active accounts. Type the title and '
-      'message, then send to see the confirmation step.';
+      'Recipients are counted from all accounts that are not deleted. Type '
+      'the title and message, then send to see the confirmation step.';
   static const String enterTitle = 'Enter a title.';
   static const String enterMessage = 'Enter a message.';
   static const String sendNotificationTitle = 'Send this notification?';
   static const String sendNotificationPrefix = 'It will be sent to ';
   static const String sendNotificationSuffix = ' recipients right away.';
   static const String sendNow = 'Send now';
+  static const String sendingNotification = 'Sending...';
+  static const String notificationSentTitle = 'Notification sent';
+  static const String notificationSendFailed =
+      'The notification could not be sent. Try again.';
+  static const String notificationSendDenied =
+      'Your account is not allowed to send notifications.';
+
+  static String notificationSentMessage({
+    required String delivered,
+    required String recipients,
+  }) => 'Delivered to $delivered of $recipients recipients.';
+
+  static String notificationDeliveryNote({
+    required String failed,
+    required String withoutDevice,
+  }) =>
+      '$failed could not be delivered and $withoutDevice have no registered '
+      'device.';
 
   static String hostsForLanguages(String languages) => 'Hosts ($languages)';
 

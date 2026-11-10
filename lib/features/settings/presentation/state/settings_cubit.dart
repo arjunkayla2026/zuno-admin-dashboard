@@ -1,25 +1,47 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/admin_account.dart';
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
-import 'package:zuno_admin_dashboard/features/settings/data/mock/settings_mock_data.dart';
+import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/models/banner_image.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/models/banner_upload.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/models/notification_request.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/repositories/settings_repository.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_state.dart';
 
 class SettingsCubit extends Cubit<SettingsState> {
-  SettingsCubit(this._repository)
-    : super(
-        SettingsState(
-          admins: const [],
-          activeUsers: SettingsMockData.activeUsers,
-          activeHostsByLanguage: SettingsMockData.activeHostsByLanguage,
-        ),
-      );
+  SettingsCubit(this._repository) : super(const SettingsState(admins: []));
 
   final SettingsRepository _repository;
 
   void selectTab(SettingsTab tab) => emit(state.copyWith(tab: tab));
+
+  Future<void> loadNotificationAudience() async {
+    emit(state.copyWith(audienceStatus: LoadStatus.loading));
+    final result = await _repository.fetchNotificationAudience();
+    if (isClosed) return;
+
+    result.match(
+      (failure) => emit(
+        state.copyWith(
+          audienceStatus: LoadStatus.failure,
+          audienceError: failure.message,
+        ),
+      ),
+      (audience) => emit(
+        state.copyWith(audienceStatus: LoadStatus.loaded, audience: audience),
+      ),
+    );
+  }
+
+  Future<Either<Failure, NotificationSendResult>> sendNotification(
+    NotificationRequest request,
+  ) async {
+    emit(state.copyWith(notificationSending: true));
+    final result = await _repository.sendNotification(request);
+    if (!isClosed) emit(state.copyWith(notificationSending: false));
+    return result;
+  }
 
   Future<void> loadMaintenance() async {
     emit(state.copyWith(maintenanceStatus: LoadStatus.loading));

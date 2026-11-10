@@ -14,7 +14,6 @@ import 'package:zuno_admin_dashboard/core/widgets/app_status_badge.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/models/recharge_transaction.dart';
 import 'package:zuno_admin_dashboard/features/recharge/presentation/widgets/recharge_labels.dart';
 import 'package:zuno_admin_dashboard/features/recharge/presentation/widgets/recharge_summary_panel.dart';
-import 'package:zuno_admin_dashboard/features/user_management/data/mock/user_mock_data.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_details_arguments.dart';
 
@@ -36,13 +35,6 @@ class RechargeDetailsSheet extends StatelessWidget {
   static const double _sectionGap = 22;
 
   final RechargeTransaction transaction;
-
-  AdminUser? get _user {
-    for (final user in UserMockData.users) {
-      if (user.id == transaction.userId) return user;
-    }
-    return null;
-  }
 
   void _viewUser(BuildContext context, AdminUser user) {
     final navigator = Navigator.of(context);

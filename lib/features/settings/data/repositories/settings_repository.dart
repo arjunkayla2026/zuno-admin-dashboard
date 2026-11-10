@@ -1,23 +1,62 @@
 import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/admin_account.dart';
 import 'package:zuno_admin_dashboard/core/data/admins_remote_data_source.dart';
+import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:zuno_admin_dashboard/features/host_management/data/models/host_profile_options.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/datasources/banner_images_remote_data_source.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/datasources/notifications_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/datasources/settings_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/models/banner_image.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/models/banner_upload.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/models/notification_audience_counts.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/models/notification_request.dart';
 
 class SettingsRepository {
   const SettingsRepository(
     this._adminsDataSource,
     this._settingsDataSource,
     this._bannerImagesDataSource,
+    this._usersDataSource,
+    this._notificationsDataSource,
   );
+
+  static const String _userRole = 'user';
+  static const String _hostRole = 'host';
 
   final AdminsRemoteDataSource _adminsDataSource;
   final SettingsRemoteDataSource _settingsDataSource;
   final BannerImagesRemoteDataSource _bannerImagesDataSource;
+  final UsersRemoteDataSource _usersDataSource;
+  final NotificationsRemoteDataSource _notificationsDataSource;
+
+  Future<Either<Failure, NotificationSendResult>> sendNotification(
+    NotificationRequest request,
+  ) => _notificationsDataSource.send(request);
+
+  Future<Either<Failure, NotificationAudienceCounts>>
+  fetchNotificationAudience() async {
+    final results = await Future.wait([
+      _usersDataSource.countNotDeleted(_userRole),
+      _usersDataSource.countNotDeleted(_hostRole),
+      for (final language in HostLanguage.values)
+        _usersDataSource.countNotDeleted(
+          _hostRole,
+          motherTongue: language.name,
+        ),
+    ]);
+    return Either.sequenceList(results).map(
+      (counts) => NotificationAudienceCounts(
+        users: counts[0],
+        hosts: counts[1],
+        hostsByMotherTongue: {
+          for (final (index, language) in HostLanguage.values.indexed)
+            language: counts[index + 2],
+        },
+      ),
+    );
+  }
 
   Future<Either<Failure, List<BannerImage>>> fetchBanners() =>
       _bannerImagesDataSource.fetchBanners();

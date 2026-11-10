@@ -40,7 +40,8 @@ class SettingsPage extends StatelessWidget {
         create: (_) => getIt<SettingsCubit>()
           ..loadAdmins()
           ..loadMaintenance()
-          ..loadBanners(),
+          ..loadBanners()
+          ..loadNotificationAudience(),
         child: BlocSelector<SettingsCubit, SettingsState, (SettingsTab, bool)>(
           selector: (state) => (state.tab, state.maintenanceEnabled),
           builder: (context, selection) => AdminShell(

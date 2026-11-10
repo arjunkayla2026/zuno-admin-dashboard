@@ -1,7 +1,7 @@
 import 'package:zuno_admin_dashboard/core/data/admin_account.dart';
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
-import 'package:zuno_admin_dashboard/features/host_management/data/models/host_profile_options.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/models/banner_image.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/models/notification_audience_counts.dart';
 
 enum SettingsTab {
   maintenanceMode,
@@ -13,8 +13,10 @@ enum SettingsTab {
 class SettingsState {
   const SettingsState({
     required this.admins,
-    required this.activeUsers,
-    required this.activeHostsByLanguage,
+    this.audience,
+    this.audienceStatus = LoadStatus.loading,
+    this.audienceError,
+    this.notificationSending = false,
     this.banners = const [],
     this.bannersStatus = LoadStatus.loading,
     this.bannersError,
@@ -30,8 +32,10 @@ class SettingsState {
   final List<AdminAccount> admins;
   final LoadStatus adminsStatus;
   final String? adminsError;
-  final int activeUsers;
-  final Map<HostLanguage, int> activeHostsByLanguage;
+  final NotificationAudienceCounts? audience;
+  final LoadStatus audienceStatus;
+  final String? audienceError;
+  final bool notificationSending;
   final List<BannerImage> banners;
   final LoadStatus bannersStatus;
   final String? bannersError;
@@ -41,17 +45,14 @@ class SettingsState {
   final String? maintenanceError;
   final bool maintenanceSaving;
 
-  int activeHostsFor(Set<HostLanguage> languages) {
-    final counts = languages.isEmpty
-        ? activeHostsByLanguage.values
-        : languages.map((language) => activeHostsByLanguage[language] ?? 0);
-    return counts.fold(0, (sum, count) => sum + count);
-  }
-
   SettingsState copyWith({
     List<AdminAccount>? admins,
     LoadStatus? adminsStatus,
     String? adminsError,
+    NotificationAudienceCounts? audience,
+    LoadStatus? audienceStatus,
+    String? audienceError,
+    bool? notificationSending,
     List<BannerImage>? banners,
     LoadStatus? bannersStatus,
     String? bannersError,
@@ -65,8 +66,10 @@ class SettingsState {
       admins: admins ?? this.admins,
       adminsStatus: adminsStatus ?? this.adminsStatus,
       adminsError: adminsError ?? this.adminsError,
-      activeUsers: activeUsers,
-      activeHostsByLanguage: activeHostsByLanguage,
+      audience: audience ?? this.audience,
+      audienceStatus: audienceStatus ?? this.audienceStatus,
+      audienceError: audienceError ?? this.audienceError,
+      notificationSending: notificationSending ?? this.notificationSending,
       banners: banners ?? this.banners,
       bannersStatus: bannersStatus ?? this.bannersStatus,
       bannersError: bannersError ?? this.bannersError,

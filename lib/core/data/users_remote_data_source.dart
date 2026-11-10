@@ -1,4 +1,3 @@
-import 'dart:math';
 import 'dart:math' as math;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -23,9 +22,33 @@ class UsersRemoteDataSource {
   static const String _createdAtField = 'createdAt';
   static const String _blockedField = 'isAccountBlocked';
   static const String _deletedField = 'isAccountDeleted';
+  static const String _motherTongueField = 'hostDetails.motherTongue';
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
+
+  Future<Either<Failure, int>> countNotDeleted(
+    String role, {
+    String? motherTongue,
+  }) async {
+    var base = _firestore
+        .collection(_collection)
+        .where(_roleField, isEqualTo: role);
+    if (motherTongue != null) {
+      base = base.where(_motherTongueField, isEqualTo: motherTongue);
+    }
+    try {
+      final counts = await Future.wait([
+        base.count().get(),
+        base.where(_deletedField, isEqualTo: true).count().get(),
+      ]);
+      return right((counts[0].count ?? 0) - (counts[1].count ?? 0));
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.read(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsLoadFailed));
+    }
+  }
 
   Future<Either<Failure, RecordPage<UserRecord>>> fetchUsersPage(
     String role,

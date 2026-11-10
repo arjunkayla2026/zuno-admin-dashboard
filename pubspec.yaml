@@ -40,6 +40,7 @@ dependencies:
   flutter_web_plugins:
     sdk: flutter
   cloud_firestore: ^7.1.0
+  cloud_functions: ^7.0.1
   firebase_auth: ^7.0.1
   get_it: ^9.3.0
   fpdart: ^1.2.0

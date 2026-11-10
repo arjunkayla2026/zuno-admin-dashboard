@@ -8,7 +8,6 @@ class AppReadOnlyField extends StatelessWidget {
   const AppReadOnlyField({super.key, required this.label, required this.value});
 
   static const double _labelGap = 5;
-  static const double _helperGap = 5;
   static const double _height = 40;
   static const double _sidePadding = 11;
 

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get_it/get_it.dart';
@@ -23,6 +24,7 @@ import 'package:zuno_admin_dashboard/features/recharge/data/datasources/recharge
 import 'package:zuno_admin_dashboard/features/recharge/data/repositories/recharge_repository.dart';
 import 'package:zuno_admin_dashboard/features/recharge/presentation/state/recharge_cubit.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/datasources/banner_images_remote_data_source.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/datasources/notifications_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/datasources/settings_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/repositories/settings_repository.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_cubit.dart';
@@ -60,11 +62,18 @@ void configureDependencies() {
         FirebaseStorage.instance,
       ),
     )
+    ..registerLazySingleton<NotificationsRemoteDataSource>(
+      () => NotificationsRemoteDataSource(
+        FirebaseFunctions.instanceFor(region: 'asia-south1'),
+      ),
+    )
     ..registerLazySingleton<SettingsRepository>(
       () => SettingsRepository(
         getIt<AdminsRemoteDataSource>(),
         getIt<SettingsRemoteDataSource>(),
         getIt<BannerImagesRemoteDataSource>(),
+        getIt<UsersRemoteDataSource>(),
+        getIt<NotificationsRemoteDataSource>(),
       ),
     )
     ..registerLazySingleton<ImagePicker>(ImagePicker.new)

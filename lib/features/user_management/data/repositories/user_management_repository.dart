@@ -5,8 +5,6 @@ import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/core/enums/wallet_adjustment_type.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
-import 'package:zuno_admin_dashboard/core/utils/name_formatter.dart';
-import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/models/recharge_transaction.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
 
@@ -98,33 +96,4 @@ class UserManagementRepository {
 
   Future<Either<Failure, Unit>> delete(AdminUser user) =>
       _dataSource.markDeletedByAdmin(user.id);
-
-  AdminUser _toAdminUser(UserRecord record) {
-    final name = record.name ?? record.userName ?? AppStrings.emptyValue;
-
-    return AdminUser(
-      createdDate: record.createdDateLabel,
-      name: name,
-      initials: NameFormatter.initials(name),
-
-      phone: record.phoneLabel,
-      recharges: null,
-      walletBalance: NumberFormatter.grouped(record.walletBalance.truncate()),
-      status: _statusOf(record),
-      avatarIndex: record.avatarIndex,
-      id: record.id,
-      userID: record.userIDLabel,
-    );
-  }
-
-  UserStatus _statusOf(UserRecord record) {
-    if (record.isDeleted) {
-      return record.isDeletedByAdmin
-          ? UserStatus.deletedByAdmin
-          : UserStatus.deletedByUser;
-    }
-    if (record.isBlocked) return UserStatus.blocked;
-    if (record.isNewAccount) return UserStatus.newUser;
-    return UserStatus.active;
-  }
 }

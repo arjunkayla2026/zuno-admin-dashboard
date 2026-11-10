@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/core/resources/images/app_images.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
@@ -12,12 +14,12 @@ import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_segmented_control.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/models/host_profile_options.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/widgets/host_profile_labels.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/models/notification_audience_counts.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/models/notification_request.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_cubit.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_state.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/notification_audience_card.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/notification_flow.dart';
-
-enum NotificationAudience { users, hosts, both }
 
 class NotificationComposerSection extends StatefulWidget {
   const NotificationComposerSection({super.key});
@@ -50,9 +52,9 @@ class _NotificationComposerSectionState
   Set<HostLanguage> _languages = {};
   bool _submitted = false;
 
-  bool get _includesUsers => _audience != NotificationAudience.hosts;
+  bool get _includesUsers => _audience.includesUsers;
 
-  bool get _includesHosts => _audience != NotificationAudience.users;
+  bool get _includesHosts => _audience.includesHosts;
 
   bool get _titleValid => _titleController.text.trim().isNotEmpty;
 
@@ -64,10 +66,18 @@ class _NotificationComposerSectionState
         )
       : '';
 
-  int? _users(SettingsState state) => _includesUsers ? state.activeUsers : null;
+  int? _users(NotificationAudienceCounts counts) =>
+      _includesUsers ? counts.users : null;
 
-  int? _hosts(SettingsState state) =>
-      _includesHosts ? state.activeHostsFor(_languages) : null;
+  int? _hosts(NotificationAudienceCounts counts) =>
+      _includesHosts ? counts.hostsFor(_languages) : null;
+
+  void _selectAudience(NotificationAudience audience) {
+    setState(() {
+      _audience = audience;
+      if (!_includesHosts) _languages = {};
+    });
+  }
 
   String? _error(bool valid, String message) =>
       _submitted && !valid ? message : null;
@@ -76,15 +86,27 @@ class _NotificationComposerSectionState
     setState(() => _submitted = true);
     if (!_titleValid || !_messageValid) return;
 
-    final state = context.read<SettingsCubit>().state;
+    final counts = context.read<SettingsCubit>().state.audience;
+    if (counts == null) return;
     final confirmed = await confirmSendNotification(
       context: context,
-      recipients: (_users(state) ?? 0) + (_hosts(state) ?? 0),
+      recipients: (_users(counts) ?? 0) + (_hosts(counts) ?? 0),
       audience: _audienceLabels[_audience]!,
       languages: _languagesLabel,
       title: _titleController.text.trim(),
     );
-    if (confirmed && mounted) _clear();
+    if (!confirmed || !mounted) return;
+
+    final sent = await sendNotification(
+      context,
+      NotificationRequest(
+        title: _titleController.text.trim(),
+        message: _messageController.text.trim(),
+        audience: _audience,
+        motherTongues: _includesHosts ? _languages : const {},
+      ),
+    );
+    if (sent && mounted) _clear();
   }
 
   void _clear() {
@@ -104,7 +126,11 @@ class _NotificationComposerSectionState
     super.dispose();
   }
 
-  Widget _form(BuildContext context) {
+  Widget _form(
+    BuildContext context, {
+    required bool canSend,
+    required bool sending,
+  }) {
     final textColor = context.colorScheme.onSurface;
     final label = AppTextStyles.labelSmall.copyWith(color: textColor);
 
@@ -116,7 +142,7 @@ class _NotificationComposerSectionState
         AppSegmentedControl<NotificationAudience>(
           options: _audienceLabels,
           value: _audience,
-          onChanged: (audience) => setState(() => _audience = audience),
+          onChanged: _selectAudience,
         ),
         if (_includesHosts) ...[
           const SizedBox(height: _fieldGap),
@@ -142,6 +168,11 @@ class _NotificationComposerSectionState
           hint: AppStrings.notificationTitleHint,
           controller: _titleController,
           textInputAction: TextInputAction.next,
+          inputFormatters: [
+            LengthLimitingTextInputFormatter(
+              NotificationRequest.titleMaxLength,
+            ),
+          ],
           errorText: _error(_titleValid, AppStrings.enterTitle),
           onChanged: (_) => setState(() {}),
         ),
@@ -153,6 +184,11 @@ class _NotificationComposerSectionState
           keyboardType: TextInputType.multiline,
           minLines: _messageLines,
           maxLines: null,
+          inputFormatters: [
+            LengthLimitingTextInputFormatter(
+              NotificationRequest.messageMaxLength,
+            ),
+          ],
           errorText: _error(_messageValid, AppStrings.enterMessage),
           onChanged: (_) => setState(() {}),
         ),
@@ -162,12 +198,17 @@ class _NotificationComposerSectionState
           runSpacing: AppUtils.spacingSm,
           children: [
             AppPrimaryButton(
-              label: AppStrings.sendNotification,
+              label: sending
+                  ? AppStrings.sendingNotification
+                  : AppStrings.sendNotification,
               iconAsset: AppImages.sendNotificationIcon,
               compact: true,
-              onPressed: _send,
+              onPressed: canSend && !sending ? _send : null,
             ),
-            AppSecondaryButton(label: AppStrings.clear, onPressed: _clear),
+            AppSecondaryButton(
+              label: AppStrings.clear,
+              onPressed: sending ? null : _clear,
+            ),
           ],
         ),
       ],
@@ -180,12 +221,21 @@ class _NotificationComposerSectionState
       padding: _padding,
       child: BlocBuilder<SettingsCubit, SettingsState>(
         buildWhen: (previous, current) =>
-            previous.activeUsers != current.activeUsers ||
-            previous.activeHostsByLanguage != current.activeHostsByLanguage,
+            previous.audience != current.audience ||
+            previous.audienceStatus != current.audienceStatus ||
+            previous.audienceError != current.audienceError ||
+            previous.notificationSending != current.notificationSending,
         builder: (context, state) {
+          final counts = state.audience;
+          final sending = state.notificationSending;
+          final canSend =
+              state.audienceStatus == LoadStatus.loaded && counts != null;
           final audience = NotificationAudienceCard(
-            users: _users(state),
-            hosts: _hosts(state),
+            status: state.audienceStatus,
+            error: state.audienceError,
+            onRetry: context.read<SettingsCubit>().loadNotificationAudience,
+            users: counts == null ? null : _users(counts),
+            hosts: counts == null ? null : _hosts(counts),
             hostLanguages: _languagesLabel,
           );
 
@@ -195,7 +245,7 @@ class _NotificationComposerSectionState
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _form(context),
+                    _form(context, canSend: canSend, sending: sending),
                     const SizedBox(height: _columnGap),
                     audience,
                   ],
@@ -204,7 +254,9 @@ class _NotificationComposerSectionState
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(child: _form(context)),
+                  Expanded(
+                    child: _form(context, canSend: canSend, sending: sending),
+                  ),
                   const SizedBox(width: _columnGap),
                   SizedBox(width: _audienceWidth, child: audience),
                 ],
