@@ -3,13 +3,30 @@ import 'package:zuno_admin_dashboard/core/data/admin_account.dart';
 import 'package:zuno_admin_dashboard/core/data/admins_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/datasources/banner_images_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/datasources/settings_remote_data_source.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/models/banner_image.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/models/banner_upload.dart';
 
 class SettingsRepository {
-  const SettingsRepository(this._adminsDataSource, this._settingsDataSource);
+  const SettingsRepository(
+    this._adminsDataSource,
+    this._settingsDataSource,
+    this._bannerImagesDataSource,
+  );
 
   final AdminsRemoteDataSource _adminsDataSource;
   final SettingsRemoteDataSource _settingsDataSource;
+  final BannerImagesRemoteDataSource _bannerImagesDataSource;
+
+  Future<Either<Failure, List<BannerImage>>> fetchBanners() =>
+      _bannerImagesDataSource.fetchBanners();
+
+  Future<Either<Failure, BannerImage>> addBanner(BannerUpload upload) =>
+      _bannerImagesDataSource.addBanner(upload);
+
+  Future<Either<Failure, Unit>> deleteBanner(BannerImage banner) =>
+      _bannerImagesDataSource.deleteBanner(banner);
 
   Future<Either<Failure, bool>> fetchMaintenanceMode() =>
       _settingsDataSource.fetchMaintenanceMode();

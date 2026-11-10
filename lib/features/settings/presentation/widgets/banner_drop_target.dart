@@ -32,7 +32,7 @@ class BannerDropTarget extends StatelessWidget {
   final String title;
   final String helper;
   final Color helperColor;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

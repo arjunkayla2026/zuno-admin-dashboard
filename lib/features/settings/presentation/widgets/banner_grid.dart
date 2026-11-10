@@ -41,7 +41,7 @@ class BannerGrid extends StatelessWidget {
                   child: BannerCard(
                     number: index + 1,
                     banner: banner,
-                    onDelete: () => confirmDeleteBanner(context, index, banner),
+                    onDelete: () => confirmDeleteBanner(context, banner),
                   ),
                 ),
               SizedBox(

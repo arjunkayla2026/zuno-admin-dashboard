@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get_it/get_it.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:zuno_admin_dashboard/core/data/admins_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/repositories/approval_repository.dart';
@@ -18,6 +20,7 @@ import 'package:zuno_admin_dashboard/features/packages/presentation/state/packag
 import 'package:zuno_admin_dashboard/features/recharge/data/datasources/recharge_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/repositories/recharge_repository.dart';
 import 'package:zuno_admin_dashboard/features/recharge/presentation/state/recharge_cubit.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/datasources/banner_images_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/datasources/settings_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/repositories/settings_repository.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_cubit.dart';
@@ -48,12 +51,20 @@ void configureDependencies() {
     ..registerLazySingleton<SettingsRemoteDataSource>(
       () => SettingsRemoteDataSource(FirebaseFirestore.instance),
     )
+    ..registerLazySingleton<BannerImagesRemoteDataSource>(
+      () => BannerImagesRemoteDataSource(
+        FirebaseFirestore.instance,
+        FirebaseStorage.instance,
+      ),
+    )
     ..registerLazySingleton<SettingsRepository>(
       () => SettingsRepository(
         getIt<AdminsRemoteDataSource>(),
         getIt<SettingsRemoteDataSource>(),
+        getIt<BannerImagesRemoteDataSource>(),
       ),
     )
+    ..registerLazySingleton<ImagePicker>(ImagePicker.new)
     ..registerFactory<SettingsCubit>(
       () => SettingsCubit(getIt<SettingsRepository>()),
     )

@@ -58,8 +58,15 @@ class BannerCard extends StatelessWidget {
                       const SizedBox(height: _metaGap),
                       Text(
                         AppStrings.bannerMeta(
-                          banner.fileName,
-                          DateFormatter.short(banner.addedOn),
+                          banner.imageName,
+                          switch (banner.role) {
+                            BannerAudience.user => AppStrings.userAudience,
+                            BannerAudience.host => AppStrings.hostAudience,
+                          },
+                          switch (banner.createdAt) {
+                            final date? => DateFormatter.short(date),
+                            null => null,
+                          },
                         ),
                         style: AppTextStyles.tableFootnote.copyWith(
                           color: context.appColors.textSecondary,
