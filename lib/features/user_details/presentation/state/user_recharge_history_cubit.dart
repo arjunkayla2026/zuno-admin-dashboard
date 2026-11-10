@@ -26,6 +26,8 @@ class UserRechargeHistoryCubit extends Cubit<UserRechargeHistoryState> {
 
   Future<void> load() => _pager.load();
 
+  Future<void> reload() => _pager.reset();
+
   void search(String query) {
     _debounce?.cancel();
     _debounce = Timer(_searchDebounce, () => _apply(query));

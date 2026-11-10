@@ -37,6 +37,7 @@ class RechargeTransaction {
     this.orderId,
     this.paymentId,
     this.user,
+    this.storedCoins,
   });
 
   factory RechargeTransaction.fromDocument(
@@ -45,6 +46,7 @@ class RechargeTransaction {
   ) {
     final createdAt = data[createdAtField];
     final orderId = UserRecord.readText(data[razorpayOrderIdField]);
+    final coins = data[coinsField];
 
     return RechargeTransaction(
       id: id,
@@ -58,8 +60,39 @@ class RechargeTransaction {
       createdAt: createdAt is Timestamp ? createdAt.toDate() : null,
       orderId: orderId,
       paymentId: UserRecord.readText(data[razorpayPaymentIdField]),
+      storedCoins: coins is num ? coins.round() : null,
     );
   }
+
+  static const String collection = 'transactions';
+  static const String coinsField = 'coins';
+  static const String rechargeAmountField = 'rechargeAmount';
+  static const String amountFromOfferField = 'amountFromOffer';
+  static const String adminCreditedAmountField = 'adminCreditedAmount';
+  static const String adminDebitedAmountField = 'adminDebitedAmount';
+  static const String descriptionField = 'description';
+  static const String adminUidField = 'adminUid';
+
+  static Map<String, Object?> adminAdjustmentFields({
+    required String userId,
+    required bool isCredit,
+    required int amount,
+    required String description,
+    required String adminUid,
+  }) => {
+    userIdField: userId,
+    typeField: isCredit ? creditTypes.first : debitTypes.first,
+    statusField: completedStatuses.first,
+    totalAmountField: amount,
+    rechargeAmountField: 0,
+    amountFromOfferField: 0,
+    adminCreditedAmountField: isCredit ? amount : 0,
+    adminDebitedAmountField: isCredit ? 0 : amount,
+    coinsField: isCredit ? amount : 0,
+    if (description.isNotEmpty) descriptionField: description,
+    adminUidField: adminUid,
+    createdAtField: FieldValue.serverTimestamp(),
+  };
 
   static const String userIdField = 'userId';
   static const String typeField = 'type';
@@ -104,6 +137,7 @@ class RechargeTransaction {
   final String? orderId;
   final String? paymentId;
   final AdminUser? user;
+  final int? storedCoins;
 
   static double _readAmount(Object? value) =>
       value is num ? value.toDouble() : 0;
@@ -131,7 +165,8 @@ class RechargeTransaction {
 
   bool get isCompleted => status == RechargeStatus.completed;
 
-  int get coins => isCompleted ? PackagePlan.coinsFor(amount) : 0;
+  int get coins =>
+      isCompleted ? storedCoins ?? PackagePlan.coinsFor(amount) : 0;
 
   bool get isAdminRecharge =>
       kind == RechargeKind.recharge && gateway == RechargeGateway.admin;
@@ -153,5 +188,6 @@ class RechargeTransaction {
     orderId: orderId,
     paymentId: paymentId,
     user: user,
+    storedCoins: storedCoins,
   );
 }

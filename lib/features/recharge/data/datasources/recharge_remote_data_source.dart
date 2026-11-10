@@ -9,7 +9,7 @@ import 'package:zuno_admin_dashboard/features/recharge/data/models/recharge_tran
 class RechargeRemoteDataSource {
   const RechargeRemoteDataSource(this._firestore);
 
-  static const String _collection = 'transactions';
+  static const String _collection = RechargeTransaction.collection;
 
   final FirebaseFirestore _firestore;
 

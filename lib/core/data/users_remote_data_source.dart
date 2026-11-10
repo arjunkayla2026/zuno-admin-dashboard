@@ -251,6 +251,7 @@ class UsersRemoteDataSource {
     buildUpdate, {
     required String refusedMessage,
     required Map<String, Object?> Function(String adminUid) audit,
+    String auditCollection = ApprovalAudit.collection,
   }) async {
     final adminUid = _auth.currentUser?.uid;
     if (adminUid == null) {
@@ -275,7 +276,7 @@ class UsersRemoteDataSource {
           _updatedAtField: FieldValue.serverTimestamp(),
         });
         transaction.set(
-          _firestore.collection(ApprovalAudit.collection).doc(),
+          _firestore.collection(auditCollection).doc(),
           audit(adminUid),
         );
       });
@@ -287,6 +288,21 @@ class UsersRemoteDataSource {
     final failure = refused;
     return failure == null ? right(unit) : left(failure);
   }
+
+  Future<Either<Failure, Unit>> adjustWallet(
+    String id, {
+    required bool isCredit,
+    required int amount,
+    required String ledgerCollection,
+    required Map<String, Object?> Function(String adminUid) ledgerEntry,
+  }) => _transact(
+    id,
+    (data, _) =>
+        UserRecord.walletAdjustment(data, isCredit: isCredit, amount: amount),
+    refusedMessage: AppStrings.walletBalanceTooLow,
+    audit: ledgerEntry,
+    auditCollection: ledgerCollection,
+  );
 
   Future<Either<Failure, Unit>> setBlocked(
     String id, {

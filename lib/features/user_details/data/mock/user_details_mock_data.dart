@@ -10,8 +10,6 @@ abstract final class UserDetailsMockData {
   static const int totalRecharge = 2943;
   static const double coinValue = 0.5;
   static const int receivableTopUp = 99;
-  static const int totalCreditFromAdmin = 0;
-  static const int totalDebitFromAdmin = 0;
   static const int deletedAccountAdminProfit = 0;
 
   static const List<RechargePackage> packages = [

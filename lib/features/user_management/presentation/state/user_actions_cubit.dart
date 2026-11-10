@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
+import 'package:zuno_admin_dashboard/core/enums/wallet_adjustment_type.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/repositories/user_management_repository.dart';
@@ -18,6 +19,20 @@ class UserActionsCubit extends Cubit<LoadStatus> {
 
   Future<String?> setBlocked(AdminUser user, {required bool blocked}) =>
       _run(() => _repository.setBlocked(user, blocked: blocked));
+
+  Future<String?> adjustWallet(
+    AdminUser user, {
+    required WalletAdjustmentType type,
+    required int amount,
+    required String description,
+  }) => _run(
+    () => _repository.adjustWallet(
+      user,
+      type: type,
+      amount: amount,
+      description: description,
+    ),
+  );
 
   Future<String?> delete(AdminUser user) =>
       _run(() => _repository.delete(user));

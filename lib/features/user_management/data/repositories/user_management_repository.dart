@@ -2,10 +2,12 @@ import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
 import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
+import 'package:zuno_admin_dashboard/core/enums/wallet_adjustment_type.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/name_formatter.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
+import 'package:zuno_admin_dashboard/features/recharge/data/models/recharge_transaction.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
 
 class UserManagementRepository {
@@ -71,6 +73,28 @@ class UserManagementRepository {
     AdminUser user, {
     required bool blocked,
   }) => _dataSource.setBlocked(user.id, blocked: blocked);
+
+  Future<Either<Failure, Unit>> adjustWallet(
+    AdminUser user, {
+    required WalletAdjustmentType type,
+    required int amount,
+    required String description,
+  }) {
+    final isCredit = type == WalletAdjustmentType.credit;
+    return _dataSource.adjustWallet(
+      user.id,
+      isCredit: isCredit,
+      amount: amount,
+      ledgerCollection: RechargeTransaction.collection,
+      ledgerEntry: (adminUid) => RechargeTransaction.adminAdjustmentFields(
+        userId: user.id,
+        isCredit: isCredit,
+        amount: amount,
+        description: description,
+        adminUid: adminUid,
+      ),
+    );
+  }
 
   Future<Either<Failure, Unit>> delete(AdminUser user) =>
       _dataSource.markDeletedByAdmin(user.id);

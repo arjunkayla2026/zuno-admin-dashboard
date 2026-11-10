@@ -13,6 +13,8 @@ class UserRecord {
     this.countryCode,
     this.phoneNumber,
     this.walletBalance = 0,
+    this.adminCredit = 0,
+    this.adminDebit = 0,
     this.isBlocked = false,
     this.isDeleted = false,
     this.isDeletedByAdmin = false,
@@ -28,6 +30,11 @@ class UserRecord {
     final updatedAt = data['updatedAt'];
     final walletBalance = data['walletBalance'];
     final hostDetails = data['hostDetails'];
+    final walletSources = data[walletSourcesField];
+    num source(String field) {
+      final amount = walletSources is Map ? walletSources[field] : null;
+      return amount is num ? amount : 0;
+    }
 
     return UserRecord(
       id: id,
@@ -39,6 +46,8 @@ class UserRecord {
       countryCode: readText(data['countryCode']),
       phoneNumber: readText(data['phoneNumber']),
       walletBalance: walletBalance is num ? walletBalance : 0,
+      adminCredit: source(adminCreditField),
+      adminDebit: source(adminDebitField),
       isBlocked: data['isAccountBlocked'] == true,
       isDeleted: data['isAccountDeleted'] == true,
       isDeletedByAdmin: data[deletedByField] == deletedByAdmin,
@@ -73,6 +82,10 @@ class UserRecord {
   static const String hostApprovedByField = 'approvedBy';
   static const String deletedByField = 'deletedBy';
   static const String deletedByAdmin = 'admin';
+  static const String walletBalanceField = 'walletBalance';
+  static const String walletSourcesField = 'walletSources';
+  static const String adminCreditField = 'adminCredit';
+  static const String adminDebitField = 'adminDebit';
   static const Duration _newAccountWindow = Duration(days: 7);
   static const int _nationalNumberLength = 10;
   static const int _nationalNumberGroup = 5;
@@ -86,6 +99,8 @@ class UserRecord {
   final String? countryCode;
   final String? phoneNumber;
   final num walletBalance;
+  final num adminCredit;
+  final num adminDebit;
   final bool isBlocked;
   final bool isDeleted;
   final bool isDeletedByAdmin;
@@ -178,6 +193,21 @@ class UserRecord {
         'hostDetails.$hostApprovedAtField': FieldValue.serverTimestamp(),
         'hostDetails.$hostApprovedByField': adminUid,
       },
+    };
+  }
+
+  static Map<String, Object?>? walletAdjustment(
+    Map<String, dynamic> data, {
+    required bool isCredit,
+    required int amount,
+  }) {
+    final balance = data[walletBalanceField];
+    if (!isCredit && amount > (balance is num ? balance : 0)) return null;
+
+    final source = isCredit ? adminCreditField : adminDebitField;
+    return {
+      walletBalanceField: FieldValue.increment(isCredit ? amount : -amount),
+      '$walletSourcesField.$source': FieldValue.increment(amount),
     };
   }
 

@@ -54,11 +54,11 @@ class UserDetailsState {
     ),
     AppStat(
       label: AppStrings.totalCreditFromAdmin,
-      value: NumberFormatter.rupees(UserDetailsMockData.totalCreditFromAdmin),
+      value: NumberFormatter.rupees(user.adminCredit),
     ),
     AppStat(
       label: AppStrings.totalDebitFromAdmin,
-      value: NumberFormatter.rupees(UserDetailsMockData.totalDebitFromAdmin),
+      value: NumberFormatter.rupees(user.adminDebit),
     ),
     AppStat(
       label: AppStrings.deletedAccountAdminProfit,

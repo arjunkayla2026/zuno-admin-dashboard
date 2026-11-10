@@ -279,6 +279,8 @@ abstract final class AppStrings {
   static const String pending = 'Pending';
   static const String success = 'Success';
   static const String creditDebit = 'Credit / Debit';
+  static const String walletBalanceTooLow =
+      "This debit is more than the user's current wallet balance.";
   static const String adminCredit = 'Admin credit';
   static const String adminDebit = 'Admin debit';
 

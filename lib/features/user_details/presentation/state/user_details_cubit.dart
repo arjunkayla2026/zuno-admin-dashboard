@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zuno_admin_dashboard/core/enums/call_filter.dart';
+import 'package:zuno_admin_dashboard/core/enums/wallet_adjustment_type.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_wallet_adjustment_dialog.dart';
 import 'package:zuno_admin_dashboard/features/user_details/data/mock/user_details_mock_data.dart';
 import 'package:zuno_admin_dashboard/features/user_details/data/models/recharge_package.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_details_state.dart';
@@ -35,6 +37,20 @@ class UserDetailsCubit extends Cubit<UserDetailsState> {
         availableCoins: state.availableCoins + package.totalCoins,
       ),
     );
+  }
+
+  void adjustWallet(WalletAdjustment adjustment) {
+    final isCredit = adjustment.type == WalletAdjustmentType.credit;
+    final amount = adjustment.amount;
+    final current = state.user;
+    final coins = state.availableCoins + (isCredit ? amount : -amount);
+    final user = current.copyWith(
+      walletBalance: NumberFormatter.grouped(coins),
+      adminCredit: isCredit ? current.adminCredit + amount : null,
+      adminDebit: isCredit ? null : current.adminDebit + amount,
+    );
+    emit(state.copyWith(user: user, availableCoins: coins));
+    _onUserChanged?.call(user);
   }
 
   void selectTab(UserDetailsTab tab) => emit(state.copyWith(tab: tab));

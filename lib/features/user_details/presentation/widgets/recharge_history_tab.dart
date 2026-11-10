@@ -8,10 +8,13 @@ import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_search_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_wallet_adjustment_dialog.dart';
+import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_details_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_recharge_history_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/widgets/add_recharge_flow.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/widgets/recharge_history_results.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
+import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_actions_cubit.dart';
 
 class RechargeHistoryTab extends StatelessWidget {
   const RechargeHistoryTab({super.key, required this.user});
@@ -23,6 +26,31 @@ class RechargeHistoryTab extends StatelessWidget {
   static const double _walletIconSize = 16;
   static const double _actionGap = 10;
   static const EdgeInsets _toolbarPadding = EdgeInsets.fromLTRB(20, 14, 20, 14);
+
+  Future<void> _adjustWallet(BuildContext context) async {
+    final details = context.read<UserDetailsCubit>();
+    final actions = context.read<UserActionsCubit>();
+    final history = context.read<UserRechargeHistoryCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+    final adjustment = await showWalletAdjustmentDialog(
+      context: context,
+      walletBalance: details.state.availableCoins,
+    );
+    if (adjustment == null) return;
+
+    final error = await actions.adjustWallet(
+      details.state.user,
+      type: adjustment.type,
+      amount: adjustment.amount,
+      description: adjustment.description,
+    );
+    if (error != null) {
+      messenger.showSnackBar(SnackBar(content: Text(error)));
+    } else if (!details.isClosed) {
+      details.adjustWallet(adjustment);
+      await history.reload();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +79,7 @@ class RechargeHistoryTab extends StatelessWidget {
                 children: [
                   AppSecondaryButton(
                     label: AppStrings.creditDebitWallet,
-                    onPressed: () {},
+                    onPressed: () => _adjustWallet(context),
                     leading: SvgPicture.asset(
                       AppImages.paymentIcon,
                       width: _walletIconSize,

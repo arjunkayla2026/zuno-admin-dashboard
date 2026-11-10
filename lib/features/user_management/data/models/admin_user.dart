@@ -17,6 +17,8 @@ class AdminUser {
       phone: record.phoneLabel,
       recharges: null,
       walletBalance: NumberFormatter.grouped(record.walletBalance.truncate()),
+      adminCredit: record.adminCredit.truncate(),
+      adminDebit: record.adminDebit.truncate(),
       status: _statusOf(record),
       avatarIndex: record.avatarIndex,
       userID: '',
@@ -34,6 +36,8 @@ class AdminUser {
     required this.status,
     required this.avatarIndex,
     required this.userID,
+    this.adminCredit = 0,
+    this.adminDebit = 0,
   });
 
   final String createdDate;
@@ -46,6 +50,8 @@ class AdminUser {
   final UserStatus status;
   final int avatarIndex;
   final String userID;
+  final int adminCredit;
+  final int adminDebit;
 
   static UserStatus _statusOf(UserRecord record) {
     if (record.isDeleted) {
@@ -73,6 +79,9 @@ class AdminUser {
     String? initials,
     String? phone,
     UserStatus? status,
+    String? walletBalance,
+    int? adminCredit,
+    int? adminDebit,
   }) {
     return AdminUser(
       createdDate: createdDate,
@@ -82,7 +91,9 @@ class AdminUser {
       userID: userID,
       phone: phone ?? this.phone,
       recharges: recharges,
-      walletBalance: walletBalance,
+      walletBalance: walletBalance ?? this.walletBalance,
+      adminCredit: adminCredit ?? this.adminCredit,
+      adminDebit: adminDebit ?? this.adminDebit,
       status: status ?? this.status,
       avatarIndex: avatarIndex,
     );
