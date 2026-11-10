@@ -21,7 +21,7 @@ class HostTableCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<HostManagementCubit, HostManagementState>(
       builder: (context, state) {
-        final hosts = state.pageHosts;
+        final hosts = state.hosts;
 
         return Container(
           clipBehavior: Clip.antiAlias,
@@ -57,7 +57,7 @@ class HostTableCard extends StatelessWidget {
                 AppTableFooter(
                   firstIndex: state.firstIndex,
                   shownCount: hosts.length,
-                  totalCount: state.filteredHosts.length,
+                  totalCount: null,
                   currentPage: state.page,
                   totalPages: state.totalPages,
                   onPageChanged: context.read<HostManagementCubit>().goToPage,

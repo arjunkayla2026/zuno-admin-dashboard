@@ -1,21 +1,55 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
 import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
+import 'package:zuno_admin_dashboard/core/enums/wallet_adjustment_type.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:zuno_admin_dashboard/core/utils/name_formatter.dart';
+import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
+import 'package:zuno_admin_dashboard/features/recharge/data/models/recharge_transaction.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
 
 class UserManagementRepository {
   const UserManagementRepository(this._dataSource);
 
   static const String _role = 'user';
+  static const int _pageSize = 10;
 
   final UsersRemoteDataSource _dataSource;
 
-  Future<Either<Failure, List<AdminUser>>> fetchUsers() async {
-    final result = await _dataSource.fetchByRole(_role);
-    return result.map((records) => records.map(AdminUser.fromRecord).toList());
-  }
+  Future<Either<Failure, RecordPage<AdminUser>>> fetchUsers({
+    UserStatus? status,
+    String? term,
+    Object? cursor,
+  }) => RecordPages.untilMatch(
+    cursor,
+    (next) => _fetchBatch(status, term, next),
+    (records) => records
+        .map(AdminUser.fromRecord)
+        .where((user) => status == null || user.status == status),
+  );
+
+  Future<Either<Failure, RecordPage<UserRecord>>> _fetchBatch(
+    UserStatus? status,
+    String? term,
+    Object? cursor,
+  ) => _dataSource.fetchUsersPage(
+    _role,
+    RecordPageQuery(
+      term: term,
+      from: status == UserStatus.newUser ? UserRecord.newAccountCutoff : null,
+      cursor: cursor,
+    ),
+    pageSize: _pageSize,
+    onlyBlocked: status == UserStatus.blocked,
+    onlyDeleted:
+        status == UserStatus.deletedByAdmin ||
+        status == UserStatus.deletedByUser,
+    deletedBy: status == UserStatus.deletedByAdmin
+        ? UserRecord.deletedByAdmin
+        : null,
+  );
 
   Future<Either<Failure, Unit>> updateDetails(
     AdminUser user, {
@@ -29,7 +63,7 @@ class UserManagementRepository {
       return left(const DataFailure(AppStrings.enterValidPhone));
     }
 
-    return _dataSource.updateRecord(user.userId, {
+    return _dataSource.updateRecord(user.id, {
       if (name != user.name) 'name': name,
       ...phoneFields,
     });
@@ -38,8 +72,59 @@ class UserManagementRepository {
   Future<Either<Failure, Unit>> setBlocked(
     AdminUser user, {
     required bool blocked,
-  }) => _dataSource.setBlocked(user.userId, blocked: blocked);
+  }) => _dataSource.setBlocked(user.id, blocked: blocked);
+
+  Future<Either<Failure, Unit>> adjustWallet(
+    AdminUser user, {
+    required WalletAdjustmentType type,
+    required int amount,
+    required String description,
+  }) {
+    final isCredit = type == WalletAdjustmentType.credit;
+    return _dataSource.adjustWallet(
+      user.id,
+      isCredit: isCredit,
+      amount: amount,
+      ledgerCollection: RechargeTransaction.collection,
+      ledgerEntry: (adminUid) => RechargeTransaction.adminAdjustmentFields(
+        userId: user.id,
+        isCredit: isCredit,
+        amount: amount,
+        description: description,
+        adminUid: adminUid,
+      ),
+    );
+  }
 
   Future<Either<Failure, Unit>> delete(AdminUser user) =>
-      _dataSource.markDeletedByAdmin(user.userId);
+      _dataSource.markDeletedByAdmin(user.id);
+
+  AdminUser _toAdminUser(UserRecord record) {
+    final name = record.name ?? record.userName ?? AppStrings.emptyValue;
+
+    return AdminUser(
+      createdDate: record.createdDateLabel,
+      name: name,
+      initials: NameFormatter.initials(name),
+
+      phone: record.phoneLabel,
+      recharges: null,
+      walletBalance: NumberFormatter.grouped(record.walletBalance.truncate()),
+      status: _statusOf(record),
+      avatarIndex: record.avatarIndex,
+      id: record.id,
+      userID: record.userIDLabel,
+    );
+  }
+
+  UserStatus _statusOf(UserRecord record) {
+    if (record.isDeleted) {
+      return record.isDeletedByAdmin
+          ? UserStatus.deletedByAdmin
+          : UserStatus.deletedByUser;
+    }
+    if (record.isBlocked) return UserStatus.blocked;
+    if (record.isNewAccount) return UserStatus.newUser;
+    return UserStatus.active;
+  }
 }

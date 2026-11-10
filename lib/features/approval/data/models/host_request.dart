@@ -43,9 +43,13 @@ class HostRequest {
     required this.avatarIndex,
     this.status = HostRequestStatus.pending,
     this.documents = const [],
-  });
+    this.approvedAt,
+    this.approvedBy,
+    String? userID,
+  }) : userID = userID ?? requestId;
 
   final String requestId;
+  final String userID;
   final DateTime submittedOn;
   final String realName;
   final String nickName;
@@ -58,6 +62,8 @@ class HostRequest {
   final int avatarIndex;
   final HostRequestStatus status;
   final List<HostDocument> documents;
+  final DateTime? approvedAt;
+  final String? approvedBy;
 
   String get initials => NameFormatter.initials(realName);
 
@@ -93,6 +99,7 @@ class HostRequest {
   }) {
     return HostRequest(
       requestId: requestId,
+      userID: userID,
       submittedOn: submittedOn,
       realName: realName ?? this.realName,
       nickName: nickName ?? this.nickName,
@@ -105,6 +112,8 @@ class HostRequest {
       avatarIndex: avatarIndex,
       status: status ?? this.status,
       documents: documents ?? this.documents,
+      approvedAt: approvedAt,
+      approvedBy: approvedBy,
     );
   }
 }

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:zuno_admin_dashboard/core/enums/date_range_filter.dart';
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
-import 'package:zuno_admin_dashboard/core/utils/date_range_matcher.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/host_request.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/payout_request.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/profile_photo_request.dart';
+import 'package:zuno_admin_dashboard/features/approval/presentation/state/approval_pager.dart';
 
 enum ApprovalTab { hostRequests, payoutReview, profilePhotoReview }
 
@@ -16,7 +16,16 @@ class ApprovalState {
     required this.today,
     this.hostRequestsStatus = LoadStatus.loaded,
     this.hostRequestsError,
-    this.hostRequestsToday,
+    this.hostPaging = const ApprovalPaging(),
+    this.pendingCount = 0,
+    this.profilePhotosStatus = LoadStatus.loaded,
+    this.profilePhotosError,
+    this.photoPaging = const ApprovalPaging(),
+    this.pendingPhotoCount = 0,
+    this.payoutsStatus = LoadStatus.loaded,
+    this.payoutsError,
+    this.payoutPaging = const ApprovalPaging(),
+    this.pendingPayoutCount = 0,
     this.tab = ApprovalTab.hostRequests,
     this.query = '',
     this.dateFilter = DateRangeFilter.all,
@@ -29,79 +38,20 @@ class ApprovalState {
   final DateTime today;
   final LoadStatus hostRequestsStatus;
   final String? hostRequestsError;
-  final DateTime? hostRequestsToday;
+  final ApprovalPaging hostPaging;
+  final int pendingCount;
+  final LoadStatus profilePhotosStatus;
+  final String? profilePhotosError;
+  final ApprovalPaging photoPaging;
+  final int pendingPhotoCount;
+  final LoadStatus payoutsStatus;
+  final String? payoutsError;
+  final ApprovalPaging payoutPaging;
+  final int pendingPayoutCount;
   final ApprovalTab tab;
   final String query;
   final DateRangeFilter dateFilter;
   final DateTimeRange? customRange;
-
-  int get pendingCount =>
-      hostRequests.where((request) => request.isPending).length;
-
-  int get pendingPayoutCount =>
-      payoutRequests.where((payout) => payout.isPending).length;
-
-  int get pendingPhotoCount =>
-      profilePhotoRequests.where((photo) => photo.isPending).length;
-
-  String get _term => query.trim().toLowerCase();
-
-  String get _digits => _term.replaceAll(' ', '');
-
-  bool _inRange(DateTime date) =>
-      dateFilter.includes(date, today: today, customRange: customRange);
-
-  bool _matches(List<String> texts, String phone) {
-    final term = _term;
-    if (term.isEmpty) return true;
-    final digits = _digits;
-    return texts.any((text) => text.toLowerCase().contains(term)) ||
-        (digits.isNotEmpty && phone.replaceAll(' ', '').contains(digits));
-  }
-
-  List<HostRequest> get filteredHostRequests => hostRequests
-      .where(
-        (request) =>
-            dateFilter.includes(
-              request.submittedOn,
-              today: hostRequestsToday ?? today,
-              customRange: customRange,
-            ) &&
-            _matches([
-              request.realName,
-              request.nickName,
-              request.requestId,
-            ], request.phone),
-      )
-      .toList();
-
-  List<PayoutRequest> get filteredPayoutRequests => payoutRequests
-      .where(
-        (payout) =>
-            _inRange(payout.submittedOn) &&
-            _matches([
-              payout.hostName,
-              payout.realName,
-              payout.hostId,
-              payout.payoutId,
-              payout.accountHolderName,
-            ], payout.phone),
-      )
-      .toList();
-
-  List<ProfilePhotoRequest> get filteredProfilePhotoRequests =>
-      profilePhotoRequests
-          .where(
-            (photo) =>
-                _inRange(photo.submittedOn) &&
-                _matches([
-                  photo.hostName,
-                  photo.realName,
-                  photo.hostId,
-                  photo.city,
-                ], ''),
-          )
-          .toList();
 
   ApprovalState copyWith({
     List<HostRequest>? hostRequests,
@@ -109,6 +59,16 @@ class ApprovalState {
     List<ProfilePhotoRequest>? profilePhotoRequests,
     LoadStatus? hostRequestsStatus,
     String? hostRequestsError,
+    ApprovalPaging? hostPaging,
+    int? pendingCount,
+    LoadStatus? profilePhotosStatus,
+    String? profilePhotosError,
+    ApprovalPaging? photoPaging,
+    int? pendingPhotoCount,
+    LoadStatus? payoutsStatus,
+    String? payoutsError,
+    ApprovalPaging? payoutPaging,
+    int? pendingPayoutCount,
     ApprovalTab? tab,
     String? query,
     DateRangeFilter? dateFilter,
@@ -121,7 +81,16 @@ class ApprovalState {
       today: today,
       hostRequestsStatus: hostRequestsStatus ?? this.hostRequestsStatus,
       hostRequestsError: hostRequestsError ?? this.hostRequestsError,
-      hostRequestsToday: hostRequestsToday,
+      hostPaging: hostPaging ?? this.hostPaging,
+      pendingCount: pendingCount ?? this.pendingCount,
+      profilePhotosStatus: profilePhotosStatus ?? this.profilePhotosStatus,
+      profilePhotosError: profilePhotosError ?? this.profilePhotosError,
+      photoPaging: photoPaging ?? this.photoPaging,
+      pendingPhotoCount: pendingPhotoCount ?? this.pendingPhotoCount,
+      payoutsStatus: payoutsStatus ?? this.payoutsStatus,
+      payoutsError: payoutsError ?? this.payoutsError,
+      payoutPaging: payoutPaging ?? this.payoutPaging,
+      pendingPayoutCount: pendingPayoutCount ?? this.pendingPayoutCount,
       tab: tab ?? this.tab,
       query: query ?? this.query,
       dateFilter: dateFilter ?? this.dateFilter,

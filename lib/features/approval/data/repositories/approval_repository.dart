@@ -1,9 +1,11 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
 import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/host_request.dart';
+import 'package:zuno_admin_dashboard/features/approval/data/models/profile_photo_request.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/models/host_profile_options.dart';
 
 class ApprovalRepository {
@@ -23,15 +25,22 @@ class ApprovalRepository {
     HostRequestStatus.pending => UserRecord.documentSubmitted,
   };
 
-  Future<Either<Failure, List<HostRequest>>> fetchHostRequests() async {
-    final result = await _dataSource.fetchHostApplicants();
+  Future<Either<Failure, RecordPage<HostRequest>>> fetchHostRequests(
+    RecordPageQuery query,
+  ) async {
+    final result = await _dataSource.fetchHostApplicants(query);
     return result.map(
-      (records) => [
-        for (final record in records)
-          if (record.hostDetails.isNotEmpty) _toRequest(record),
-      ],
+      (page) => page.mapItems(
+        (records) => [
+          for (final record in records)
+            if (record.hostDetails.isNotEmpty) _toRequest(record),
+        ],
+      ),
     );
   }
+
+  Future<Either<Failure, int>> countHostRequests(RecordPageQuery query) =>
+      _dataSource.countHostApplicants(query);
 
   Future<Either<Failure, Unit>> reviewDocument(
     HostRequest request,
@@ -51,6 +60,68 @@ class ApprovalRepository {
     approved: decision == HostRequestStatus.approved,
   );
 
+  Future<Either<Failure, RecordPage<ProfilePhotoRequest>>>
+  fetchProfilePhotoRequests(RecordPageQuery query) async {
+    final result = await _dataSource.fetchProfilePhotoRequests(query);
+    return result.map(
+      (page) => page.mapItems(
+        (records) => [
+          for (final record in records)
+            if (record.hasValidSubmittedImage) _toProfilePhoto(record),
+        ],
+      ),
+    );
+  }
+
+  Future<Either<Failure, int>> countProfilePhotoRequests(
+    RecordPageQuery query,
+  ) => _dataSource.countProfilePhotoRequests(query);
+
+  Future<Either<Failure, Unit>> decideProfilePhoto(
+    ProfilePhotoRequest request,
+    ProfilePhotoStatus decision,
+  ) async {
+    final reviewedUrl = request.photoUrl;
+    if (reviewedUrl == null) {
+      return left(const DataFailure(AppStrings.profilePhotoChanged));
+    }
+    return _dataSource.decideProfilePhoto(
+      request.requestId,
+      approved: decision == ProfilePhotoStatus.accepted,
+      reviewedUrl: reviewedUrl,
+    );
+  }
+
+  ProfilePhotoRequest _toProfilePhoto(UserRecord record) {
+    final details = record.hostDetails;
+    final displayName =
+        record.userName ??
+        UserRecord.readText(details['userName']) ??
+        record.name ??
+        AppStrings.emptyValue;
+
+    return ProfilePhotoRequest(
+      requestId: record.id,
+      submittedOn: record.updatedAt ?? record.createdAt ?? DateTime.now(),
+      hostName: displayName,
+      hostId: record.id,
+      userID: record.userIDLabel,
+      realName:
+          UserRecord.readText(details['fullName']) ??
+          record.name ??
+          displayName,
+      city:
+          UserRecord.readText(details['district']) ??
+          UserRecord.readText(details['state']) ??
+          AppStrings.emptyValue,
+      languages: _languages(details['languages']),
+      avatarIndex: record.avatarIndex,
+      photoUrl: record.submittedImageUrl,
+      approvedAt: record.avatarApprovedAt,
+      approvedBy: record.avatarApprovedBy,
+    );
+  }
+
   HostRequest _toRequest(UserRecord record) {
     final details = record.hostDetails;
     final realName =
@@ -64,6 +135,7 @@ class ApprovalRepository {
 
     return HostRequest(
       requestId: record.id,
+      userID: record.userIDLabel,
       submittedOn: _submittedOn(record),
       realName: realName,
       nickName:
@@ -86,6 +158,8 @@ class ApprovalRepository {
         _ => HostRequestStatus.pending,
       },
       documents: documents,
+      approvedAt: record.hostApprovedAt,
+      approvedBy: record.hostApprovedBy,
     );
   }
 

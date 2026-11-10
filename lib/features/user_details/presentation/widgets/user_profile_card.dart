@@ -82,7 +82,7 @@ class UserProfileCard extends StatelessWidget {
                   children: [
                     AppMetaField(
                       label: AppStrings.userId,
-                      value: user.userId,
+                      value: user.userID,
                       minWidth: 84,
                       mono: true,
                     ),

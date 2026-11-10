@@ -1,4 +1,5 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/features/packages/data/datasources/packages_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/packages/data/models/package_plan.dart';
@@ -6,12 +7,16 @@ import 'package:zuno_admin_dashboard/features/packages/data/models/package_plan.
 class PackagesRepository {
   const PackagesRepository(this._dataSource);
 
+  static const int _pageSize = 10;
+
   final PackagesRemoteDataSource _dataSource;
 
-  Future<Either<Failure, List<PackagePlan>>> fetchPackages() async {
-    final result = await _dataSource.fetchPackages();
-    return result.map((packages) => [...packages]..sort(PackagePlan.byPrice));
-  }
+  Future<Either<Failure, RecordPage<PackagePlan>>> fetchPackages({
+    Object? cursor,
+  }) => _dataSource.fetchPage(cursor, pageSize: _pageSize);
+
+  Future<Either<Failure, ({int total, int active})>> fetchCounts() =>
+      _dataSource.fetchCounts();
 
   Future<Either<Failure, PackagePlan>> savePackage(PackagePlan plan) async {
     final fields = plan.toFields();

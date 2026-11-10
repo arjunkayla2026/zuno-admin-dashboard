@@ -23,12 +23,14 @@ class AdminHost {
     this.languages = const {},
     this.aadhaarImageUrl,
     this.selfieImageUrl,
-  });
+    String? userID,
+  }) : userID = userID ?? hostId;
 
   final String createdDate;
   final String name;
   final String fullName;
   final String hostId;
+  final String userID;
   final String phone;
   final int walletBalance;
   final HostStatus status;
@@ -67,6 +69,7 @@ class AdminHost {
       name: name ?? this.name,
       fullName: fullName ?? this.fullName,
       hostId: hostId,
+      userID: userID,
       phone: phone ?? this.phone,
       walletBalance: walletBalance ?? this.walletBalance,
       status: status ?? this.status,

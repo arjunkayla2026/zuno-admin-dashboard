@@ -9,26 +9,44 @@ class PackagesState {
     this.status = LoadStatus.loaded,
     this.errorMessage,
     this.tab = PackagesTab.packageList,
+    this.page = 1,
+    this.totalPages = 1,
+    this.firstIndex = 0,
+    this.totalCount,
+    this.activeCount,
   });
 
   final List<PackagePlan> packages;
   final LoadStatus status;
   final String? errorMessage;
   final PackagesTab tab;
-
-  int get activeCount => packages.where((plan) => plan.isActive).length;
+  final int page;
+  final int totalPages;
+  final int firstIndex;
+  final int? totalCount;
+  final int? activeCount;
 
   PackagesState copyWith({
     List<PackagePlan>? packages,
     LoadStatus? status,
     String? errorMessage,
     PackagesTab? tab,
+    int? page,
+    int? totalPages,
+    int? firstIndex,
+    int? totalCount,
+    int? activeCount,
   }) {
     return PackagesState(
       packages: packages ?? this.packages,
       status: status ?? this.status,
       errorMessage: errorMessage ?? this.errorMessage,
       tab: tab ?? this.tab,
+      page: page ?? this.page,
+      totalPages: totalPages ?? this.totalPages,
+      firstIndex: firstIndex ?? this.firstIndex,
+      totalCount: totalCount ?? this.totalCount,
+      activeCount: activeCount ?? this.activeCount,
     );
   }
 }

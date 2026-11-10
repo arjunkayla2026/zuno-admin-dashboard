@@ -90,7 +90,7 @@ class UserTableRow extends StatelessWidget {
                 ),
               ],
             ),
-            userId: Text(user.userId, style: mono),
+            userId: Text(user.userID, style: mono),
             phone: Text(user.phone, style: mono),
             recharges: Text(
               user.recharges?.toString() ?? AppStrings.emptyValue,

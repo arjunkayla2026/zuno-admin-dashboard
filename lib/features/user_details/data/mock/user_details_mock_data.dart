@@ -1,5 +1,4 @@
 import 'package:zuno_admin_dashboard/features/user_details/data/models/call_record.dart';
-import 'package:zuno_admin_dashboard/features/user_details/data/models/recharge_record.dart';
 import 'package:zuno_admin_dashboard/features/user_details/data/models/recharge_package.dart';
 
 abstract final class UserDetailsMockData {
@@ -11,8 +10,6 @@ abstract final class UserDetailsMockData {
   static const int totalRecharge = 2943;
   static const double coinValue = 0.5;
   static const int receivableTopUp = 99;
-  static const int totalCreditFromAdmin = 0;
-  static const int totalDebitFromAdmin = 0;
   static const int deletedAccountAdminProfit = 0;
 
   static const List<RechargePackage> packages = [
@@ -115,69 +112,6 @@ abstract final class UserDetailsMockData {
       spendCoins: '256',
       totalSpend: '₹128',
       hostRevenue: '₹12.00',
-    ),
-  ];
-
-  static final List<RechargeRecord> recharges = [
-    RechargeRecord(
-      date: DateTime(2026, 11, 4),
-      time: '12:48 PM',
-      type: 'Payment gateway',
-      amount: '₹449',
-      receivedCoins: '1,400',
-      paymentId: 'pay_80bdhzBz43',
-      orderId: 'order_xjFLPtmZYZ',
-    ),
-    RechargeRecord(
-      date: DateTime(2026, 11, 3),
-      time: '11:45 PM',
-      type: 'Payment gateway',
-      amount: '₹199',
-      receivedCoins: '550',
-      paymentId: 'pay_xcW3YMVz9c',
-      orderId: 'order_RkQkg5dBLK',
-    ),
-    RechargeRecord(
-      date: DateTime(2026, 11, 3),
-      time: '12:22 PM',
-      type: 'Payment gateway',
-      amount: '₹49',
-      receivedCoins: '100',
-      paymentId: 'pay_R5sxEP5884',
-      orderId: 'order_g6kcE8r2z9',
-    ),
-    RechargeRecord(
-      date: DateTime(2026, 11, 3),
-      time: '08:26 AM',
-      type: 'Admin recharge',
-      amount: '₹199',
-      receivedCoins: '550',
-      orderId: 'ADM-739NTAUJ',
-    ),
-    RechargeRecord(
-      date: DateTime(2026, 10, 24),
-      time: '08:13 AM',
-      type: 'Payment gateway',
-      amount: '₹999',
-      receivedCoins: '2,900',
-      paymentId: 'pay_1y0Mjkbgy7',
-      orderId: 'order_ZuDqHjbCb1',
-    ),
-    RechargeRecord(
-      date: DateTime(2026, 10, 4),
-      time: '09:13 AM',
-      type: 'Admin recharge',
-      amount: '₹999',
-      receivedCoins: '2,900',
-      orderId: 'ADM-F7V82UZV',
-    ),
-    RechargeRecord(
-      date: DateTime(2026, 9, 30),
-      time: '08:23 AM',
-      type: 'Admin recharge',
-      amount: '₹49',
-      receivedCoins: '100',
-      orderId: 'ADM-59P36Q4J',
     ),
   ];
 }

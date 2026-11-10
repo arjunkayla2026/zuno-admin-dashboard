@@ -15,35 +15,47 @@ class ProfilePhotoRequest {
     required this.avatarIndex,
     this.photoUrl,
     this.status = ProfilePhotoStatus.pending,
-  });
+    this.isDeciding = false,
+    this.approvedAt,
+    this.approvedBy,
+    String? userID,
+  }) : userID = userID ?? hostId;
 
   final String requestId;
   final DateTime submittedOn;
   final String hostName;
   final String hostId;
+  final String userID;
   final String realName;
   final String city;
   final List<HostLanguage> languages;
   final int avatarIndex;
   final String? photoUrl;
   final ProfilePhotoStatus status;
+  final bool isDeciding;
+  final DateTime? approvedAt;
+  final String? approvedBy;
 
   String get initials => NameFormatter.initials(hostName);
 
   bool get isPending => status == ProfilePhotoStatus.pending;
 
-  ProfilePhotoRequest copyWith({ProfilePhotoStatus? status}) {
+  ProfilePhotoRequest copyWith({ProfilePhotoStatus? status, bool? isDeciding}) {
     return ProfilePhotoRequest(
       requestId: requestId,
       submittedOn: submittedOn,
       hostName: hostName,
       hostId: hostId,
+      userID: userID,
       realName: realName,
       city: city,
       languages: languages,
       avatarIndex: avatarIndex,
       photoUrl: photoUrl,
       status: status ?? this.status,
+      isDeciding: isDeciding ?? this.isDeciding,
+      approvedAt: approvedAt,
+      approvedBy: approvedBy,
     );
   }
 }

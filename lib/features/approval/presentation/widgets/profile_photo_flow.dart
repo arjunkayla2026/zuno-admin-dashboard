@@ -11,6 +11,7 @@ Future<void> decideProfilePhoto(
   required bool accept,
 }) async {
   final cubit = context.read<ApprovalCubit>();
+  final messenger = ScaffoldMessenger.of(context);
   final confirmed = await showAppConfirmDialog(
     context: context,
     icon: accept ? Icons.check_circle_outline_rounded : Icons.close_rounded,
@@ -24,11 +25,9 @@ Future<void> decideProfilePhoto(
     positive: accept,
   );
   if (!confirmed) return;
-  cubit.updateProfilePhoto(
-    photo.copyWith(
-      status: accept
-          ? ProfilePhotoStatus.accepted
-          : ProfilePhotoStatus.rejected,
-    ),
+  final error = await cubit.decideProfilePhoto(
+    photo,
+    accept ? ProfilePhotoStatus.accepted : ProfilePhotoStatus.rejected,
   );
+  if (error != null) messenger.showSnackBar(SnackBar(content: Text(error)));
 }

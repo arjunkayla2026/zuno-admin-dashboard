@@ -21,7 +21,7 @@ class UserTableCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<UserManagementCubit, UserManagementState>(
       builder: (context, state) {
-        final users = state.pageUsers;
+        final users = state.users;
 
         return Container(
           clipBehavior: Clip.antiAlias,
@@ -57,7 +57,7 @@ class UserTableCard extends StatelessWidget {
                 AppTableFooter(
                   firstIndex: state.firstIndex,
                   shownCount: users.length,
-                  totalCount: state.filteredUsers.length,
+                  totalCount: null,
                   currentPage: state.page,
                   totalPages: state.totalPages,
                   onPageChanged: context.read<UserManagementCubit>().goToPage,

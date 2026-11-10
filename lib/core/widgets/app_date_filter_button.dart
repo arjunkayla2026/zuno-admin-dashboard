@@ -5,6 +5,7 @@ import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_options_menu.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
+import 'package:zuno_admin_dashboard/core/widgets/date_range_picker/app_date_range_picker.dart';
 
 class AppDateFilterButton extends StatelessWidget {
   const AppDateFilterButton({
@@ -58,11 +59,12 @@ class AppDateFilterButton extends StatelessWidget {
       return;
     }
 
-    final range = await showDateRangePicker(
-      context: anchorContext,
+    final range = await showAppDateRangePicker(
+      anchorContext: anchorContext,
       firstDate: _firstDate,
       lastDate: today,
-      initialDateRange:
+      today: today,
+      initialRange:
           customRange ??
           DateTimeRange(
             start: today.subtract(const Duration(days: 6)),

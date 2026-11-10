@@ -19,7 +19,10 @@ class PayoutRequest {
     required this.ifscCode,
     required this.avatarIndex,
     this.status = PayoutRequestStatus.pending,
-  });
+    this.approvedAt,
+    this.approvedBy,
+    String? userID,
+  }) : userID = userID ?? hostId;
 
   static const int _visibleDigits = 4;
 
@@ -27,6 +30,7 @@ class PayoutRequest {
   final DateTime submittedOn;
   final String hostName;
   final String hostId;
+  final String userID;
   final String realName;
   final String phone;
   final String location;
@@ -37,6 +41,8 @@ class PayoutRequest {
   final String ifscCode;
   final int avatarIndex;
   final PayoutRequestStatus status;
+  final DateTime? approvedAt;
+  final String? approvedBy;
 
   String get initials => NameFormatter.initials(hostName);
 
@@ -52,6 +58,7 @@ class PayoutRequest {
       submittedOn: submittedOn,
       hostName: hostName,
       hostId: hostId,
+      userID: userID,
       realName: realName,
       phone: phone,
       location: location,
@@ -62,6 +69,8 @@ class PayoutRequest {
       ifscCode: ifscCode,
       avatarIndex: avatarIndex,
       status: status ?? this.status,
+      approvedAt: approvedAt,
+      approvedBy: approvedBy,
     );
   }
 }

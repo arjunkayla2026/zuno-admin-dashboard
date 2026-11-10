@@ -2,7 +2,22 @@ import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/models/admin_host.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/models/call_pricing.dart';
 
-enum HostFilter { today, all, newHosts, blocked, deletedByAdmin, deletedByUser }
+enum HostFilter {
+  today(),
+  all(),
+  newHosts(onlyNew: true),
+  blocked(status: HostStatus.blocked),
+  deletedByAdmin(status: HostStatus.deletedByAdmin),
+  deletedByUser(status: HostStatus.deletedByUser);
+
+  const HostFilter({this.status, this.onlyNew = false});
+
+  final HostStatus? status;
+  final bool onlyNew;
+
+  bool includes(AdminHost host) =>
+      (status == null || host.status == status) && (!onlyNew || host.isNew);
+}
 
 class HostManagementState {
   const HostManagementState({
@@ -13,9 +28,9 @@ class HostManagementState {
     this.filter = HostFilter.today,
     this.query = '',
     this.page = 1,
+    this.totalPages = 1,
+    this.firstIndex = 0,
   });
-
-  static const int pageSize = 12;
 
   final List<AdminHost> hosts;
   final CallPricing pricing;
@@ -24,40 +39,10 @@ class HostManagementState {
   final HostFilter filter;
   final String query;
   final int page;
-
-  List<AdminHost> get filteredHosts {
-    final term = query.trim().toLowerCase();
-    final digits = term.replaceAll(' ', '');
-    return hosts.where((host) {
-      final matchesFilter = switch (filter) {
-        HostFilter.today || HostFilter.all => true,
-        HostFilter.newHosts => host.isNew,
-        HostFilter.blocked => host.status == HostStatus.blocked,
-        HostFilter.deletedByAdmin => host.status == HostStatus.deletedByAdmin,
-        HostFilter.deletedByUser => host.status == HostStatus.deletedByUser,
-      };
-      if (!matchesFilter) return false;
-      if (term.isEmpty) return true;
-      return host.name.toLowerCase().contains(term) ||
-          host.fullName.toLowerCase().contains(term) ||
-          host.hostId.toLowerCase().contains(term) ||
-          (digits.isNotEmpty &&
-              host.phone.replaceAll(' ', '').contains(digits));
-    }).toList();
-  }
+  final int totalPages;
+  final int firstIndex;
 
   bool get showsPricing => filter == HostFilter.today;
-
-  int get totalPages {
-    final count = filteredHosts.length;
-    if (count == 0) return 1;
-    return (count / pageSize).ceil();
-  }
-
-  int get firstIndex => (page - 1) * pageSize;
-
-  List<AdminHost> get pageHosts =>
-      filteredHosts.skip(firstIndex).take(pageSize).toList();
 
   HostManagementState copyWith({
     List<AdminHost>? hosts,
@@ -67,6 +52,8 @@ class HostManagementState {
     HostFilter? filter,
     String? query,
     int? page,
+    int? totalPages,
+    int? firstIndex,
   }) {
     return HostManagementState(
       hosts: hosts ?? this.hosts,
@@ -76,6 +63,8 @@ class HostManagementState {
       filter: filter ?? this.filter,
       query: query ?? this.query,
       page: page ?? this.page,
+      totalPages: totalPages ?? this.totalPages,
+      firstIndex: firstIndex ?? this.firstIndex,
     );
   }
 }

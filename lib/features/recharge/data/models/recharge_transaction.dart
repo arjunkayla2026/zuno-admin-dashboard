@@ -11,6 +11,20 @@ enum RechargeGateway { admin, razorpay }
 
 enum RechargeStatus { completed, failed, created }
 
+class RechargeTotals {
+  const RechargeTotals({
+    required this.rechargeCount,
+    required this.rechargeAmount,
+    required this.creditAmount,
+    required this.debitAmount,
+  });
+
+  final int rechargeCount;
+  final double rechargeAmount;
+  final double creditAmount;
+  final double debitAmount;
+}
+
 class RechargeTransaction {
   const RechargeTransaction({
     required this.id,
@@ -23,6 +37,7 @@ class RechargeTransaction {
     this.orderId,
     this.paymentId,
     this.user,
+    this.storedCoins,
   });
 
   factory RechargeTransaction.fromDocument(
@@ -30,7 +45,8 @@ class RechargeTransaction {
     Map<String, dynamic> data,
   ) {
     final createdAt = data[createdAtField];
-    final orderId = UserRecord.readText(data[_razorpayOrderIdField]);
+    final orderId = UserRecord.readText(data[razorpayOrderIdField]);
+    final coins = data[coinsField];
 
     return RechargeTransaction(
       id: id,
@@ -40,21 +56,60 @@ class RechargeTransaction {
       gateway: orderId == null
           ? RechargeGateway.admin
           : RechargeGateway.razorpay,
-      amount: _readAmount(data[_totalAmountField] ?? data[_amountField]),
+      amount: _readAmount(data[totalAmountField] ?? data[_amountField]),
       createdAt: createdAt is Timestamp ? createdAt.toDate() : null,
       orderId: orderId,
-      paymentId: UserRecord.readText(data[_razorpayPaymentIdField]),
+      paymentId: UserRecord.readText(data[razorpayPaymentIdField]),
+      storedCoins: coins is num ? coins.round() : null,
     );
   }
+
+  static const String collection = 'transactions';
+  static const String coinsField = 'coins';
+  static const String rechargeAmountField = 'rechargeAmount';
+  static const String amountFromOfferField = 'amountFromOffer';
+  static const String adminCreditedAmountField = 'adminCreditedAmount';
+  static const String adminDebitedAmountField = 'adminDebitedAmount';
+  static const String descriptionField = 'description';
+  static const String adminUidField = 'adminUid';
+
+  static Map<String, Object?> adminAdjustmentFields({
+    required String userId,
+    required bool isCredit,
+    required int amount,
+    required String description,
+    required String adminUid,
+  }) => {
+    userIdField: userId,
+    typeField: isCredit ? creditTypes.first : debitTypes.first,
+    statusField: completedStatuses.first,
+    totalAmountField: amount,
+    rechargeAmountField: 0,
+    amountFromOfferField: 0,
+    adminCreditedAmountField: isCredit ? amount : 0,
+    adminDebitedAmountField: isCredit ? 0 : amount,
+    coinsField: isCredit ? amount : 0,
+    if (description.isNotEmpty) descriptionField: description,
+    adminUidField: adminUid,
+    createdAtField: FieldValue.serverTimestamp(),
+  };
 
   static const String userIdField = 'userId';
   static const String typeField = 'type';
   static const String statusField = 'status';
   static const String createdAtField = 'createdAt';
   static const String _amountField = 'amount';
-  static const String _totalAmountField = 'totalAmount';
-  static const String _razorpayOrderIdField = 'razorpayOrderId';
-  static const String _razorpayPaymentIdField = 'razorpayPaymentId';
+  static const String totalAmountField = 'totalAmount';
+  static const String razorpayOrderIdField = 'razorpayOrderId';
+  static const String razorpayPaymentIdField = 'razorpayPaymentId';
+
+  static const List<String> rechargeTypes = ['recharge'];
+  static const List<String> creditTypes = ['credit', 'adminCredit'];
+  static const List<String> debitTypes = ['debit', 'adminDebit'];
+  static const List<String> adjustmentTypes = [...creditTypes, ...debitTypes];
+  static const List<String> completedStatuses = ['success', 'completed'];
+  static const List<String> failedStatuses = ['failed'];
+  static const List<String> createdStatuses = ['pending', 'created'];
 
   static const Map<Object?, RechargeKind> _kinds = {
     'recharge': RechargeKind.recharge,
@@ -82,6 +137,7 @@ class RechargeTransaction {
   final String? orderId;
   final String? paymentId;
   final AdminUser? user;
+  final int? storedCoins;
 
   static double _readAmount(Object? value) =>
       value is num ? value.toDouble() : 0;
@@ -109,7 +165,8 @@ class RechargeTransaction {
 
   bool get isCompleted => status == RechargeStatus.completed;
 
-  int get coins => isCompleted ? PackagePlan.coinsFor(amount) : 0;
+  int get coins =>
+      isCompleted ? storedCoins ?? PackagePlan.coinsFor(amount) : 0;
 
   bool get isAdminRecharge =>
       kind == RechargeKind.recharge && gateway == RechargeGateway.admin;
@@ -131,5 +188,6 @@ class RechargeTransaction {
     orderId: orderId,
     paymentId: paymentId,
     user: user,
+    storedCoins: storedCoins,
   );
 }

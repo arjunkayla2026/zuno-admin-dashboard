@@ -5,6 +5,7 @@ import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_confirm_dialog.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_detail_grid.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_error_banner.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_section_label.dart';
@@ -16,25 +17,35 @@ import 'package:zuno_admin_dashboard/features/host_management/data/mock/host_moc
 import 'package:zuno_admin_dashboard/features/host_management/data/models/admin_host.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/host_details_arguments.dart';
 
-class PayoutRequestSheet extends StatelessWidget {
+class PayoutRequestSheet extends StatefulWidget {
   const PayoutRequestSheet({
     super.key,
     required this.payout,
-    required this.onChanged,
+    required this.onDecide,
   });
 
+  final PayoutRequest payout;
+  final Future<String?> Function(PayoutRequest, PayoutRequestStatus) onDecide;
+
+  @override
+  State<PayoutRequestSheet> createState() => _PayoutRequestSheetState();
+}
+
+class _PayoutRequestSheetState extends State<PayoutRequestSheet> {
   static const double _headerGap = 20;
   static const double _labelGap = 12;
   static const double _sectionGap = 22;
   static const double _footerGap = 10;
   static const int _basicInfoColumns = 3;
 
-  final PayoutRequest payout;
-  final ValueChanged<PayoutRequest> onChanged;
+  bool _isSaving = false;
+  String? _error;
+
+  PayoutRequest get _payout => widget.payout;
 
   AdminHost? get _host {
     for (final host in HostMockData.hosts) {
-      if (host.hostId == payout.hostId) return host;
+      if (host.hostId == _payout.hostId) return host;
     }
     return null;
   }
@@ -48,7 +59,7 @@ class PayoutRequestSheet extends StatelessWidget {
     );
   }
 
-  Future<void> _decide(BuildContext context, {required bool accept}) async {
+  Future<void> _decide({required bool accept}) async {
     final confirmed = await showAppConfirmDialog(
       context: context,
       icon: accept ? Icons.check_circle_outline_rounded : Icons.close_rounded,
@@ -58,38 +69,54 @@ class PayoutRequestSheet extends StatelessWidget {
       message: TextSpan(
         text: accept
             ? AppStrings.acceptPayoutMessage(
-                payout.hostName,
-                payout.accountLastDigits,
+                _payout.hostName,
+                _payout.accountLastDigits,
               )
-            : AppStrings.rejectPayoutMessage(payout.hostName),
+            : AppStrings.rejectPayoutMessage(_payout.hostName),
       ),
       confirmLabel: accept ? AppStrings.accept : AppStrings.reject,
       positive: accept,
     );
-    if (!confirmed || !context.mounted) return;
-    onChanged(
-      payout.copyWith(
-        status: accept
-            ? PayoutRequestStatus.accepted
-            : PayoutRequestStatus.rejected,
-      ),
+    if (!confirmed || !mounted) return;
+
+    setState(() {
+      _isSaving = true;
+      _error = null;
+    });
+    final error = await widget.onDecide(
+      _payout,
+      accept ? PayoutRequestStatus.accepted : PayoutRequestStatus.rejected,
     );
-    Navigator.of(context).pop();
+    if (!mounted) return;
+
+    if (error == null) {
+      Navigator.of(context).pop();
+    } else {
+      setState(() {
+        _isSaving = false;
+        _error = error;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final host = _host;
+    final payout = _payout;
 
     return AppSideSheet(
       title: AppStrings.payoutReviewTitle,
       subtitle: AppStrings.hostRequestSubtitle(
-        payout.payoutId,
+        payout.userID,
         DateFormatter.short(payout.submittedOn),
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (_error case final error?) ...[
+            AppErrorBanner(message: error),
+            const SizedBox(height: _labelGap),
+          ],
           PayoutRequestHeader(payout: payout),
           const SizedBox(height: _headerGap),
           const AppSectionLabel(AppStrings.hostBasicInfo),
@@ -100,7 +127,7 @@ class PayoutRequestSheet extends StatelessWidget {
               AppDetailItem(AppStrings.hostName, value: payout.hostName),
               AppDetailItem(
                 AppStrings.hostId,
-                value: payout.hostId,
+                value: payout.userID,
                 mono: true,
               ),
               AppDetailItem(AppStrings.realNameField, value: payout.realName),
@@ -154,14 +181,14 @@ class PayoutRequestSheet extends StatelessWidget {
                   AppSecondaryButton(
                     label: AppStrings.reject,
                     destructive: true,
-                    onPressed: () => _decide(context, accept: false),
+                    onPressed: _isSaving ? null : () => _decide(accept: false),
                   ),
                   AppPrimaryButton(
                     label: AppStrings.accept,
                     icon: Icons.check_rounded,
                     compact: true,
                     positive: true,
-                    onPressed: () => _decide(context, accept: true),
+                    onPressed: _isSaving ? null : () => _decide(accept: true),
                   ),
                 ],
               ),

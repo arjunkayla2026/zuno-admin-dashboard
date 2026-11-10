@@ -297,7 +297,7 @@ class _HostRequestSheetState extends State<HostRequestSheet> {
     return AppSideSheet(
       title: AppStrings.hostRequest,
       subtitle: AppStrings.hostRequestSubtitle(
-        request.requestId,
+        request.userID,
         DateFormatter.short(request.submittedOn),
       ),
       body: Column(

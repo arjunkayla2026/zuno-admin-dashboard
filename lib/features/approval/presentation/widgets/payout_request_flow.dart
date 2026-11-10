@@ -10,6 +10,6 @@ Future<void> openPayoutRequest(BuildContext context, PayoutRequest payout) {
   return showAppSideSheet<void>(
     context: context,
     builder: (_) =>
-        PayoutRequestSheet(payout: payout, onChanged: cubit.updatePayout),
+        PayoutRequestSheet(payout: payout, onDecide: cubit.decidePayout),
   );
 }

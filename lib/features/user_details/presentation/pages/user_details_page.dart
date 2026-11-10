@@ -7,6 +7,7 @@ import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_nav_item.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_shell.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_details_cubit.dart';
+import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_recharge_history_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/widgets/user_details_content.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/mock/user_mock_data.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_actions_cubit.dart';
@@ -33,6 +34,11 @@ class UserDetailsPage extends StatelessWidget {
             ),
           ),
           BlocProvider(create: (_) => getIt<UserActionsCubit>()),
+          BlocProvider(
+            create: (_) =>
+                getIt<UserRechargeHistoryCubit>(param1: arguments.user.id)
+                  ..load(),
+          ),
         ],
         child: const AdminShell(
           selectedItem: AdminNavItem.userManagement,

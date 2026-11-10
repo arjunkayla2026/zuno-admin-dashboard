@@ -5,16 +5,43 @@ import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/models/recharge_transaction.dart';
 
 enum RechargeSourceFilter {
-  all,
-  adminRecharges,
-  adminCreditDebit,
-  gatewayPayments,
+  all(null),
+  adminRecharges(RechargeTransaction.rechargeTypes),
+  adminCreditDebit(RechargeTransaction.adjustmentTypes),
+  gatewayPayments(RechargeTransaction.rechargeTypes);
+
+  const RechargeSourceFilter(this.types);
+
+  final List<String>? types;
+
+  bool includes(RechargeTransaction transaction) => switch (this) {
+    RechargeSourceFilter.all => true,
+    RechargeSourceFilter.adminRecharges => transaction.isAdminRecharge,
+    RechargeSourceFilter.adminCreditDebit => transaction.isAdminAdjustment,
+    RechargeSourceFilter.gatewayPayments => transaction.isGatewayPayment,
+  };
 }
 
-enum RechargeStatusFilter { all, completed, failed, created }
+enum RechargeStatusFilter {
+  all(null),
+  completed(RechargeTransaction.completedStatuses),
+  failed(RechargeTransaction.failedStatuses),
+  created(RechargeTransaction.createdStatuses);
+
+  const RechargeStatusFilter(this.statuses);
+
+  final List<String>? statuses;
+
+  bool includes(RechargeStatus status) => switch (this) {
+    RechargeStatusFilter.all => true,
+    RechargeStatusFilter.completed => status == RechargeStatus.completed,
+    RechargeStatusFilter.failed => status == RechargeStatus.failed,
+    RechargeStatusFilter.created => status == RechargeStatus.created,
+  };
+}
 
 class RechargeState {
-  RechargeState({
+  const RechargeState({
     required this.today,
     this.transactions = const [],
     this.status = LoadStatus.loading,
@@ -25,9 +52,11 @@ class RechargeState {
     this.sourceFilter = RechargeSourceFilter.all,
     this.statusFilter = RechargeStatusFilter.all,
     this.page = 1,
+    this.totalPages = 1,
+    this.firstIndex = 0,
+    this.totals,
   });
 
-  static const int pageSize = 11;
   static final RegExp _amountPattern = RegExp(r'^\d+(\.\d{0,2})?$');
   static final RegExp _separators = RegExp(r'[\s,₹]');
 
@@ -41,34 +70,18 @@ class RechargeState {
   final RechargeSourceFilter sourceFilter;
   final RechargeStatusFilter statusFilter;
   final int page;
+  final int totalPages;
+  final int firstIndex;
+  final RechargeTotals? totals;
 
-  late final List<RechargeTransaction> filteredTransactions = transactions
-      .where(
-        (transaction) =>
-            _matchesSource(transaction) &&
-            _matchesStatus(transaction.status) &&
-            _matchesQuery(transaction),
-      )
-      .toList();
+  bool get isSearching => query.trim().isNotEmpty;
 
-  late final List<RechargeTransaction> _completed = filteredTransactions
-      .where((transaction) => transaction.isCompleted)
-      .toList();
+  bool matchesFilters(RechargeTransaction transaction) =>
+      sourceFilter.includes(transaction) &&
+      statusFilter.includes(transaction.status);
 
-  bool _matchesSource(RechargeTransaction transaction) =>
-      switch (sourceFilter) {
-        RechargeSourceFilter.all => true,
-        RechargeSourceFilter.adminRecharges => transaction.isAdminRecharge,
-        RechargeSourceFilter.adminCreditDebit => transaction.isAdminAdjustment,
-        RechargeSourceFilter.gatewayPayments => transaction.isGatewayPayment,
-      };
-
-  bool _matchesStatus(RechargeStatus status) => switch (statusFilter) {
-    RechargeStatusFilter.all => true,
-    RechargeStatusFilter.completed => status == RechargeStatus.completed,
-    RechargeStatusFilter.failed => status == RechargeStatus.failed,
-    RechargeStatusFilter.created => status == RechargeStatus.created,
-  };
+  bool matchesSearch(RechargeTransaction transaction) =>
+      matchesFilters(transaction) && _matchesQuery(transaction);
 
   bool _matchesQuery(RechargeTransaction transaction) {
     final term = query.trim().toLowerCase();
@@ -88,31 +101,6 @@ class RechargeState {
         NumberFormatter.amountInput(transaction.amount).startsWith(compact);
   }
 
-  double _sumOf(RechargeKind kind) => _completed
-      .where((transaction) => transaction.kind == kind)
-      .fold(0, (sum, transaction) => sum + transaction.amount);
-
-  int get rechargeCount => _completed
-      .where((transaction) => transaction.kind == RechargeKind.recharge)
-      .length;
-
-  double get rechargeAmount => _sumOf(RechargeKind.recharge);
-
-  double get creditAmount => _sumOf(RechargeKind.credit);
-
-  double get debitAmount => _sumOf(RechargeKind.debit);
-
-  int get totalPages {
-    final count = filteredTransactions.length;
-    if (count == 0) return 1;
-    return (count / pageSize).ceil();
-  }
-
-  int get firstIndex => (page - 1) * pageSize;
-
-  List<RechargeTransaction> get pageTransactions =>
-      filteredTransactions.skip(firstIndex).take(pageSize).toList();
-
   RechargeState copyWith({
     List<RechargeTransaction>? transactions,
     LoadStatus? status,
@@ -124,6 +112,10 @@ class RechargeState {
     RechargeSourceFilter? sourceFilter,
     RechargeStatusFilter? statusFilter,
     int? page,
+    int? totalPages,
+    int? firstIndex,
+    RechargeTotals? totals,
+    bool clearTotals = false,
   }) {
     return RechargeState(
       transactions: transactions ?? this.transactions,
@@ -136,6 +128,9 @@ class RechargeState {
       sourceFilter: sourceFilter ?? this.sourceFilter,
       statusFilter: statusFilter ?? this.statusFilter,
       page: page ?? this.page,
+      totalPages: totalPages ?? this.totalPages,
+      firstIndex: firstIndex ?? this.firstIndex,
+      totals: clearTotals ? null : totals ?? this.totals,
     );
   }
 }

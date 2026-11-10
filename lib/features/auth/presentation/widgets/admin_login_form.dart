@@ -35,15 +35,38 @@ class _AdminLoginFormState extends State<AdminLoginForm> {
 
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _emailFocusNode = FocusNode();
+  final _passwordFocusNode = FocusNode();
   bool _obscurePassword = true;
 
   void _submit() =>
       widget.onSignIn(_emailController.text, _passwordController.text);
 
+  void _focusFieldToCorrect() {
+    if (!mounted || _emailFocusNode.hasFocus || _passwordFocusNode.hasFocus) {
+      return;
+    }
+    final emailIsValid = AppUtils.isValidEmail(_emailController.text.trim());
+    (emailIsValid ? _passwordFocusNode : _emailFocusNode).requestFocus();
+  }
+
+  @override
+  void didUpdateWidget(AdminLoginForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.errorMessage != null &&
+        widget.errorMessage != oldWidget.errorMessage) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _focusFieldToCorrect(),
+      );
+    }
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
@@ -83,6 +106,7 @@ class _AdminLoginFormState extends State<AdminLoginForm> {
                     label: AppStrings.email,
                     hint: AppStrings.emailHint,
                     controller: _emailController,
+                    focusNode: _emailFocusNode,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
                     autofillHints: const [AutofillHints.email],
@@ -92,6 +116,7 @@ class _AdminLoginFormState extends State<AdminLoginForm> {
                     label: AppStrings.password,
                     hint: AppStrings.passwordHint,
                     controller: _passwordController,
+                    focusNode: _passwordFocusNode,
                     obscureText: _obscurePassword,
                     textInputAction: TextInputAction.done,
                     autofillHints: const [AutofillHints.password],

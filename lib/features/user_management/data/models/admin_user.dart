@@ -13,12 +13,15 @@ class AdminUser {
       createdDate: record.createdDateLabel,
       name: name,
       initials: NameFormatter.initials(name),
-      userId: record.id,
+      id: record.id,
       phone: record.phoneLabel,
       recharges: null,
       walletBalance: NumberFormatter.grouped(record.walletBalance.truncate()),
+      adminCredit: record.adminCredit.truncate(),
+      adminDebit: record.adminDebit.truncate(),
       status: _statusOf(record),
       avatarIndex: record.avatarIndex,
+      userID: '',
     );
   }
 
@@ -26,23 +29,29 @@ class AdminUser {
     required this.createdDate,
     required this.name,
     required this.initials,
-    required this.userId,
+    required this.id,
     required this.phone,
     required this.recharges,
     required this.walletBalance,
     required this.status,
     required this.avatarIndex,
+    required this.userID,
+    this.adminCredit = 0,
+    this.adminDebit = 0,
   });
 
   final String createdDate;
   final String name;
   final String initials;
-  final String userId;
+  final String id;
   final String phone;
   final int? recharges;
   final String walletBalance;
   final UserStatus status;
   final int avatarIndex;
+  final String userID;
+  final int adminCredit;
+  final int adminDebit;
 
   static UserStatus _statusOf(UserRecord record) {
     if (record.isDeleted) {
@@ -70,15 +79,21 @@ class AdminUser {
     String? initials,
     String? phone,
     UserStatus? status,
+    String? walletBalance,
+    int? adminCredit,
+    int? adminDebit,
   }) {
     return AdminUser(
       createdDate: createdDate,
       name: name ?? this.name,
       initials: initials ?? this.initials,
-      userId: userId,
+      id: id,
+      userID: userID,
       phone: phone ?? this.phone,
       recharges: recharges,
-      walletBalance: walletBalance,
+      walletBalance: walletBalance ?? this.walletBalance,
+      adminCredit: adminCredit ?? this.adminCredit,
+      adminDebit: adminDebit ?? this.adminDebit,
       status: status ?? this.status,
       avatarIndex: avatarIndex,
     );

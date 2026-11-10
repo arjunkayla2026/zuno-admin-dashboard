@@ -32,7 +32,7 @@ class PackagesTabsCard extends StatelessWidget {
                   PackagesTab.packageList: AppStrings.packageList,
                   PackagesTab.couponList: AppStrings.couponList,
                 },
-                counts: {PackagesTab.packageList: state.packages.length},
+                counts: {PackagesTab.packageList: ?state.totalCount},
                 value: state.tab,
                 onChanged: context.read<PackagesCubit>().selectTab,
               ),

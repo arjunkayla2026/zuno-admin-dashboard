@@ -17,10 +17,7 @@ class HistoryTabs extends StatelessWidget {
             UserDetailsTab.calls: AppStrings.callHistory,
             UserDetailsTab.recharges: AppStrings.rechargeHistory,
           },
-          counts: {
-            UserDetailsTab.calls: state.calls.length,
-            UserDetailsTab.recharges: state.recharges.length,
-          },
+          counts: {UserDetailsTab.calls: state.calls.length},
           value: state.tab,
           onChanged: context.read<UserDetailsCubit>().selectTab,
         );

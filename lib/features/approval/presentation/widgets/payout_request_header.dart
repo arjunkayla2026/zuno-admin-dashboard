@@ -40,7 +40,7 @@ class PayoutRequestHeader extends StatelessWidget {
                 ),
               ),
               Text(
-                payout.hostId,
+                payout.userID,
                 style: AppTextStyles.monoSmall.copyWith(
                   color: context.appColors.textSecondary,
                 ),
