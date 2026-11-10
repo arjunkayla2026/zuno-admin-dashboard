@@ -3,11 +3,19 @@ import 'package:zuno_admin_dashboard/core/data/admin_account.dart';
 import 'package:zuno_admin_dashboard/core/data/admins_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/datasources/settings_remote_data_source.dart';
 
 class SettingsRepository {
-  const SettingsRepository(this._adminsDataSource);
+  const SettingsRepository(this._adminsDataSource, this._settingsDataSource);
 
   final AdminsRemoteDataSource _adminsDataSource;
+  final SettingsRemoteDataSource _settingsDataSource;
+
+  Future<Either<Failure, bool>> fetchMaintenanceMode() =>
+      _settingsDataSource.fetchMaintenanceMode();
+
+  Future<Either<Failure, Unit>> setMaintenanceMode(bool enabled) =>
+      _settingsDataSource.setMaintenanceMode(enabled);
 
   Future<Either<Failure, List<AdminAccount>>> fetchAdmins() async {
     final result = await _adminsDataSource.fetchAdmins();

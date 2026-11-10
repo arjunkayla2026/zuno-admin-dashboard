@@ -37,7 +37,9 @@ class SettingsPage extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: context.pageOverlayStyle,
       child: BlocProvider(
-        create: (_) => getIt<SettingsCubit>()..loadAdmins(),
+        create: (_) => getIt<SettingsCubit>()
+          ..loadAdmins()
+          ..loadMaintenance(),
         child: BlocSelector<SettingsCubit, SettingsState, (SettingsTab, bool)>(
           selector: (state) => (state.tab, state.maintenanceEnabled),
           builder: (context, selection) => AdminShell(

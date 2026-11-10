@@ -21,8 +21,45 @@ class SettingsCubit extends Cubit<SettingsState> {
 
   void selectTab(SettingsTab tab) => emit(state.copyWith(tab: tab));
 
-  void setMaintenance(bool enabled) =>
-      emit(state.copyWith(maintenanceEnabled: enabled));
+  Future<void> loadMaintenance() async {
+    emit(state.copyWith(maintenanceStatus: LoadStatus.loading));
+    final result = await _repository.fetchMaintenanceMode();
+    if (isClosed) return;
+
+    result.match(
+      (failure) => emit(
+        state.copyWith(
+          maintenanceStatus: LoadStatus.failure,
+          maintenanceError: failure.message,
+        ),
+      ),
+      (enabled) => emit(
+        state.copyWith(
+          maintenanceStatus: LoadStatus.loaded,
+          maintenanceEnabled: enabled,
+        ),
+      ),
+    );
+  }
+
+  Future<String?> setMaintenance(bool enabled) async {
+    emit(state.copyWith(maintenanceSaving: true));
+    final result = await _repository.setMaintenanceMode(enabled);
+    if (isClosed) return null;
+
+    return result.match(
+      (failure) {
+        emit(state.copyWith(maintenanceSaving: false));
+        return failure.message;
+      },
+      (_) {
+        emit(
+          state.copyWith(maintenanceSaving: false, maintenanceEnabled: enabled),
+        );
+        return null;
+      },
+    );
+  }
 
   Future<void> loadAdmins() async {
     emit(state.copyWith(adminsStatus: LoadStatus.loading));

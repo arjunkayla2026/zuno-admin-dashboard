@@ -24,7 +24,7 @@ class MaintenanceModeCard extends StatelessWidget {
   static const EdgeInsets _padding = EdgeInsets.fromLTRB(18, 16, 18, 18);
 
   final bool enabled;
-  final ValueChanged<bool> onChanged;
+  final ValueChanged<bool>? onChanged;
 
   @override
   Widget build(BuildContext context) {

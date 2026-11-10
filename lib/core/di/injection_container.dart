@@ -18,6 +18,7 @@ import 'package:zuno_admin_dashboard/features/packages/presentation/state/packag
 import 'package:zuno_admin_dashboard/features/recharge/data/datasources/recharge_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/repositories/recharge_repository.dart';
 import 'package:zuno_admin_dashboard/features/recharge/presentation/state/recharge_cubit.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/datasources/settings_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/repositories/settings_repository.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/repositories/user_management_repository.dart';
@@ -44,8 +45,14 @@ void configureDependencies() {
     ..registerFactory<AdminSessionCubit>(
       () => AdminSessionCubit(getIt<AuthRepository>()),
     )
+    ..registerLazySingleton<SettingsRemoteDataSource>(
+      () => SettingsRemoteDataSource(FirebaseFirestore.instance),
+    )
     ..registerLazySingleton<SettingsRepository>(
-      () => SettingsRepository(getIt<AdminsRemoteDataSource>()),
+      () => SettingsRepository(
+        getIt<AdminsRemoteDataSource>(),
+        getIt<SettingsRemoteDataSource>(),
+      ),
     )
     ..registerFactory<SettingsCubit>(
       () => SettingsCubit(getIt<SettingsRepository>()),

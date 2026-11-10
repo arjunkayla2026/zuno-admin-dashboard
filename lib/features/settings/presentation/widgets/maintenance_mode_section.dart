@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_error_banner.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_cubit.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_state.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/maintenance_flow.dart';
@@ -18,13 +20,34 @@ class MaintenanceModeSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: _padding,
-      child: BlocSelector<SettingsCubit, SettingsState, bool>(
-        selector: (state) => state.maintenanceEnabled,
-        builder: (context, enabled) {
-          final card = MaintenanceModeCard(
-            enabled: enabled,
-            onChanged: (value) => toggleMaintenance(context, value),
+      child: BlocBuilder<SettingsCubit, SettingsState>(
+        buildWhen: (previous, current) =>
+            previous.maintenanceEnabled != current.maintenanceEnabled ||
+            previous.maintenanceStatus != current.maintenanceStatus ||
+            previous.maintenanceSaving != current.maintenanceSaving,
+        builder: (context, state) {
+          final editable =
+              state.maintenanceStatus == LoadStatus.loaded &&
+              !state.maintenanceSaving;
+          final error = state.maintenanceStatus == LoadStatus.failure
+              ? state.maintenanceError
+              : null;
+          final toggle = MaintenanceModeCard(
+            enabled: state.maintenanceEnabled,
+            onChanged: editable
+                ? (value) => toggleMaintenance(context, value)
+                : null,
           );
+          final card = error == null
+              ? toggle
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppErrorBanner(message: error),
+                    const SizedBox(height: _gap),
+                    toggle,
+                  ],
+                );
 
           return LayoutBuilder(
             builder: (context, constraints) {

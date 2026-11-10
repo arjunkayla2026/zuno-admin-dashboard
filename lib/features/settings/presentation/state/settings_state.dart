@@ -20,6 +20,9 @@ class SettingsState {
     this.adminsError,
     this.tab = SettingsTab.maintenanceMode,
     this.maintenanceEnabled = false,
+    this.maintenanceStatus = LoadStatus.loading,
+    this.maintenanceError,
+    this.maintenanceSaving = false,
   });
 
   final List<AdminAccount> admins;
@@ -30,6 +33,9 @@ class SettingsState {
   final List<BannerImage> banners;
   final SettingsTab tab;
   final bool maintenanceEnabled;
+  final LoadStatus maintenanceStatus;
+  final String? maintenanceError;
+  final bool maintenanceSaving;
 
   int activeHostsFor(Set<HostLanguage> languages) {
     final counts = languages.isEmpty
@@ -45,6 +51,9 @@ class SettingsState {
     List<BannerImage>? banners,
     SettingsTab? tab,
     bool? maintenanceEnabled,
+    LoadStatus? maintenanceStatus,
+    String? maintenanceError,
+    bool? maintenanceSaving,
   }) {
     return SettingsState(
       admins: admins ?? this.admins,
@@ -55,6 +64,9 @@ class SettingsState {
       banners: banners ?? this.banners,
       tab: tab ?? this.tab,
       maintenanceEnabled: maintenanceEnabled ?? this.maintenanceEnabled,
+      maintenanceStatus: maintenanceStatus ?? this.maintenanceStatus,
+      maintenanceError: maintenanceError ?? this.maintenanceError,
+      maintenanceSaving: maintenanceSaving ?? this.maintenanceSaving,
     );
   }
 }

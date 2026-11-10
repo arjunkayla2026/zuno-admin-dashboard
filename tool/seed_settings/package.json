@@ -1,0 +1,12 @@
+{
+  "name": "zuno-seed-settings",
+  "private": true,
+  "description": "Creates the Firestore settings/app document with maintenance mode and app version details using the Firebase Admin SDK.",
+  "scripts": {
+    "dry-run": "node seed_settings.js",
+    "apply": "node seed_settings.js --apply"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0"
+  }
+}
