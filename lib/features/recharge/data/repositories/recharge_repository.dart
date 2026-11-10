@@ -66,12 +66,20 @@ class RechargeRepository {
         userId: userId,
         field: search.field,
         value: search.value,
+        amount: search.amount,
         statuses: search.statuses,
         cursor: next,
         pageSize: pageSize,
       ),
       (batch) => batch.where(search.matchesGateway),
     );
+  }
+
+  Future<Either<Failure, UserRechargeSummary>> fetchUserSummary(
+    String userId,
+  ) async {
+    final result = await _transactions.fetchTransactions(userId: userId);
+    return result.map(UserRechargeSummary.fromTransactions);
   }
 
   Future<Either<Failure, RechargeTotals>> fetchTotals({

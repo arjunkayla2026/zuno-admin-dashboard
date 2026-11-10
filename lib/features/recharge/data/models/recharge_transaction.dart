@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/name_formatter.dart';
+import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/features/packages/data/models/package_plan.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
 
@@ -25,6 +26,36 @@ class RechargeTotals {
   final double debitAmount;
 }
 
+class UserRechargeSummary {
+  const UserRechargeSummary({
+    required this.totalRecharge,
+    required this.receivedCoins,
+  });
+
+  factory UserRechargeSummary.fromTransactions(
+    Iterable<RechargeTransaction> transactions,
+  ) {
+    var totalRecharge = 0.0;
+    var receivedCoins = 0;
+    for (final transaction in transactions) {
+      if (!transaction.isCompleted) continue;
+      if (transaction.kind == RechargeKind.recharge) {
+        totalRecharge += transaction.amount;
+      }
+      receivedCoins += transaction.kind == RechargeKind.debit
+          ? -transaction.coins
+          : transaction.coins;
+    }
+    return UserRechargeSummary(
+      totalRecharge: NumberFormatter.roundAmount(totalRecharge),
+      receivedCoins: receivedCoins,
+    );
+  }
+
+  final double totalRecharge;
+  final int receivedCoins;
+}
+
 class RechargeTransaction {
   const RechargeTransaction({
     required this.id,
@@ -37,7 +68,6 @@ class RechargeTransaction {
     this.orderId,
     this.paymentId,
     this.user,
-    this.storedCoins,
   });
 
   factory RechargeTransaction.fromDocument(
@@ -46,21 +76,20 @@ class RechargeTransaction {
   ) {
     final createdAt = data[createdAtField];
     final orderId = UserRecord.readText(data[razorpayOrderIdField]);
-    final coins = data[coinsField];
+    final kind = _kinds[data[typeField]] ?? RechargeKind.recharge;
 
     return RechargeTransaction(
       id: id,
       userId: UserRecord.readText(data[userIdField]) ?? '',
-      kind: _kinds[data[typeField]] ?? RechargeKind.recharge,
+      kind: kind,
       status: _statuses[data[statusField]] ?? RechargeStatus.created,
       gateway: orderId == null
           ? RechargeGateway.admin
           : RechargeGateway.razorpay,
-      amount: _readAmount(data[totalAmountField] ?? data[_amountField]),
+      amount: _readAmount(data[_amountFieldFor(kind)]),
       createdAt: createdAt is Timestamp ? createdAt.toDate() : null,
       orderId: orderId,
       paymentId: UserRecord.readText(data[razorpayPaymentIdField]),
-      storedCoins: coins is num ? coins.round() : null,
     );
   }
 
@@ -68,8 +97,9 @@ class RechargeTransaction {
   static const String coinsField = 'coins';
   static const String rechargeAmountField = 'rechargeAmount';
   static const String amountFromOfferField = 'amountFromOffer';
-  static const String adminCreditedAmountField = 'adminCreditedAmount';
-  static const String adminDebitedAmountField = 'adminDebitedAmount';
+  static const String adminCreditAmountField = 'adminCreditAmount';
+  static const String adminDebitAmountField = 'adminDebitAmount';
+  static const String receivedTotalAmountField = 'receivedTotalAmount';
   static const String descriptionField = 'description';
   static const String adminUidField = 'adminUid';
 
@@ -83,12 +113,12 @@ class RechargeTransaction {
     userIdField: userId,
     typeField: isCredit ? creditTypes.first : debitTypes.first,
     statusField: completedStatuses.first,
-    totalAmountField: amount,
     rechargeAmountField: 0,
     amountFromOfferField: 0,
-    adminCreditedAmountField: isCredit ? amount : 0,
-    adminDebitedAmountField: isCredit ? 0 : amount,
-    coinsField: isCredit ? amount : 0,
+    adminCreditAmountField: isCredit ? amount : 0,
+    adminDebitAmountField: isCredit ? 0 : amount,
+    receivedTotalAmountField: isCredit ? amount : 0,
+    coinsField: PackagePlan.coinsFor(amount.toDouble()),
     if (description.isNotEmpty) descriptionField: description,
     adminUidField: adminUid,
     createdAtField: FieldValue.serverTimestamp(),
@@ -98,8 +128,6 @@ class RechargeTransaction {
   static const String typeField = 'type';
   static const String statusField = 'status';
   static const String createdAtField = 'createdAt';
-  static const String _amountField = 'amount';
-  static const String totalAmountField = 'totalAmount';
   static const String razorpayOrderIdField = 'razorpayOrderId';
   static const String razorpayPaymentIdField = 'razorpayPaymentId';
 
@@ -137,10 +165,15 @@ class RechargeTransaction {
   final String? orderId;
   final String? paymentId;
   final AdminUser? user;
-  final int? storedCoins;
 
   static double _readAmount(Object? value) =>
       value is num ? value.toDouble() : 0;
+
+  static String _amountFieldFor(RechargeKind kind) => switch (kind) {
+    RechargeKind.recharge => rechargeAmountField,
+    RechargeKind.credit => adminCreditAmountField,
+    RechargeKind.debit => adminDebitAmountField,
+  };
 
   static int newestFirst(RechargeTransaction a, RechargeTransaction b) {
     final first = a.createdAt;
@@ -165,8 +198,7 @@ class RechargeTransaction {
 
   bool get isCompleted => status == RechargeStatus.completed;
 
-  int get coins =>
-      isCompleted ? storedCoins ?? PackagePlan.coinsFor(amount) : 0;
+  int get coins => isCompleted ? PackagePlan.coinsFor(amount) : 0;
 
   bool get isAdminRecharge =>
       kind == RechargeKind.recharge && gateway == RechargeGateway.admin;
@@ -188,6 +220,5 @@ class RechargeTransaction {
     orderId: orderId,
     paymentId: paymentId,
     user: user,
-    storedCoins: storedCoins,
   );
 }

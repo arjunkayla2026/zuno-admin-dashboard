@@ -1,4 +1,5 @@
 import 'package:zuno_admin_dashboard/core/enums/call_filter.dart';
+import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_stat_cards.dart';
@@ -15,8 +16,9 @@ class UserDetailsState {
     required this.rangeStart,
     required this.rangeEnd,
     required this.singleDate,
-    required this.totalRecharge,
-    required this.availableCoins,
+    this.totalRecharge = 0,
+    this.availableCoins = 0,
+    this.summaryStatus = LoadStatus.loading,
     this.tab = UserDetailsTab.calls,
     this.typeFilter = CallTypeFilter.all,
     this.dateMode = CallDateMode.range,
@@ -27,25 +29,33 @@ class UserDetailsState {
   final DateTime rangeStart;
   final DateTime rangeEnd;
   final DateTime singleDate;
-  final int totalRecharge;
+  final double totalRecharge;
   final int availableCoins;
+  final LoadStatus summaryStatus;
   final UserDetailsTab tab;
   final CallTypeFilter typeFilter;
   final CallDateMode dateMode;
 
+  int get walletBalance => NumberFormatter.parse(user.walletBalance);
+
+  String _summaryValue(String Function() value) =>
+      summaryStatus == LoadStatus.loaded ? value() : AppStrings.emptyValue;
+
   List<AppStat> get stats => [
     AppStat(
       label: AppStrings.totalRecharge,
-      value: NumberFormatter.rupees(totalRecharge),
+      value: _summaryValue(() => NumberFormatter.rupeesAmount(totalRecharge)),
     ),
     AppStat(
       label: AppStrings.availableCoins,
-      value: NumberFormatter.grouped(availableCoins),
+      value: _summaryValue(() => NumberFormatter.grouped(availableCoins)),
     ),
     AppStat(
       label: AppStrings.availableCoinsAmount,
-      value: NumberFormatter.rupees(
-        (availableCoins * UserDetailsMockData.coinValue).floor(),
+      value: _summaryValue(
+        () => NumberFormatter.rupees(
+          (availableCoins * UserDetailsMockData.coinValue).floor(),
+        ),
       ),
     ),
     AppStat(
@@ -85,8 +95,9 @@ class UserDetailsState {
 
   UserDetailsState copyWith({
     AdminUser? user,
-    int? totalRecharge,
+    double? totalRecharge,
     int? availableCoins,
+    LoadStatus? summaryStatus,
     DateTime? rangeStart,
     DateTime? rangeEnd,
     DateTime? singleDate,
@@ -99,6 +110,7 @@ class UserDetailsState {
       calls: calls,
       totalRecharge: totalRecharge ?? this.totalRecharge,
       availableCoins: availableCoins ?? this.availableCoins,
+      summaryStatus: summaryStatus ?? this.summaryStatus,
       rangeStart: rangeStart ?? this.rangeStart,
       rangeEnd: rangeEnd ?? this.rangeEnd,
       singleDate: singleDate ?? this.singleDate,

@@ -20,7 +20,7 @@ Future<void> openPackageSheet(BuildContext context, {PackagePlan? plan}) async {
     context: context,
     title: AppStrings.packageUpdated,
     message: AppStrings.packageSaved(
-      NumberFormatter.rupeesAmount(saved.payableAmount),
+      NumberFormatter.rupeesAmount(saved.rechargeAmount),
       NumberFormatter.grouped(saved.coins),
     ),
     actionLabel: AppStrings.done,

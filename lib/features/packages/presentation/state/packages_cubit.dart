@@ -44,7 +44,7 @@ class PackagesCubit extends Cubit<PackagesState> {
     return result.match((failure) => failure.message, (saved) {
       if (isClosed) return null;
       _adjustCounts(plan, previous, saved);
-      if (previous != null && previous.payableAmount == saved.payableAmount) {
+      if (previous != null && previous.rechargeAmount == saved.rechargeAmount) {
         _pager.update((item) => item.id == saved.id ? saved : item);
       } else {
         unawaited(_pager.reset());

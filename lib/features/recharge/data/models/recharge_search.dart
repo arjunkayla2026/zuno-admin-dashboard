@@ -4,6 +4,7 @@ class RechargeSearch {
   const RechargeSearch({
     this.field,
     this.value,
+    this.amount,
     this.statuses,
     this.gateway,
     this.documentId,
@@ -12,11 +13,8 @@ class RechargeSearch {
   factory RechargeSearch.parse(String raw) {
     final text = raw.trim();
     final compact = text.replaceAll(_separators, '');
-    if (_amount.hasMatch(compact)) {
-      return RechargeSearch(
-        field: RechargeTransaction.totalAmountField,
-        value: double.parse(compact),
-      );
+    if (_amount.hasMatch(compact) && double.parse(compact) > 0) {
+      return RechargeSearch(amount: double.parse(compact));
     }
     if (text.length < _minLength) return const RechargeSearch();
 
@@ -61,11 +59,12 @@ class RechargeSearch {
 
   final String? field;
   final Object? value;
+  final double? amount;
   final List<String>? statuses;
   final RechargeGateway? gateway;
   final String? documentId;
 
-  String get key => '$field|$value|$statuses|$gateway|$documentId';
+  String get key => '$field|$value|$amount|$statuses|$gateway|$documentId';
 
   bool matchesGateway(RechargeTransaction transaction) =>
       gateway == null || transaction.gateway == gateway;

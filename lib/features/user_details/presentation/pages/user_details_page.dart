@@ -28,10 +28,9 @@ class UserDetailsPage extends StatelessWidget {
       child: MultiBlocProvider(
         providers: [
           BlocProvider(
-            create: (_) => UserDetailsCubit(
-              user: arguments.user,
-              onUserChanged: arguments.onUserChanged,
-            ),
+            create: (_) =>
+                getIt<UserDetailsCubit>(param1: arguments)
+                  ..loadRechargeSummary(),
           ),
           BlocProvider(create: (_) => getIt<UserActionsCubit>()),
           BlocProvider(

@@ -1,0 +1,13 @@
+{
+  "name": "zuno-migrate-amount-fields",
+  "private": true,
+  "description": "Moves Firestore packages, users.walletSources and transactions to the current amount field names with the Firebase Admin SDK.",
+  "scripts": {
+    "dry-run": "node migrate.js",
+    "add-new-fields": "node migrate.js --apply",
+    "remove-old-fields": "node migrate.js --apply --drop-old"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0"
+  }
+}
