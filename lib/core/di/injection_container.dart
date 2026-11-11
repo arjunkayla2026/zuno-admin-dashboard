@@ -18,6 +18,7 @@ import 'package:zuno_admin_dashboard/features/auth/presentation/state/auth_cubit
 import 'package:zuno_admin_dashboard/features/dashboard/data/repositories/dashboard_repository.dart';
 import 'package:zuno_admin_dashboard/features/dashboard/presentation/state/dashboard_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/repositories/host_management_repository.dart';
+import 'package:zuno_admin_dashboard/features/host_management/presentation/state/call_pricing_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/host_actions_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/host_management_cubit.dart';
 import 'package:zuno_admin_dashboard/features/packages/data/datasources/packages_remote_data_source.dart';
@@ -31,6 +32,7 @@ import 'package:zuno_admin_dashboard/features/settings/data/datasources/notifica
 import 'package:zuno_admin_dashboard/features/settings/data/datasources/settings_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/repositories/settings_repository.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_cubit.dart';
+import 'package:zuno_admin_dashboard/features/surge_charge_sessions/presentation/state/surge_sessions_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/add_recharge_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_details_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_recharge_history_cubit.dart';
@@ -103,6 +105,12 @@ void configureDependencies() {
     )
     ..registerFactory<UserManagementCubit>(
       () => UserManagementCubit(getIt<UserManagementRepository>()),
+    )
+    ..registerFactory<SurgeSessionsCubit>(
+      () => SurgeSessionsCubit(getIt<SettingsRepository>()),
+    )
+    ..registerFactory<CallPricingCubit>(
+      () => CallPricingCubit(getIt<SettingsRepository>()),
     )
     ..registerFactory<HostManagementCubit>(
       () => HostManagementCubit(getIt<HostManagementRepository>()),

@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/firestore_failures.dart';
+import 'package:zuno_admin_dashboard/core/data/host_pricing.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:zuno_admin_dashboard/features/surge_charge_sessions/data/models/surge_session.dart';
 
 class SettingsRemoteDataSource {
   const SettingsRemoteDataSource(this._firestore);
@@ -25,6 +27,67 @@ class SettingsRemoteDataSource {
       return left(FirestoreFailures.read(error.code));
     } catch (_) {
       return left(const DataFailure(AppStrings.recordsLoadFailed));
+    }
+  }
+
+  Future<Either<Failure, HostPricing>> fetchHostPricing() async {
+    try {
+      final snapshot = await _app.get();
+      return right(HostPricing.fromMap(snapshot.data()?[HostPricing.field]));
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.read(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsLoadFailed));
+    }
+  }
+
+  Future<Either<Failure, Unit>> saveHostPricing(HostPricing pricing) async {
+    try {
+      await _app.set({
+        HostPricing.field: pricing.toMap(),
+        updatedAtField: FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      return right(unit);
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.write(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsSaveFailed));
+    }
+  }
+
+  Future<Either<Failure, List<SurgeSession>>> fetchSurgeSessions() async {
+    try {
+      final snapshot = await _app.get();
+      final pricing = snapshot.data()?[HostPricing.field];
+      return right(
+        SurgeSession.listFrom(
+          pricing is Map ? pricing[SurgeSession.listField] : null,
+        ),
+      );
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.read(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsLoadFailed));
+    }
+  }
+
+  Future<Either<Failure, Unit>> saveSurgeSessions(
+    List<SurgeSession> sessions,
+  ) async {
+    try {
+      await _app.set({
+        HostPricing.field: {
+          SurgeSession.listField: [
+            for (final session in sessions) session.toMap(),
+          ],
+        },
+        updatedAtField: FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      return right(unit);
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.write(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsSaveFailed));
     }
   }
 

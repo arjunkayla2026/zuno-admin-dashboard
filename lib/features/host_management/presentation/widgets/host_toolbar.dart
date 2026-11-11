@@ -9,7 +9,7 @@ import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_dialog_surface.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_search_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
-import 'package:zuno_admin_dashboard/features/host_management/data/models/call_pricing.dart';
+import 'package:zuno_admin_dashboard/features/host_management/presentation/state/call_pricing_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/host_management_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/widgets/call_pricing_dialog.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/widgets/call_pricing_summary.dart';
@@ -22,12 +22,25 @@ class HostToolbar extends StatelessWidget {
   static const double _buttonIconSize = 16;
 
   Future<void> _openPricing(BuildContext context) async {
-    final cubit = context.read<HostManagementCubit>();
-    final pricing = await showAppDialog<CallPricing>(
+    final cubit = context.read<CallPricingCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+    if (cubit.state.pricing == null) await cubit.load();
+    final pricing = cubit.state.pricing;
+    if (pricing == null) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            cubit.state.errorMessage ?? AppStrings.recordsLoadFailed,
+          ),
+        ),
+      );
+      return;
+    }
+    if (!context.mounted) return;
+    await showAppDialog<void>(
       context: context,
-      builder: (_) => CallPricingDialog(pricing: cubit.state.pricing),
+      builder: (_) => CallPricingDialog(pricing: pricing, onSave: cubit.save),
     );
-    if (pricing != null) cubit.updatePricing(pricing);
   }
 
   Widget _icon(BuildContext context, String asset) => SvgPicture.asset(

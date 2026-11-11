@@ -36,9 +36,15 @@ class SurgeSessionsTable extends StatelessWidget {
 
   final List<SurgeSession> sessions;
 
+  static String _time(int? minutes) => minutes == null
+      ? AppStrings.emptyValue
+      : DateFormatter.minutesOfDay(minutes);
+
   @override
   Widget build(BuildContext context) {
-    final cubit = context.read<SurgeSessionsCubit>();
+    final canEdit = context.select(
+      (SurgeSessionsCubit cubit) => cubit.state.canEdit,
+    );
     final textColor = context.colorScheme.onSurface;
     final cell = AppTextStyles.bodySmall.copyWith(color: textColor);
     final strong = cell.copyWith(fontWeight: FontWeight.w700);
@@ -46,11 +52,11 @@ class SurgeSessionsTable extends StatelessWidget {
     return AppDataTable(
       columns: _columns,
       rows: [
-        for (final (index, session) in sessions.indexed)
+        for (final session in sessions)
           [
-            Text(AppStrings.sessionName(index + 1), style: strong),
-            Text(DateFormatter.minutesOfDay(session.startMinutes), style: cell),
-            Text(DateFormatter.minutesOfDay(session.endMinutes), style: cell),
+            Text(session.name, style: strong),
+            Text(_time(session.startMinutes), style: cell),
+            Text(_time(session.endMinutes), style: cell),
             Text(AppStrings.surgePercent(session.percent), style: strong),
             const SizedBox.shrink(),
             SurgeLabelPill(percent: session.percent),
@@ -59,7 +65,10 @@ class SurgeSessionsTable extends StatelessWidget {
               children: [
                 AppStatusSwitch(
                   value: session.enabled,
-                  onChanged: (enabled) => cubit.setEnabled(session, enabled),
+                  onChanged: canEdit
+                      ? (enabled) =>
+                            setSurgeSessionEnabled(context, session, enabled)
+                      : null,
                 ),
                 const SizedBox(width: AppUtils.spacingSm),
                 AppStatusBadge(
@@ -74,11 +83,16 @@ class SurgeSessionsTable extends StatelessWidget {
             ),
             AppTakeActionButton(
               actions: _menuActions,
-              onSelected: (action) => switch (action) {
-                AppMenuAction.edit => editSurgeSession(context, session),
-                AppMenuAction.delete => removeSurgeSession(context, session),
-                AppMenuAction.block || AppMenuAction.unblock => null,
-              },
+              onSelected: (action) => !canEdit
+                  ? null
+                  : switch (action) {
+                      AppMenuAction.edit => editSurgeSession(context, session),
+                      AppMenuAction.delete => removeSurgeSession(
+                        context,
+                        session,
+                      ),
+                      AppMenuAction.block || AppMenuAction.unblock => null,
+                    },
             ),
           ],
       ],

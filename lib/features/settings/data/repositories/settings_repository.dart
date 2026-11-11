@@ -1,4 +1,5 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:zuno_admin_dashboard/core/data/host_pricing.dart';
 import 'package:zuno_admin_dashboard/core/data/admin_account.dart';
 import 'package:zuno_admin_dashboard/core/data/admins_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
@@ -12,6 +13,7 @@ import 'package:zuno_admin_dashboard/features/settings/data/models/banner_image.
 import 'package:zuno_admin_dashboard/features/settings/data/models/banner_upload.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/models/notification_audience_counts.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/models/notification_request.dart';
+import 'package:zuno_admin_dashboard/features/surge_charge_sessions/data/models/surge_session.dart';
 
 class SettingsRepository {
   const SettingsRepository(
@@ -72,6 +74,19 @@ class SettingsRepository {
 
   Future<Either<Failure, Unit>> setMaintenanceMode(bool enabled) =>
       _settingsDataSource.setMaintenanceMode(enabled);
+
+  Future<Either<Failure, HostPricing>> fetchHostPricing() =>
+      _settingsDataSource.fetchHostPricing();
+
+  Future<Either<Failure, Unit>> saveHostPricing(HostPricing pricing) =>
+      _settingsDataSource.saveHostPricing(pricing);
+
+  Future<Either<Failure, List<SurgeSession>>> fetchSurgeSessions() =>
+      _settingsDataSource.fetchSurgeSessions();
+
+  Future<Either<Failure, Unit>> saveSurgeSessions(
+    List<SurgeSession> sessions,
+  ) => _settingsDataSource.saveSurgeSessions(sessions);
 
   Future<Either<Failure, List<AdminAccount>>> fetchAdmins() async {
     final result = await _adminsDataSource.fetchAdmins();

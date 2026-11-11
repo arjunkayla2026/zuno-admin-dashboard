@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zuno_admin_dashboard/core/data/cursor_pager.dart';
-import 'package:zuno_admin_dashboard/core/data/search_keywords.dart';
+import 'package:zuno_admin_dashboard/core/data/user_search.dart';
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/repositories/user_management_repository.dart';
@@ -53,7 +53,7 @@ class UserManagementCubit extends Cubit<UserManagementState> {
 
   void _applyQuery() {
     _debounce?.cancel();
-    final term = SearchKeywords.normalizeTerm(state.query);
+    final term = UserSearch.normalizeTerm(state.query);
     if (term == _appliedTerm && state.filter == _appliedFilter) return;
 
     _appliedTerm = term;

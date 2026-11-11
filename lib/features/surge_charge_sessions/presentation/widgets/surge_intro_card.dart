@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:zuno_admin_dashboard/core/resources/images/app_images.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
@@ -7,6 +8,7 @@ import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_dialog_header.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
+import 'package:zuno_admin_dashboard/features/surge_charge_sessions/presentation/state/surge_sessions_cubit.dart';
 import 'package:zuno_admin_dashboard/features/surge_charge_sessions/presentation/widgets/surge_session_flow.dart';
 
 class SurgeIntroCard extends StatelessWidget {
@@ -35,7 +37,10 @@ class SurgeIntroCard extends StatelessWidget {
       label: AppStrings.createSession,
       icon: Icons.add_rounded,
       compact: true,
-      onPressed: () => createSurgeSession(context),
+      onPressed:
+          context.select((SurgeSessionsCubit cubit) => cubit.state.canEdit)
+          ? () => createSurgeSession(context)
+          : null,
     );
 
     return Container(

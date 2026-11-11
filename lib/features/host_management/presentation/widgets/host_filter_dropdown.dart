@@ -10,11 +10,11 @@ class HostFilterDropdown extends StatelessWidget {
 
   static String _label(HostFilter filter) => switch (filter) {
     HostFilter.today => AppStrings.today,
-    HostFilter.all => AppStrings.allUsers,
-    HostFilter.newHosts => AppStrings.newUsers,
-    HostFilter.blocked => AppStrings.blockedUsers,
+    HostFilter.all => AppStrings.allHosts,
+    HostFilter.newHosts => AppStrings.newHosts,
+    HostFilter.blocked => AppStrings.blockedHosts,
     HostFilter.deletedByAdmin => AppStrings.deletedByAdmin,
-    HostFilter.deletedByUser => AppStrings.deletedByUser,
+    HostFilter.deletedByUser => AppStrings.deletedByHost,
   };
 
   @override

@@ -20,34 +20,51 @@ class UserManagementRepository {
     UserStatus? status,
     String? term,
     Object? cursor,
-  }) => RecordPages.untilMatch(
-    cursor,
-    (next) => _fetchBatch(status, term, next),
-    (records) => records
-        .map(AdminUser.fromRecord)
-        .where((user) => status == null || user.status == status),
-  );
-
-  Future<Either<Failure, RecordPage<UserRecord>>> _fetchBatch(
-    UserStatus? status,
-    String? term,
-    Object? cursor,
-  ) => _dataSource.fetchUsersPage(
-    _role,
-    RecordPageQuery(
-      term: term,
-      from: status == UserStatus.newUser ? UserRecord.newAccountCutoff : null,
-      cursor: cursor,
-    ),
-    pageSize: _pageSize,
-    onlyBlocked: status == UserStatus.blocked,
-    onlyDeleted:
+  }) async {
+    final from = status == UserStatus.newUser
+        ? UserRecord.newAccountCutoff
+        : null;
+    final onlyBlocked = status == UserStatus.blocked;
+    final onlyDeleted =
         status == UserStatus.deletedByAdmin ||
-        status == UserStatus.deletedByUser,
-    deletedBy: status == UserStatus.deletedByAdmin
+        status == UserStatus.deletedByUser;
+    final deletedBy = status == UserStatus.deletedByAdmin
         ? UserRecord.deletedByAdmin
-        : null,
-  );
+        : null;
+    Iterable<AdminUser> select(List<UserRecord> records) => records
+        .map(AdminUser.fromRecord)
+        .where((user) => status == null || user.status == status);
+
+    if (term != null) {
+      if (cursor case LocalPageCursor<AdminUser>(:final remaining)) {
+        return right(RecordPages.local(remaining, _pageSize));
+      }
+      final result = await _dataSource.searchUsers(
+        _role,
+        term,
+        from: from,
+        onlyBlocked: onlyBlocked,
+        onlyDeleted: onlyDeleted,
+        deletedBy: deletedBy,
+      );
+      return result.map(
+        (records) => RecordPages.local(select(records).toList(), _pageSize),
+      );
+    }
+
+    return RecordPages.untilMatch(
+      cursor,
+      (next) => _dataSource.fetchUsersPage(
+        _role,
+        RecordPageQuery(from: from, cursor: next),
+        pageSize: _pageSize,
+        onlyBlocked: onlyBlocked,
+        onlyDeleted: onlyDeleted,
+        deletedBy: deletedBy,
+      ),
+      select,
+    );
+  }
 
   Future<Either<Failure, Unit>> updateDetails(
     AdminUser user, {

@@ -90,6 +90,7 @@ abstract final class AppStrings {
   static const String blocked = 'Blocked';
   static const String deletedByAdmin = 'Deleted by Admin';
   static const String deletedByUser = 'Deleted by User';
+  static const String deletedByHost = 'Deleted by Host';
   static const String edit = 'Edit';
   static const String block = 'Block';
   static const String delete = 'Delete';
@@ -229,22 +230,17 @@ abstract final class AppStrings {
       'Blocked hosts cannot sign in, receive calls or reply to messages.';
 
   static const String pricingSubtitle =
-      "Coins are deducted from the user's wallet at these rates.";
-  static const String audioCallRateField = 'Audio call (coins per second)';
-  static const String videoCallRateField = 'Video call (coins per second)';
-  static const String messageRateField = 'Message (coins per message)';
+      'Set the admin and host amounts for audio calls, video calls and messages.';
+  static const String audioCallRateField = 'Audio call (₹ per second)';
+  static const String videoCallRateField = 'Video call (₹ per second)';
+  static const String messageRateField = 'Message (₹ per message)';
   static const String savePrices = 'Save prices';
 
-  static String _coins(int count) => count == 1 ? 'coin' : 'coins';
+  static String audioRateSummary(String amount) => 'Audio $amount/sec';
 
-  static String audioRateSummary(int coins) =>
-      'Audio $coins ${_coins(coins)}/sec';
+  static String videoRateSummary(String amount) => 'Video $amount/sec';
 
-  static String videoRateSummary(int coins) =>
-      'Video $coins ${_coins(coins)}/sec';
-
-  static String messageRateSummary(int coins) =>
-      'Message $coins ${_coins(coins)}';
+  static String messageRateSummary(String amount) => 'Message $amount';
 
   static const String hostDetails = 'Host Details';
   static const String backToHosts = 'Back to hosts';
@@ -347,7 +343,14 @@ abstract final class AppStrings {
   static const String removeSurgeSessionTitle = 'Remove this surge session?';
   static const String removeSession = 'Remove session';
 
-  static String sessionName(int number) => 'Session $number';
+  static const String sessionNameField = 'Session name';
+  static const String sessionNameHint = 'e.g. Peak Hours';
+  static const String enterSessionName = 'Enter a session name.';
+  static const String selectTime = 'Select a time.';
+  static const String sessionNameTaken =
+      'Another surge session already uses this name.';
+  static const String surgeSessionsBusy =
+      'Surge sessions are still loading or saving. Try again in a moment.';
 
   static const String yesterday = 'Yesterday';
   static const String day = 'Day';
@@ -781,12 +784,11 @@ abstract final class AppStrings {
       ' before starting a call between $start and $end.';
 
   static String removeSurgeSessionMessage(
+    String name,
     String start,
     String end,
     int percent,
-  ) =>
-      'The $start – $end session (+$percent%) will stop applying and be '
-      'removed.';
+  ) => '$name ($start – $end, +$percent%) will stop applying and be removed.';
 
   static String signedAmount(String amount, {required bool isCredit}) =>
       isCredit ? '+$amount' : '−$amount';

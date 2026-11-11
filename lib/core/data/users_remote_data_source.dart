@@ -10,6 +10,7 @@ import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/data/search_keywords.dart';
 import 'package:zuno_admin_dashboard/core/data/user_account_totals.dart';
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
+import 'package:zuno_admin_dashboard/core/data/user_search.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 
@@ -175,22 +176,81 @@ class UsersRemoteDataSource {
     bool onlyBlocked = false,
     bool onlyDeleted = false,
     String? deletedBy,
+  }) => RecordPages.fetch(
+    _usersOfRole(
+      role,
+      onlyBlocked: onlyBlocked,
+      onlyDeleted: onlyDeleted,
+      deletedBy: deletedBy,
+    ),
+    query,
+    UserRecord.fromDocument,
+    sortField: _createdAtField,
+    pageSize: pageSize,
+  );
+
+  Future<Either<Failure, List<UserRecord>>> searchUsers(
+    String role,
+    String term, {
+    DateTime? from,
+    bool onlyBlocked = false,
+    bool onlyDeleted = false,
+    String? deletedBy,
+  }) async {
+    final base = _usersOfRole(
+      role,
+      onlyBlocked: onlyBlocked,
+      onlyDeleted: onlyDeleted,
+      deletedBy: deletedBy,
+    );
+    try {
+      final snapshots = await Future.wait([
+        for (final (field, prefix) in UserSearch.prefixes(
+          term,
+          isHost: role == hostRole,
+        ))
+          base
+              .where(field, isGreaterThanOrEqualTo: prefix)
+              .where(field, isLessThan: '$prefix${UserSearch.prefixEnd}')
+              .orderBy(field)
+              .limit(UserSearch.maxResultsPerPrefix)
+              .get(),
+      ]);
+      final records = <String, UserRecord>{
+        for (final snapshot in snapshots)
+          for (final document in snapshot.docs)
+            document.id: UserRecord.fromDocument(document.id, document.data()),
+      }.values.where((record) {
+        final createdAt = record.createdAt;
+        return from == null || (createdAt != null && !createdAt.isBefore(from));
+      }).toList();
+      final oldest = DateTime.fromMillisecondsSinceEpoch(0);
+      records.sort(
+        (a, b) => (b.createdAt ?? oldest).compareTo(a.createdAt ?? oldest),
+      );
+      return right(records);
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.read(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsLoadFailed));
+    }
+  }
+
+  Query<Map<String, dynamic>> _usersOfRole(
+    String role, {
+    required bool onlyBlocked,
+    required bool onlyDeleted,
+    String? deletedBy,
   }) {
-    var base = _firestore
+    var query = _firestore
         .collection(_collection)
         .where(_roleField, isEqualTo: role);
-    if (onlyBlocked) base = base.where(_blockedField, isEqualTo: true);
-    if (onlyDeleted) base = base.where(_deletedField, isEqualTo: true);
+    if (onlyBlocked) query = query.where(_blockedField, isEqualTo: true);
+    if (onlyDeleted) query = query.where(_deletedField, isEqualTo: true);
     if (deletedBy != null) {
-      base = base.where(UserRecord.deletedByField, isEqualTo: deletedBy);
+      query = query.where(UserRecord.deletedByField, isEqualTo: deletedBy);
     }
-    return RecordPages.fetch(
-      base,
-      query,
-      UserRecord.fromDocument,
-      sortField: _createdAtField,
-      pageSize: pageSize,
-    );
+    return query;
   }
 
   Query<Map<String, dynamic>> get _hostApplicants => _firestore

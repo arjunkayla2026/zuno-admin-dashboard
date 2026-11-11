@@ -26,7 +26,20 @@ class RecordPage<T> {
       RecordPage(transform(items), nextCursor: nextCursor);
 }
 
+class LocalPageCursor<T> {
+  const LocalPageCursor(this.remaining);
+
+  final List<T> remaining;
+}
+
 abstract final class RecordPages {
+  static RecordPage<T> local<T>(List<T> items, int pageSize) => RecordPage(
+    items.take(pageSize).toList(),
+    nextCursor: items.length > pageSize
+        ? LocalPageCursor(items.sublist(pageSize))
+        : null,
+  );
+
   static const String _defaultSortField = 'updatedAt';
 
   static Query<Map<String, dynamic>> _filtered(
