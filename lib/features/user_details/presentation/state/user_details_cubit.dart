@@ -8,7 +8,6 @@ import 'package:zuno_admin_dashboard/core/widgets/app_wallet_adjustment_dialog.d
 import 'package:zuno_admin_dashboard/features/packages/data/models/package_plan.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/repositories/recharge_repository.dart';
 import 'package:zuno_admin_dashboard/features/user_details/data/mock/user_details_mock_data.dart';
-import 'package:zuno_admin_dashboard/features/user_details/data/models/recharge_package.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_details_state.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
 
@@ -50,11 +49,10 @@ class UserDetailsCubit extends Cubit<UserDetailsState> {
     _onUserChanged?.call(user);
   }
 
-  void addRecharge(RechargePackage package) {
-    emit(
-      state.copyWith(
-        totalRecharge: state.totalRecharge + package.price,
-        availableCoins: state.availableCoins + package.totalCoins,
+  void applyWalletBalance(num walletBalance) {
+    updateUser(
+      state.user.copyWith(
+        walletBalance: NumberFormatter.grouped(walletBalance.truncate()),
       ),
     );
   }

@@ -15,6 +15,9 @@ class PackagesRepository {
     Object? cursor,
   }) => _dataSource.fetchPage(cursor, pageSize: _pageSize);
 
+  Future<Either<Failure, List<PackagePlan>>> fetchActivePackages() =>
+      _dataSource.fetchActive();
+
   Future<Either<Failure, ({int total, int active})>> fetchCounts() =>
       _dataSource.fetchCounts();
 

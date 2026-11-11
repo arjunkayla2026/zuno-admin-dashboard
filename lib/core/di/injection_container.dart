@@ -28,6 +28,7 @@ import 'package:zuno_admin_dashboard/features/settings/data/datasources/notifica
 import 'package:zuno_admin_dashboard/features/settings/data/datasources/settings_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/repositories/settings_repository.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_cubit.dart';
+import 'package:zuno_admin_dashboard/features/user_details/presentation/state/add_recharge_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_details_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_recharge_history_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/repositories/user_management_repository.dart';
@@ -36,6 +37,7 @@ import 'package:zuno_admin_dashboard/features/user_management/presentation/state
 import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_management_cubit.dart';
 
 final GetIt getIt = GetIt.instance;
+const String _functionsRegion = 'asia-south1';
 
 void configureDependencies() {
   getIt
@@ -130,7 +132,10 @@ void configureDependencies() {
       () => PackagesCubit(getIt<PackagesRepository>()),
     )
     ..registerLazySingleton<RechargeRemoteDataSource>(
-      () => RechargeRemoteDataSource(FirebaseFirestore.instance),
+      () => RechargeRemoteDataSource(
+        FirebaseFirestore.instance,
+        FirebaseFunctions.instanceFor(region: _functionsRegion),
+      ),
     )
     ..registerLazySingleton<RechargeRepository>(
       () => RechargeRepository(
@@ -140,6 +145,12 @@ void configureDependencies() {
     )
     ..registerFactory<RechargeCubit>(
       () => RechargeCubit(getIt<RechargeRepository>()),
+    )
+    ..registerFactory<AddRechargeCubit>(
+      () => AddRechargeCubit(
+        getIt<PackagesRepository>(),
+        getIt<RechargeRepository>(),
+      ),
     )
     ..registerFactoryParam<UserDetailsCubit, UserDetailsArguments, void>(
       (arguments, _) => UserDetailsCubit(

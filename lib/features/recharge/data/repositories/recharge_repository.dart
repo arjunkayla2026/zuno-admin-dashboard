@@ -75,6 +75,20 @@ class RechargeRepository {
     );
   }
 
+  String newTransactionId() => _transactions.newTransactionId();
+
+  Future<Either<Failure, AdminRechargeResult>> addAdminRecharge({
+    required String userId,
+    required String packageId,
+    required double expectedAmount,
+    required String requestId,
+  }) => _transactions.addAdminRecharge(
+    userId: userId,
+    packageId: packageId,
+    expectedAmount: expectedAmount,
+    requestId: requestId,
+  );
+
   Future<Either<Failure, UserRechargeSummary>> fetchUserSummary(
     String userId,
   ) async {

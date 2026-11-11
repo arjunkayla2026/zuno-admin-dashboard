@@ -198,6 +198,11 @@ abstract final class AppStrings {
   static String rechargeSubtitle(String name, String userId) =>
       '$name · $userId';
 
+  static String packageLabel(String price, String name) => '$price · $name';
+
+  static const String adminRechargeFailed =
+      'Could not add this recharge. Try again.';
+
   static String coinsWithBonus(String coins, String? bonus) =>
       bonus == null ? '$coins coins' : '$coins coins · +$bonus Bonus';
 

@@ -29,6 +29,27 @@ class PackagesRemoteDataSource {
     pageSize: pageSize,
   );
 
+  Future<Either<Failure, List<PackagePlan>>> fetchActive() async {
+    try {
+      final snapshot = await _packages
+          .where(
+            PackagePlan.packageStatusField,
+            isEqualTo: PackageStatus.active.name,
+          )
+          .get();
+      return right(
+        [
+          for (final document in snapshot.docs)
+            PackagePlan.fromDocument(document.id, document.data()),
+        ]..sort(PackagePlan.byPrice),
+      );
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.read(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsLoadFailed));
+    }
+  }
+
   Future<Either<Failure, ({int total, int active})>> fetchCounts() async {
     try {
       final results = await Future.wait([
@@ -41,7 +62,10 @@ class PackagesRemoteDataSource {
             .count()
             .get(),
       ]);
-      return right((total: results[0].count ?? 0, active: results[1].count ?? 0));
+      return right((
+        total: results[0].count ?? 0,
+        active: results[1].count ?? 0,
+      ));
     } on FirebaseException catch (error) {
       return left(FirestoreFailures.read(error.code));
     } catch (_) {

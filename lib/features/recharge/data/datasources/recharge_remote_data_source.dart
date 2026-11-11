@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/firestore_failures.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
@@ -7,11 +8,46 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/models/recharge_transaction.dart';
 
 class RechargeRemoteDataSource {
-  const RechargeRemoteDataSource(this._firestore);
+  const RechargeRemoteDataSource(this._firestore, this._functions);
 
   static const String _collection = RechargeTransaction.collection;
+  static const String _addAdminRechargeFunction = 'addAdminRecharge';
+  static const String _internalErrorCode = 'internal';
 
   final FirebaseFirestore _firestore;
+  final FirebaseFunctions _functions;
+
+  String newTransactionId() => _firestore.collection(_collection).doc().id;
+
+  Future<Either<Failure, AdminRechargeResult>> addAdminRecharge({
+    required String userId,
+    required String packageId,
+    required double expectedAmount,
+    required String requestId,
+  }) async {
+    try {
+      final response = await _functions
+          .httpsCallable(_addAdminRechargeFunction)
+          .call<Map<Object?, Object?>>({
+            'userId': userId,
+            'packageId': packageId,
+            'expectedAmount': expectedAmount,
+            'requestId': requestId,
+          });
+      return right(AdminRechargeResult.fromMap(response.data));
+    } on FirebaseFunctionsException catch (error) {
+      final message = error.message;
+      return left(
+        DataFailure(
+          message == null || error.code == _internalErrorCode
+              ? AppStrings.adminRechargeFailed
+              : message,
+        ),
+      );
+    } catch (_) {
+      return left(const DataFailure(AppStrings.adminRechargeFailed));
+    }
+  }
 
   Future<Either<Failure, RecordPage<RechargeTransaction>>> fetchPage({
     DateTime? from,
@@ -34,6 +70,10 @@ class RechargeRemoteDataSource {
       base = base.where(
         Filter.or(
           Filter(RechargeTransaction.rechargeAmountField, isEqualTo: amount),
+          Filter(
+            RechargeTransaction.adminRechargeAmountField,
+            isEqualTo: amount,
+          ),
           Filter(RechargeTransaction.adminCreditAmountField, isEqualTo: amount),
           Filter(RechargeTransaction.adminDebitAmountField, isEqualTo: amount),
         ),
@@ -99,6 +139,7 @@ class RechargeRemoteDataSource {
     }
 
     const rechargeField = RechargeTransaction.rechargeAmountField;
+    const adminRechargeField = RechargeTransaction.adminRechargeAmountField;
     const creditField = RechargeTransaction.adminCreditAmountField;
     const debitField = RechargeTransaction.adminDebitAmountField;
     try {
@@ -112,11 +153,16 @@ class RechargeRemoteDataSource {
         completed(RechargeTransaction.debitTypes)
             .aggregate(sum(debitField))
             .get(),
+        completed(RechargeTransaction.rechargeTypes)
+            .aggregate(sum(adminRechargeField))
+            .get(),
       ]);
       return right(
         RechargeTotals(
           rechargeCount: results[0].count ?? 0,
-          rechargeAmount: results[0].getSum(rechargeField) ?? 0,
+          rechargeAmount:
+              (results[0].getSum(rechargeField) ?? 0) +
+              (results[3].getSum(adminRechargeField) ?? 0),
           creditAmount: results[1].getSum(creditField) ?? 0,
           debitAmount: results[2].getSum(debitField) ?? 0,
         ),

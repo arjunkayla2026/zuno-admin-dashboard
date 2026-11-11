@@ -56,6 +56,22 @@ class UserRechargeSummary {
   final int receivedCoins;
 }
 
+class AdminRechargeResult {
+  const AdminRechargeResult({required this.walletBalance, required this.coins});
+
+  factory AdminRechargeResult.fromMap(Map<Object?, Object?> data) {
+    final walletBalance = data[RechargeTransaction.walletBalanceKey];
+    final coins = data[RechargeTransaction.coinsField];
+    return AdminRechargeResult(
+      walletBalance: walletBalance is num ? walletBalance : 0,
+      coins: coins is num ? coins.round() : 0,
+    );
+  }
+
+  final num walletBalance;
+  final int coins;
+}
+
 class RechargeTransaction {
   const RechargeTransaction({
     required this.id,
@@ -64,6 +80,8 @@ class RechargeTransaction {
     required this.status,
     required this.gateway,
     required this.amount,
+    this.isRechargedByAdmin = false,
+    this.receivedTotalAmount = 0,
     this.createdAt,
     this.orderId,
     this.paymentId,
@@ -77,6 +95,7 @@ class RechargeTransaction {
     final createdAt = data[createdAtField];
     final orderId = UserRecord.readText(data[razorpayOrderIdField]);
     final kind = _kinds[data[typeField]] ?? RechargeKind.recharge;
+    final isRechargedByAdmin = data[isRechargedByAdminField] == true;
 
     return RechargeTransaction(
       id: id,
@@ -86,7 +105,13 @@ class RechargeTransaction {
       gateway: orderId == null
           ? RechargeGateway.admin
           : RechargeGateway.razorpay,
-      amount: _readAmount(data[_amountFieldFor(kind)]),
+      amount: _readAmount(
+        data[isRechargedByAdmin
+            ? adminRechargeAmountField
+            : _amountFieldFor(kind)],
+      ),
+      isRechargedByAdmin: isRechargedByAdmin,
+      receivedTotalAmount: _readAmount(data[receivedTotalAmountField]),
       createdAt: createdAt is Timestamp ? createdAt.toDate() : null,
       orderId: orderId,
       paymentId: UserRecord.readText(data[razorpayPaymentIdField]),
@@ -95,7 +120,10 @@ class RechargeTransaction {
 
   static const String collection = 'transactions';
   static const String coinsField = 'coins';
+  static const String walletBalanceKey = 'walletBalance';
+  static const String isRechargedByAdminField = 'isRechargedByAdmin';
   static const String rechargeAmountField = 'rechargeAmount';
+  static const String adminRechargeAmountField = 'adminRechargeAmount';
   static const String amountFromOfferField = 'amountFromOffer';
   static const String adminCreditAmountField = 'adminCreditAmount';
   static const String adminDebitAmountField = 'adminDebitAmount';
@@ -161,6 +189,8 @@ class RechargeTransaction {
   final RechargeStatus status;
   final RechargeGateway gateway;
   final double amount;
+  final bool isRechargedByAdmin;
+  final double receivedTotalAmount;
   final DateTime? createdAt;
   final String? orderId;
   final String? paymentId;
@@ -198,7 +228,9 @@ class RechargeTransaction {
 
   bool get isCompleted => status == RechargeStatus.completed;
 
-  int get coins => isCompleted ? PackagePlan.coinsFor(amount) : 0;
+  int get coins => isCompleted
+      ? PackagePlan.coinsFor(isRechargedByAdmin ? receivedTotalAmount : amount)
+      : 0;
 
   bool get isAdminRecharge =>
       kind == RechargeKind.recharge && gateway == RechargeGateway.admin;
@@ -216,6 +248,8 @@ class RechargeTransaction {
     status: status,
     gateway: gateway,
     amount: amount,
+    isRechargedByAdmin: isRechargedByAdmin,
+    receivedTotalAmount: receivedTotalAmount,
     createdAt: createdAt,
     orderId: orderId,
     paymentId: paymentId,
