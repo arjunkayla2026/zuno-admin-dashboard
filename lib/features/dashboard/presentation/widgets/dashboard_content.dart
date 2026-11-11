@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
-import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
 import 'package:zuno_admin_dashboard/features/dashboard/presentation/state/dashboard_cubit.dart';
 import 'package:zuno_admin_dashboard/features/dashboard/presentation/state/dashboard_state.dart';
 import 'package:zuno_admin_dashboard/features/dashboard/presentation/widgets/dashboard_header.dart';
+import 'package:zuno_admin_dashboard/features/dashboard/presentation/widgets/dashboard_labels.dart';
 import 'package:zuno_admin_dashboard/features/dashboard/presentation/widgets/recent_recharge_card.dart';
 import 'package:zuno_admin_dashboard/features/dashboard/presentation/widgets/stat_section.dart';
 
@@ -25,21 +26,27 @@ class DashboardContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<DashboardCubit, DashboardState>(
       builder: (context, state) {
-        final rangeLabel = state.isCustomRange
-            ? '${DateFormatter.short(state.customStart)} – '
-                  '${DateFormatter.short(state.customEnd)}'
-            : AppStrings.today;
+        final rangeLabel = DashboardLabels.range(state);
+        final cubit = context.read<DashboardCubit>();
         final revenue = StatSection(
           title: AppStrings.revenueSummary,
           rangeLabel: rangeLabel,
-          stats: state.stats.revenue,
+          stats: DashboardLabels.revenue(state),
           columns: 3,
+          errorMessage: state.revenueStatus == LoadStatus.failure
+              ? state.revenueError
+              : null,
+          onRetry: cubit.retryRevenue,
         );
         final users = StatSection(
           title: AppStrings.userStatistics,
           rangeLabel: rangeLabel,
-          stats: state.stats.users,
+          stats: DashboardLabels.users(state),
           columns: 3,
+          errorMessage: state.accountsStatus == LoadStatus.failure
+              ? state.accountsError
+              : null,
+          onRetry: cubit.retryAccounts,
         );
 
         return SingleChildScrollView(
@@ -75,12 +82,17 @@ class DashboardContent extends StatelessWidget {
               StatSection(
                 title: AppStrings.callStatistics,
                 rangeLabel: rangeLabel,
-                stats: state.stats.calls,
+                stats: DashboardLabels.calls(state),
                 columns: 5,
                 tileMinHeight: _callTileHeight,
               ),
               const SizedBox(height: _tableGap),
-              RecentRechargeCard(recharges: state.recentRecharges),
+              RecentRechargeCard(
+                status: state.recentStatus,
+                recharges: state.recentRecharges,
+                errorMessage: state.recentError,
+                onRetry: cubit.retryRecent,
+              ),
             ],
           ),
         );

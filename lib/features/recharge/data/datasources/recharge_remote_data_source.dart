@@ -1,14 +1,20 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:fpdart/fpdart.dart';
+import 'package:zuno_admin_dashboard/core/data/data_revision.dart';
 import 'package:zuno_admin_dashboard/core/data/firestore_failures.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/models/recharge_transaction.dart';
 
 class RechargeRemoteDataSource {
-  const RechargeRemoteDataSource(this._firestore, this._functions);
+  const RechargeRemoteDataSource(
+    this._firestore,
+    this._functions, {
+    this._revision,
+  });
 
   static const String _collection = RechargeTransaction.collection;
   static const String _addAdminRechargeFunction = 'addAdminRecharge';
@@ -16,6 +22,7 @@ class RechargeRemoteDataSource {
 
   final FirebaseFirestore _firestore;
   final FirebaseFunctions _functions;
+  final DataRevision? _revision;
 
   String newTransactionId() => _firestore.collection(_collection).doc().id;
 
@@ -34,6 +41,7 @@ class RechargeRemoteDataSource {
             'expectedAmount': expectedAmount,
             'requestId': requestId,
           });
+      _revision?.bump();
       return right(AdminRechargeResult.fromMap(response.data));
     } on FirebaseFunctionsException catch (error) {
       final message = error.message;
@@ -111,32 +119,102 @@ class RechargeRemoteDataSource {
     }
   }
 
+  Query<Map<String, dynamic>> _completed(
+    List<String> types, {
+    DateTime? from,
+    DateTime? until,
+  }) {
+    var query = _firestore
+        .collection(_collection)
+        .where(
+          RechargeTransaction.statusField,
+          whereIn: RechargeTransaction.completedStatuses,
+        )
+        .where(RechargeTransaction.typeField, whereIn: types);
+    if (from != null) {
+      query = query.where(
+        RechargeTransaction.createdAtField,
+        isGreaterThanOrEqualTo: Timestamp.fromDate(from),
+      );
+    }
+    if (until != null) {
+      query = query.where(
+        RechargeTransaction.createdAtField,
+        isLessThan: Timestamp.fromDate(until),
+      );
+    }
+    return query;
+  }
+
+  Future<Either<Failure, List<AdminRechargeOffer>>> fetchAdminRechargeOffers({
+    required DateTime from,
+    required DateTime until,
+  }) async {
+    try {
+      final snapshot =
+          await _completed(
+                RechargeTransaction.rechargeTypes,
+                from: from,
+                until: until,
+              )
+              .where(
+                RechargeTransaction.isRechargedByAdminField,
+                isEqualTo: true,
+              )
+              .get();
+      return right([
+        for (final document in snapshot.docs)
+          ?AdminRechargeOffer.fromDocument(document.data()),
+      ]);
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.read(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsLoadFailed));
+    }
+  }
+
+  Future<Either<Failure, RechargeRevenue>> fetchRevenue({
+    DateTime? from,
+    DateTime? until,
+  }) async {
+    const rechargeField = RechargeTransaction.rechargeAmountField;
+    const adminRechargeField = RechargeTransaction.adminRechargeAmountField;
+    const gstField = RechargeTransaction.gstAmountField;
+    final recharges = _completed(
+      RechargeTransaction.rechargeTypes,
+      from: from,
+      until: until,
+    );
+    try {
+      final results = await Future.wait([
+        recharges.aggregate(sum(rechargeField)).get(),
+        recharges.aggregate(sum(adminRechargeField)).get(),
+        recharges.aggregate(sum(gstField)).get(),
+      ]);
+      return right(
+        RechargeRevenue(
+          paidAmount: NumberFormatter.roundAmount(
+            (results[0].getSum(rechargeField) ?? 0) +
+                (results[1].getSum(adminRechargeField) ?? 0),
+          ),
+          gstAmount: NumberFormatter.roundAmount(
+            results[2].getSum(gstField) ?? 0,
+          ),
+        ),
+      );
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.read(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsLoadFailed));
+    }
+  }
+
   Future<Either<Failure, RechargeTotals>> fetchTotals({
     DateTime? from,
     DateTime? until,
   }) async {
-    Query<Map<String, dynamic>> completed(List<String> types) {
-      var query = _firestore
-          .collection(_collection)
-          .where(
-            RechargeTransaction.statusField,
-            whereIn: RechargeTransaction.completedStatuses,
-          )
-          .where(RechargeTransaction.typeField, whereIn: types);
-      if (from != null) {
-        query = query.where(
-          RechargeTransaction.createdAtField,
-          isGreaterThanOrEqualTo: Timestamp.fromDate(from),
-        );
-      }
-      if (until != null) {
-        query = query.where(
-          RechargeTransaction.createdAtField,
-          isLessThan: Timestamp.fromDate(until),
-        );
-      }
-      return query;
-    }
+    Query<Map<String, dynamic>> completed(List<String> types) =>
+        _completed(types, from: from, until: until);
 
     const rechargeField = RechargeTransaction.rechargeAmountField;
     const adminRechargeField = RechargeTransaction.adminRechargeAmountField;

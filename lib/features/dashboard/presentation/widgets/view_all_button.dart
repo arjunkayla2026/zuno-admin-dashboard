@@ -5,20 +5,25 @@ import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 
 class ViewAllButton extends StatelessWidget {
-  const ViewAllButton({super.key, required this.label});
+  const ViewAllButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+  });
 
   static const double _height = 30;
   static const double _iconSize = 16;
   static const double _radius = 8;
 
   final String label;
+  final VoidCallback onPressed;
 
   @override
   Widget build(BuildContext context) {
     final color = context.colorScheme.onSurface;
 
     return OutlinedButton(
-      onPressed: () {},
+      onPressed: onPressed,
       style: OutlinedButton.styleFrom(
         minimumSize: const Size(0, _height),
         padding: const EdgeInsets.symmetric(horizontal: AppUtils.spacingMd),

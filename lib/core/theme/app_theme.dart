@@ -17,6 +17,10 @@ abstract final class AppTheme {
   static const double buttonHeight = 50;
   static const double compactButtonHeight = 38;
 
+  static const Duration pageTransitionDuration = Duration(milliseconds: 260);
+  static const Curve pageTransitionCurve = Curves.easeOutCubic;
+  static const double pageTransitionOffset = 12;
+
   static ThemeData get light => _build(
     colorScheme: const ColorScheme(
       brightness: Brightness.light,

@@ -587,6 +587,8 @@ abstract final class AppStrings {
   static const String creditAmount = 'Credit Amount';
   static const String debitAmount = 'Debit Amount';
   static const String noRechargesFound = 'No recharges found';
+  static const String noRecentRechargesMessage =
+      'Successful recharges will appear here as soon as they are completed.';
   static const String maintenanceMode = 'Maintenance Mode';
   static const String adminManagement = 'Admin Management';
   static const String notificationManagement = 'Notification Management';

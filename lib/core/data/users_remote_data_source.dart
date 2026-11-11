@@ -4,17 +4,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/approval_audit.dart';
+import 'package:zuno_admin_dashboard/core/data/data_revision.dart';
 import 'package:zuno_admin_dashboard/core/data/firestore_failures.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/data/search_keywords.dart';
+import 'package:zuno_admin_dashboard/core/data/user_account_totals.dart';
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 
 class UsersRemoteDataSource {
-  const UsersRemoteDataSource(this._firestore, this._auth);
+  const UsersRemoteDataSource(this._firestore, this._auth, {this._revision});
 
+  static const String userRole = 'user';
+  static const String hostRole = 'host';
   static const String _collection = 'users';
+  static const String _bonusField =
+      '${UserRecord.walletSourcesField}.${UserRecord.bonusField}';
   static const int _maxIdsPerQuery = 30;
   static const String _roleField = 'role';
   static const String _hostStatusField = 'hostDetails.hostStatus';
@@ -26,8 +32,9 @@ class UsersRemoteDataSource {
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
+  final DataRevision? _revision;
 
-  Future<Either<Failure, int>> countNotDeleted(
+  Future<(int total, int deleted)> _roleCounts(
     String role, {
     String? motherTongue,
   }) async {
@@ -37,17 +44,128 @@ class UsersRemoteDataSource {
     if (motherTongue != null) {
       base = base.where(_motherTongueField, isEqualTo: motherTongue);
     }
+    final counts = await Future.wait([
+      base.count().get(),
+      base.where(_deletedField, isEqualTo: true).count().get(),
+    ]);
+    return (counts[0].count ?? 0, counts[1].count ?? 0);
+  }
+
+  Future<Either<Failure, int>> countNotDeleted(
+    String role, {
+    String? motherTongue,
+  }) async {
     try {
-      final counts = await Future.wait([
-        base.count().get(),
-        base.where(_deletedField, isEqualTo: true).count().get(),
-      ]);
-      return right((counts[0].count ?? 0) - (counts[1].count ?? 0));
+      final (total, deleted) = await _roleCounts(
+        role,
+        motherTongue: motherTongue,
+      );
+      return right(total - deleted);
     } on FirebaseException catch (error) {
       return left(FirestoreFailures.read(error.code));
     } catch (_) {
       return left(const DataFailure(AppStrings.recordsLoadFailed));
     }
+  }
+
+  Future<Either<Failure, UserAccountTotals>> fetchAccountTotals({
+    DateTime? from,
+    DateTime? until,
+  }) async {
+    try {
+      return right(
+        from != null && until != null
+            ? await _accountTotalsBetween(from, until)
+            : await _allTimeAccountTotals(),
+      );
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.read(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsLoadFailed));
+    }
+  }
+
+  Future<UserAccountTotals> _accountTotalsBetween(
+    DateTime from,
+    DateTime until,
+  ) async {
+    final users = _firestore.collection(_collection);
+    Query<Map<String, dynamic>> between(
+      Query<Map<String, dynamic>> query,
+      String field,
+    ) => query
+        .where(field, isGreaterThanOrEqualTo: Timestamp.fromDate(from))
+        .where(field, isLessThan: Timestamp.fromDate(until));
+    Future<int> countOf(Query<Map<String, dynamic>> query) async =>
+        (await query.count().get()).count ?? 0;
+
+    final joined = between(
+      users,
+      _createdAtField,
+    ).orderBy(_createdAtField, descending: true);
+    final deleted = between(
+      users.where(_deletedField, isEqualTo: true),
+      UserRecord.deletedAtField,
+    );
+    final joinedUsers = joined.where(_roleField, isEqualTo: userRole);
+    final joinedHosts = joined.where(_roleField, isEqualTo: hostRole);
+    const bonusAmountField = UserRecord.welcomeBonusAmountField;
+
+    final results = await Future.wait<Object>([
+      countOf(joinedUsers),
+      countOf(joinedUsers.where(_deletedField, isEqualTo: true)),
+      countOf(joinedHosts),
+      countOf(joinedHosts.where(_deletedField, isEqualTo: true)),
+      countOf(deleted.where(_roleField, isEqualTo: userRole)),
+      countOf(deleted.where(_roleField, isEqualTo: hostRole)),
+      deleted.aggregate(sum(UserRecord.walletBalanceField)).get(),
+      between(
+        users,
+        UserRecord.welcomeBonusClaimedAtField,
+      ).aggregate(count(), sum(bonusAmountField)).get(),
+    ]);
+    final deletedWallets = results[6] as AggregateQuerySnapshot;
+    final welcomeBonuses = results[7] as AggregateQuerySnapshot;
+    return UserAccountTotals(
+      activeUsers: (results[0] as int) - (results[1] as int),
+      activeHosts: (results[2] as int) - (results[3] as int),
+      deletedUsers: results[4] as int,
+      deletedHosts: results[5] as int,
+      deletedWalletBalance:
+          deletedWallets.getSum(UserRecord.walletBalanceField) ?? 0,
+      bonusUsers: welcomeBonuses.count ?? 0,
+      bonusAmount: welcomeBonuses.getSum(bonusAmountField) ?? 0,
+    );
+  }
+
+  Future<UserAccountTotals> _allTimeAccountTotals() async {
+    final users = _firestore.collection(_collection);
+    final results = await Future.wait<Object>([
+      _roleCounts(userRole),
+      _roleCounts(hostRole),
+      users
+          .where(_deletedField, isEqualTo: true)
+          .aggregate(sum(UserRecord.walletBalanceField))
+          .get(),
+      users
+          .where(_bonusField, isGreaterThan: 0)
+          .aggregate(count(), sum(_bonusField))
+          .get(),
+    ]);
+    final (totalUsers, deletedUsers) = results[0] as (int, int);
+    final (totalHosts, deletedHosts) = results[1] as (int, int);
+    final deletedWallets = results[2] as AggregateQuerySnapshot;
+    final bonuses = results[3] as AggregateQuerySnapshot;
+    return UserAccountTotals(
+      activeUsers: totalUsers - deletedUsers,
+      activeHosts: totalHosts - deletedHosts,
+      deletedUsers: deletedUsers,
+      deletedHosts: deletedHosts,
+      deletedWalletBalance:
+          deletedWallets.getSum(UserRecord.walletBalanceField) ?? 0,
+      bonusUsers: bonuses.count ?? 0,
+      bonusAmount: bonuses.getSum(_bonusField) ?? 0,
+    );
   }
 
   Future<Either<Failure, RecordPage<UserRecord>>> fetchUsersPage(
@@ -166,6 +284,7 @@ class UsersRemoteDataSource {
           _updatedAtField: FieldValue.serverTimestamp(),
         });
       }
+      _revision?.bump();
       return right(unit);
     } on FirebaseException catch (error) {
       return left(FirestoreFailures.write(error.code));
@@ -309,7 +428,9 @@ class UsersRemoteDataSource {
       return left(const DataFailure(AppStrings.recordsSaveFailed));
     }
     final failure = refused;
-    return failure == null ? right(unit) : left(failure);
+    if (failure != null) return left(failure);
+    _revision?.bump();
+    return right(unit);
   }
 
   Future<Either<Failure, Unit>> adjustWallet(
@@ -332,8 +453,10 @@ class UsersRemoteDataSource {
     required bool blocked,
   }) => updateRecord(id, {_blockedField: blocked});
 
-  Future<Either<Failure, Unit>> markDeletedByAdmin(String id) => updateRecord(
-    id,
-    {_deletedField: true, UserRecord.deletedByField: UserRecord.deletedByAdmin},
-  );
+  Future<Either<Failure, Unit>> markDeletedByAdmin(String id) =>
+      updateRecord(id, {
+        _deletedField: true,
+        UserRecord.deletedByField: UserRecord.deletedByAdmin,
+        UserRecord.deletedAtField: FieldValue.serverTimestamp(),
+      });
 }

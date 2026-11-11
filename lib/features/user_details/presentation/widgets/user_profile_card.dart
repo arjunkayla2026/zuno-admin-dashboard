@@ -88,7 +88,7 @@ class UserProfileCard extends StatelessWidget {
                     ),
                     AppMetaField(
                       label: AppStrings.accountCreatedDate,
-                      value: user.createdDate,
+                      value: user.name,
                       minWidth: 152,
                     ),
                     AppMetaField(

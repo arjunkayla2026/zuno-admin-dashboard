@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:zuno_admin_dashboard/core/enums/date_range_filter.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
-import 'package:zuno_admin_dashboard/features/dashboard/presentation/state/dashboard_state.dart';
+import 'package:zuno_admin_dashboard/features/dashboard/presentation/widgets/dashboard_labels.dart';
 
 class DateRangeDropdown extends StatelessWidget {
   const DateRangeDropdown({
@@ -18,29 +18,27 @@ class DateRangeDropdown extends StatelessWidget {
   static const double _height = 40;
   static const double _iconSize = 18;
 
-  final DashboardRangeType value;
-  final ValueChanged<DashboardRangeType> onChanged;
-
-  static String _label(DashboardRangeType type) => switch (type) {
-    DashboardRangeType.today => AppStrings.today,
-    DashboardRangeType.custom => AppStrings.customDateRange,
-  };
+  final DateRangeFilter value;
+  final ValueChanged<DateRangeFilter> onChanged;
 
   @override
   Widget build(BuildContext context) {
     final textColor = context.colorScheme.onSurface;
     final mutedColor = context.appColors.textSecondary;
 
-    return PopupMenuButton<DashboardRangeType>(
+    return PopupMenuButton<DateRangeFilter>(
       initialValue: value,
       onSelected: onChanged,
       position: PopupMenuPosition.under,
       constraints: const BoxConstraints.tightFor(width: _width),
       itemBuilder: (_) => [
-        for (final type in DashboardRangeType.values)
+        for (final type in DashboardLabels.filterOptions)
           PopupMenuItem(
             value: type,
-            child: Text(_label(type), style: AppTextStyles.bodySmall),
+            child: Text(
+              DashboardLabels.filter(type),
+              style: AppTextStyles.bodySmall,
+            ),
           ),
       ],
       child: Container(
@@ -58,7 +56,7 @@ class DateRangeDropdown extends StatelessWidget {
             const SizedBox(width: AppUtils.spacingMd),
             Expanded(
               child: Text(
-                _label(value),
+                DashboardLabels.filter(value),
                 style: AppTextStyles.labelSmall.copyWith(color: textColor),
               ),
             ),

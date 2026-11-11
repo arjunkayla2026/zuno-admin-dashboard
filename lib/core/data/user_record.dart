@@ -23,6 +23,7 @@ class UserRecord {
     this.submittedImageUrl,
     this.avatarApprovedAt,
     this.avatarApprovedBy,
+    this.welcomeBonusClaimedAt,
   });
 
   factory UserRecord.fromDocument(String id, Map<String, dynamic> data) {
@@ -56,6 +57,7 @@ class UserRecord {
       submittedImageUrl: readText(data[submittedImageField]),
       avatarApprovedAt: readDate(data[avatarApprovedAtField]),
       avatarApprovedBy: readText(data[avatarApprovedByField]),
+      welcomeBonusClaimedAt: readDate(data[welcomeBonusClaimedAtField]),
     );
   }
 
@@ -86,6 +88,10 @@ class UserRecord {
   static const String walletSourcesField = 'walletSources';
   static const String adminCreditField = 'adminCredit';
   static const String adminDebitField = 'adminDebit';
+  static const String bonusField = 'bonus';
+  static const String deletedAtField = 'deletedAt';
+  static const String welcomeBonusClaimedAtField = 'welcomeBonusClaimedAt';
+  static const String welcomeBonusAmountField = 'welcomeBonusAmount';
   static const Duration _newAccountWindow = Duration(days: 7);
   static const int _nationalNumberLength = 10;
   static const int _nationalNumberGroup = 5;
@@ -109,6 +115,7 @@ class UserRecord {
   final String? submittedImageUrl;
   final DateTime? avatarApprovedAt;
   final String? avatarApprovedBy;
+  final DateTime? welcomeBonusClaimedAt;
 
   static String? readText(Object? value) {
     if (value is! String) return null;

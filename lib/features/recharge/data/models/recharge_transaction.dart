@@ -26,6 +26,29 @@ class RechargeTotals {
   final double debitAmount;
 }
 
+class RechargeRevenue {
+  const RechargeRevenue({required this.paidAmount, required this.gstAmount});
+
+  final double paidAmount;
+  final double gstAmount;
+
+  double get netAmount => NumberFormatter.roundAmount(paidAmount - gstAmount);
+}
+
+class AdminRechargeOffer {
+  const AdminRechargeOffer({required this.userId, required this.amount});
+
+  static AdminRechargeOffer? fromDocument(Map<String, dynamic> data) {
+    final userId = UserRecord.readText(data[RechargeTransaction.userIdField]);
+    final amount = data[RechargeTransaction.amountFromOfferField];
+    if (userId == null || amount is! num || amount <= 0) return null;
+    return AdminRechargeOffer(userId: userId, amount: amount.toDouble());
+  }
+
+  final String userId;
+  final double amount;
+}
+
 class UserRechargeSummary {
   const UserRechargeSummary({
     required this.totalRecharge,
@@ -128,6 +151,7 @@ class RechargeTransaction {
   static const String adminCreditAmountField = 'adminCreditAmount';
   static const String adminDebitAmountField = 'adminDebitAmount';
   static const String receivedTotalAmountField = 'receivedTotalAmount';
+  static const String gstAmountField = 'gstAmount';
   static const String descriptionField = 'description';
   static const String adminUidField = 'adminUid';
 

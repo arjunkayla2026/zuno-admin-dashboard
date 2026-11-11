@@ -72,13 +72,10 @@ abstract final class RecordPages {
       final snapshot = await query.get();
       final documents = snapshot.docs;
       return right(
-        RecordPage(
-          [
-            for (final document in documents)
-              toRecord(document.id, document.data()),
-          ],
-          nextCursor: documents.length == pageSize ? documents.last : null,
-        ),
+        RecordPage([
+          for (final document in documents)
+            toRecord(document.id, document.data()),
+        ], nextCursor: documents.length == pageSize ? documents.last : null),
       );
     } on FirebaseException catch (error) {
       return left(FirestoreFailures.read(error.code));

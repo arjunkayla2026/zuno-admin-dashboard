@@ -29,6 +29,7 @@ class AppDateFilterButton extends StatelessWidget {
 
   static String _optionLabel(DateRangeFilter filter) => switch (filter) {
     DateRangeFilter.all => AppStrings.allDates,
+    DateRangeFilter.today => AppStrings.today,
     DateRangeFilter.yesterday => AppStrings.yesterday,
     DateRangeFilter.last7Days => AppStrings.last7Days,
     DateRangeFilter.last30Days => AppStrings.last30Days,
