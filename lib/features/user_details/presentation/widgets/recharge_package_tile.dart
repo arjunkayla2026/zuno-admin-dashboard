@@ -45,10 +45,12 @@ class RechargePackageTile extends StatelessWidget {
           ),
           child: Row(
             children: [
-              Text(
-                NumberFormatter.rupees(package.price),
-                style: AppTextStyles.labelSmall.copyWith(
-                  color: selected ? AppColors.white : AppColors.segmentText,
+              Flexible(
+                child: Text(
+                  package.priceLabel,
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: selected ? AppColors.white : AppColors.segmentText,
+                  ),
                 ),
               ),
               const SizedBox(width: _gap),
