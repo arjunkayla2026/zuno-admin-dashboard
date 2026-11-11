@@ -19,6 +19,7 @@ enum AdminRole {
 
 class AdminAccount {
   const AdminAccount({
+    this.id = '',
     required this.name,
     required this.email,
     required this.role,
@@ -31,9 +32,14 @@ class AdminAccount {
     final permissions = data[permissionsField];
     final createdAt = data[createdAtField];
 
+    final email = normalizeEmail(
+      _text(data[emailField]) ?? (id.contains('@') ? id : ''),
+    );
+
     return AdminAccount(
-      name: _text(data[nameField]) ?? id,
-      email: normalizeEmail(_text(data[emailField]) ?? id),
+      id: id,
+      name: _text(data[nameField]) ?? email,
+      email: email,
       role: AdminRole.fromKey(data[roleField]),
       phone: _text(data[phoneField]) ?? '',
       modules: permissions is List
@@ -55,6 +61,7 @@ class AdminAccount {
   static const String updatedAtField = 'updatedAt';
   static const int minPasswordLength = 12;
 
+  final String id;
   final String name;
   final String email;
   final AdminRole role;
@@ -106,6 +113,7 @@ class AdminAccount {
   };
 
   AdminAccount copyWith({
+    String? id,
     String? name,
     String? email,
     AdminRole? role,
@@ -114,6 +122,7 @@ class AdminAccount {
     DateTime? createdAt,
   }) {
     return AdminAccount(
+      id: id ?? this.id,
       name: name ?? this.name,
       email: email ?? this.email,
       role: role ?? this.role,

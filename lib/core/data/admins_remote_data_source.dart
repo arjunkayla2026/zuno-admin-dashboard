@@ -19,8 +19,12 @@ class AdminsRemoteDataSource {
   CollectionReference<Map<String, dynamic>> get _admins =>
       _firestore.collection(_collection);
 
-  DocumentReference<Map<String, dynamic>> _document(String email) =>
-      _admins.doc(AdminAccount.normalizeEmail(email));
+  Query<Map<String, dynamic>> _byEmail(String email) => _admins
+      .where(
+        AdminAccount.emailField,
+        isEqualTo: AdminAccount.normalizeEmail(email),
+      )
+      .limit(1);
 
   Future<Either<Failure, List<AdminAccount>>> fetchAdmins() => _read(() async {
     final snapshot = await _admins.get();
@@ -30,44 +34,47 @@ class AdminsRemoteDataSource {
     ];
   });
 
-  Future<Either<Failure, AdminAccount?>> findByEmail(String email) => _read(
-    () async {
-      final snapshot = await _document(email).get();
-      final data = snapshot.data();
-      return data == null ? null : AdminAccount.fromDocument(data, snapshot.id);
-    },
-  );
+  Future<Either<Failure, AdminAccount?>> findByEmail(String email) =>
+      _read(() async {
+        final snapshot = await _byEmail(email).get();
+        final document = snapshot.docs.firstOrNull;
+        return document == null
+            ? null
+            : AdminAccount.fromDocument(document.data(), document.id);
+      });
 
   Future<Either<Failure, bool>> hasAnyAdmin() => _read(() async {
     final snapshot = await _admins.limit(1).get();
     return snapshot.docs.isNotEmpty;
   });
 
-  Future<Either<Failure, Unit>> createAdmin(AdminAccount admin) async {
-    final reference = _document(admin.email);
-    var exists = false;
+  Future<Either<Failure, String>> createAdmin(AdminAccount admin) async {
+    final existing = await findByEmail(admin.email);
+    if (existing case Left(:final value)) return left(value);
+    if (existing.getOrElse((_) => null) != null) {
+      return left(const DataFailure(AppStrings.adminEmailExists));
+    }
+
+    final reference = _admins.doc();
     final result = await _write(
-      () => _firestore.runTransaction((transaction) async {
-        final snapshot = await transaction.get(reference);
-        if (snapshot.exists) {
-          exists = true;
-          return;
-        }
-        transaction.set(reference, {
-          ...admin.toFields(),
-          AdminAccount.createdAtField: FieldValue.serverTimestamp(),
-          AdminAccount.updatedAtField: FieldValue.serverTimestamp(),
-        });
+      () => reference.set({
+        ...admin.toFields(),
+        AdminAccount.createdAtField: FieldValue.serverTimestamp(),
+        AdminAccount.updatedAtField: FieldValue.serverTimestamp(),
       }),
     );
-    if (exists) return left(const DataFailure(AppStrings.adminEmailExists));
-    return result;
+    return result.map((_) => reference.id);
   }
 
   Future<Either<Failure, Unit>> updateAdmin(AdminAccount admin) {
+    if (admin.id.isEmpty) {
+      return Future.value(
+        left(const DataFailure(AppStrings.recordsSaveFailed)),
+      );
+    }
     final fields = admin.toFields()..remove(AdminAccount.emailField);
     return _write(
-      () => _document(admin.email).update({
+      () => _admins.doc(admin.id).update({
         ...fields,
         AdminAccount.updatedAtField: FieldValue.serverTimestamp(),
       }),

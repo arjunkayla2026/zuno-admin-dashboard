@@ -89,6 +89,6 @@ class AuthRepository {
       createdAt: DateTime.now(),
     );
     final created = await _adminsDataSource.createAdmin(owner);
-    return created.map((_) => owner);
+    return created.map((id) => owner.copyWith(id: id));
   }
 }

@@ -84,6 +84,7 @@ class SettingsRepository {
     String? password,
   }) async {
     final normalized = admin.copyWith(
+      id: replacing?.id,
       email: AdminAccount.normalizeEmail(replacing?.email ?? admin.email),
       createdAt: replacing?.createdAt ?? DateTime.now(),
     );
@@ -113,6 +114,6 @@ class SettingsRepository {
       if (login case Left(:final value)) return left(value);
     }
     final result = await _adminsDataSource.createAdmin(normalized);
-    return result.map((_) => normalized);
+    return result.map((id) => normalized.copyWith(id: id));
   }
 }
