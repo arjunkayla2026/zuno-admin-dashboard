@@ -65,20 +65,10 @@ Future<void> _showSentDialog(
   BuildContext context,
   NotificationSendResult sent,
 ) {
-  final summary = AppStrings.notificationSentMessage(
-    delivered: NumberFormatter.grouped(sent.successCount),
-    recipients: NumberFormatter.grouped(sent.recipientCount),
-  );
-  final hasGaps = sent.failureCount > 0 || sent.missingTokenCount > 0;
-  final note = AppStrings.notificationDeliveryNote(
-    failed: NumberFormatter.grouped(sent.failureCount),
-    withoutDevice: NumberFormatter.grouped(sent.missingTokenCount),
-  );
-
   return showAppSuccessDialog(
     context: context,
     title: AppStrings.notificationSentTitle,
-    message: hasGaps ? '$summary $note' : summary,
+    message: AppStrings.notificationSentMessage(sent.topics.join(', ')),
     actionLabel: AppStrings.done,
   );
 }

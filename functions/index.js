@@ -5,28 +5,54 @@ const {setGlobalOptions} = require("firebase-functions");
 const {HttpsError, onCall} = require("firebase-functions/https");
 const logger = require("firebase-functions/logger");
 const {requireNotificationAdmin} = require("./src/admin_access");
-const {createDelivery} = require("./src/delivery");
 const {parseNotificationRequest} = require("./src/notification_request");
-const {recipientsFor} = require("./src/recipients");
+const {targetsFor, topicsFor} = require("./src/topics");
 
 initializeApp();
 setGlobalOptions({region: "asia-south1", maxInstances: 10});
 
 const NOTIFICATIONS_COLLECTION = "notifications";
 
-const statusFor = ({tokenCount, successCount, failureCount}) => {
-  if (tokenCount === 0) return "noRecipients";
+const statusFor = ({successCount, failureCount}) => {
   if (failureCount === 0) return "sent";
   if (successCount === 0) return "failed";
   return "partiallySent";
 };
 
+const sendToTargets = async (messaging, notificationId, request, targets) => {
+  const payload = {
+    notification: {title: request.title, body: request.message},
+    data: {notificationId, type: "adminNotification"},
+  };
+  const results = await Promise.all(targets.map(async (target) => {
+    try {
+      const messageId = await messaging.send({...payload, ...target});
+      return {...target, messageId};
+    } catch (error) {
+      logger.error("FCM topic send failed.", {
+        notificationId,
+        ...target,
+        code: error.code,
+        errorMessage: error.message,
+      });
+      return {...target, error: error.code || "unknown"};
+    }
+  }));
+  const successCount = results.filter((item) => item.messageId).length;
+  return {
+    deliveries: results,
+    successCount,
+    failureCount: results.length - successCount,
+  };
+};
+
 exports.sendAdminNotification = onCall(
-    {timeoutSeconds: 540, memory: "512MiB"},
+    {timeoutSeconds: 60},
     async (callRequest) => {
       const firestore = getFirestore();
       const admin = await requireNotificationAdmin(firestore, callRequest.auth);
       const request = parseNotificationRequest(callRequest.data);
+      const topics = topicsFor(request);
 
       const reference = firestore.collection(NOTIFICATIONS_COLLECTION).doc();
       await reference.set({
@@ -34,48 +60,38 @@ exports.sendAdminNotification = onCall(
         message: request.message,
         audience: request.audience,
         motherTongues: request.motherTongues,
+        topics,
         status: "sending",
         createdBy: admin.uid,
         createdByEmail: admin.email,
         createdAt: FieldValue.serverTimestamp(),
       });
 
-      const delivery = createDelivery(getMessaging(), reference.id, request);
-      try {
-        for await (const recipient of recipientsFor(firestore, request)) {
-          await delivery.add(recipient);
-        }
-        await delivery.flush();
-      } catch (error) {
-        logger.error("Sending admin notification failed.", {
-          notificationId: reference.id,
-          code: error.code,
-          errorMessage: error.message,
-        });
-        await reference.update({
-          ...delivery.stats,
-          status: "failed",
-          error: "Recipients could not be loaded.",
-          completedAt: FieldValue.serverTimestamp(),
-        });
-        throw new HttpsError(
-            "internal",
-            "The notification could not be sent. Try again.",
-            {notificationId: reference.id},
-        );
-      }
-
-      const status = statusFor(delivery.stats);
+      const result = await sendToTargets(
+          getMessaging(),
+          reference.id,
+          request,
+          targetsFor(topics),
+      );
+      const status = statusFor(result);
       await reference.update({
-        ...delivery.stats,
+        ...result,
         status,
         completedAt: FieldValue.serverTimestamp(),
       });
       logger.info("Admin notification processed.", {
         notificationId: reference.id,
         status,
-        ...delivery.stats,
+        topics,
       });
-      return {notificationId: reference.id, status, ...delivery.stats};
+
+      if (status === "failed") {
+        throw new HttpsError(
+            "internal",
+            "The notification could not be sent. Try again.",
+            {notificationId: reference.id},
+        );
+      }
+      return {notificationId: reference.id, status, topics};
     },
 );

@@ -43,29 +43,16 @@ class NotificationRequest {
 }
 
 class NotificationSendResult {
-  const NotificationSendResult({
-    required this.recipientCount,
-    required this.successCount,
-    required this.failureCount,
-    required this.missingTokenCount,
-  });
+  const NotificationSendResult({required this.topics});
 
   factory NotificationSendResult.fromMap(Map<Object?, Object?> data) {
-    int count(String key) => switch (data[key]) {
-      final num value => value.toInt(),
-      _ => 0,
-    };
-
     return NotificationSendResult(
-      recipientCount: count('recipientCount'),
-      successCount: count('successCount'),
-      failureCount: count('failureCount'),
-      missingTokenCount: count('missingTokenCount'),
+      topics: switch (data['topics']) {
+        final List<Object?> values => values.whereType<String>().toList(),
+        _ => const [],
+      },
     );
   }
 
-  final int recipientCount;
-  final int successCount;
-  final int failureCount;
-  final int missingTokenCount;
+  final List<String> topics;
 }

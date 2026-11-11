@@ -693,17 +693,8 @@ abstract final class AppStrings {
   static const String notificationSendDenied =
       'Your account is not allowed to send notifications.';
 
-  static String notificationSentMessage({
-    required String delivered,
-    required String recipients,
-  }) => 'Delivered to $delivered of $recipients recipients.';
-
-  static String notificationDeliveryNote({
-    required String failed,
-    required String withoutDevice,
-  }) =>
-      '$failed could not be delivered and $withoutDevice have no registered '
-      'device.';
+  static String notificationSentMessage(String topics) =>
+      'Sent to every device subscribed to $topics.';
 
   static String hostsForLanguages(String languages) => 'Hosts ($languages)';
 

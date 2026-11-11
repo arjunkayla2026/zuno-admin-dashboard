@@ -1,14 +1,8 @@
 const {HttpsError} = require("firebase-functions/https");
+const {HOST_LANGUAGE_TOPICS} = require("./topics");
 
 const AUDIENCES = Object.freeze(["user", "host", "both"]);
-const MOTHER_TONGUES = Object.freeze([
-  "english",
-  "malayalam",
-  "tamil",
-  "hindi",
-  "kannada",
-  "telugu",
-]);
+const MOTHER_TONGUES = Object.freeze(Object.keys(HOST_LANGUAGE_TOPICS));
 const TITLE_MAX_LENGTH = 100;
 const MESSAGE_MAX_LENGTH = 1000;
 
