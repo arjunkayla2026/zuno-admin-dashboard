@@ -26,7 +26,7 @@ const DEFAULTS = {
   setHostPrice: {
     audio: channelPrice(),
     video: channelPrice(),
-    message: channelPrice(),
+    message: { adminAmount: 0 },
     surgeCharge: [],
   },
   appVersion: {

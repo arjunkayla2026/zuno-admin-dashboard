@@ -3,11 +3,14 @@ import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 enum PricingChannel {
   audio('audio'),
   video('video'),
-  message('message');
+  message('message', hasHostAmount: false);
 
-  const PricingChannel(this.key);
+  const PricingChannel(this.key, {this.hasHostAmount = true});
 
   final String key;
+  final bool hasHostAmount;
+
+  bool supports(PricingSide side) => side == PricingSide.admin || hasHostAmount;
 }
 
 enum PricingSide { admin, host }
@@ -34,9 +37,10 @@ class ChannelPricing {
     PricingSide.host => hostAmount,
   };
 
-  Map<String, Object?> toMap() => {
+  Map<String, Object?> toMap({bool includeHostAmount = true}) => {
     adminAmountField: NumberFormatter.roundAmount(adminAmount),
-    hostAmountField: NumberFormatter.roundAmount(hostAmount),
+    if (includeHostAmount)
+      hostAmountField: NumberFormatter.roundAmount(hostAmount),
   };
 
   static double _amount(Object? value) =>
@@ -55,7 +59,10 @@ class HostPricing {
     return HostPricing(
       audio: ChannelPricing.fromMap(data[PricingChannel.audio.key]),
       video: ChannelPricing.fromMap(data[PricingChannel.video.key]),
-      message: ChannelPricing.fromMap(data[PricingChannel.message.key]),
+      message: ChannelPricing(
+        adminAmount: ChannelPricing.fromMap(data[PricingChannel.message.key])
+            .adminAmount,
+      ),
     );
   }
 
@@ -73,6 +80,6 @@ class HostPricing {
 
   Map<String, Object?> toMap() => {
     for (final channel in PricingChannel.values)
-      channel.key: of(channel).toMap(),
+      channel.key: of(channel).toMap(includeHostAmount: channel.hasHostAmount),
   };
 }

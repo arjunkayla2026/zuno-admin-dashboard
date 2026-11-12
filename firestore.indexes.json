@@ -359,24 +359,6 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "adminRechargeAmount",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "transactions",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "status",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "type",
-          "order": "ASCENDING"
-        },
-        {
           "fieldPath": "adminDebitAmount",
           "order": "ASCENDING"
         }
@@ -422,28 +404,6 @@
         },
         {
           "fieldPath": "adminCreditAmount",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "transactions",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "status",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "type",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "createdAt",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "adminRechargeAmount",
           "order": "ASCENDING"
         }
       ]
@@ -562,24 +522,6 @@
       "fields": [
         {
           "fieldPath": "adminCreditAmount",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "userId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "createdAt",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "transactions",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "adminRechargeAmount",
           "order": "ASCENDING"
         },
         {

@@ -230,15 +230,15 @@ abstract final class AppStrings {
       'Blocked hosts cannot sign in, receive calls or reply to messages.';
 
   static const String pricingSubtitle =
-      'Set the admin and host amounts for audio calls, video calls and messages.';
-  static const String audioCallRateField = 'Audio call (₹ per second)';
-  static const String videoCallRateField = 'Video call (₹ per second)';
+      'Set the admin and host amounts for audio and video calls, and the admin amount for messages.';
+  static const String audioCallRateField = 'Audio call (₹ per minute)';
+  static const String videoCallRateField = 'Video call (₹ per minute)';
   static const String messageRateField = 'Message (₹ per message)';
   static const String savePrices = 'Save prices';
 
-  static String audioRateSummary(String amount) => 'Audio $amount/sec';
+  static String audioRateSummary(String amount) => 'Audio $amount/min';
 
-  static String videoRateSummary(String amount) => 'Video $amount/sec';
+  static String videoRateSummary(String amount) => 'Video $amount/min';
 
   static String messageRateSummary(String amount) => 'Message $amount';
 

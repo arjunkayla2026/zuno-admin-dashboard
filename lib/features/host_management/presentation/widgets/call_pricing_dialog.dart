@@ -53,7 +53,7 @@ class _CallPricingDialogState extends State<CallPricingDialog> {
   late final Map<(PricingChannel, PricingSide), TextEditingController>
   _amounts = {
     for (final channel in PricingChannel.values)
-      for (final side in PricingSide.values)
+      for (final side in PricingSide.values.where(channel.supports))
         (channel, side): TextEditingController(
           text: NumberFormatter.amountInput(
             widget.pricing.of(channel).amountFor(side),
@@ -64,8 +64,9 @@ class _CallPricingDialogState extends State<CallPricingDialog> {
   double? _amount(PricingChannel channel, PricingSide side) =>
       NumberFormatter.tryParseAmount(_amounts[(channel, side)]!.text);
 
-  bool _sideIsValid(PricingSide side) =>
-      PricingChannel.values.every((channel) => _amount(channel, side) != null);
+  bool _sideIsValid(PricingSide side) => PricingChannel.values.every(
+    (channel) => !channel.supports(side) || _amount(channel, side) != null,
+  );
 
   HostPricing _pricing() => HostPricing(
     audio: _channel(PricingChannel.audio),
@@ -75,7 +76,7 @@ class _CallPricingDialogState extends State<CallPricingDialog> {
 
   ChannelPricing _channel(PricingChannel channel) => ChannelPricing(
     adminAmount: _amount(channel, PricingSide.admin)!,
-    hostAmount: _amount(channel, PricingSide.host)!,
+    hostAmount: channel.hasHostAmount ? _amount(channel, PricingSide.host)! : 0,
   );
 
   Future<void> _save() async {
@@ -181,8 +182,10 @@ class _CallPricingDialogState extends State<CallPricingDialog> {
                 ),
               ],
             ),
-            const SizedBox(height: _rowGap),
-            _amountField(AppStrings.messageRateField, PricingChannel.message),
+            if (PricingChannel.message.supports(_side)) ...[
+              const SizedBox(height: _rowGap),
+              _amountField(AppStrings.messageRateField, PricingChannel.message),
+            ],
             if (error != null) ...[
               const SizedBox(height: _rowGap),
               AppErrorBanner(message: error),

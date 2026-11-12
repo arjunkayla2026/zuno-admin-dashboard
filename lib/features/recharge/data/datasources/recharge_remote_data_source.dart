@@ -78,10 +78,6 @@ class RechargeRemoteDataSource {
       base = base.where(
         Filter.or(
           Filter(RechargeTransaction.rechargeAmountField, isEqualTo: amount),
-          Filter(
-            RechargeTransaction.adminRechargeAmountField,
-            isEqualTo: amount,
-          ),
           Filter(RechargeTransaction.adminCreditAmountField, isEqualTo: amount),
           Filter(RechargeTransaction.adminDebitAmountField, isEqualTo: amount),
         ),
@@ -178,7 +174,6 @@ class RechargeRemoteDataSource {
     DateTime? until,
   }) async {
     const rechargeField = RechargeTransaction.rechargeAmountField;
-    const adminRechargeField = RechargeTransaction.adminRechargeAmountField;
     const gstField = RechargeTransaction.gstAmountField;
     final recharges = _completed(
       RechargeTransaction.rechargeTypes,
@@ -186,20 +181,15 @@ class RechargeRemoteDataSource {
       until: until,
     );
     try {
-      final results = await Future.wait([
-        recharges.aggregate(sum(rechargeField)).get(),
-        recharges.aggregate(sum(adminRechargeField)).get(),
-        recharges.aggregate(sum(gstField)).get(),
-      ]);
+      final result = await recharges
+          .aggregate(sum(rechargeField), sum(gstField))
+          .get();
       return right(
         RechargeRevenue(
           paidAmount: NumberFormatter.roundAmount(
-            (results[0].getSum(rechargeField) ?? 0) +
-                (results[1].getSum(adminRechargeField) ?? 0),
+            result.getSum(rechargeField) ?? 0,
           ),
-          gstAmount: NumberFormatter.roundAmount(
-            results[2].getSum(gstField) ?? 0,
-          ),
+          gstAmount: NumberFormatter.roundAmount(result.getSum(gstField) ?? 0),
         ),
       );
     } on FirebaseException catch (error) {
@@ -217,7 +207,6 @@ class RechargeRemoteDataSource {
         _completed(types, from: from, until: until);
 
     const rechargeField = RechargeTransaction.rechargeAmountField;
-    const adminRechargeField = RechargeTransaction.adminRechargeAmountField;
     const creditField = RechargeTransaction.adminCreditAmountField;
     const debitField = RechargeTransaction.adminDebitAmountField;
     try {
@@ -231,16 +220,11 @@ class RechargeRemoteDataSource {
         completed(RechargeTransaction.debitTypes)
             .aggregate(sum(debitField))
             .get(),
-        completed(RechargeTransaction.rechargeTypes)
-            .aggregate(sum(adminRechargeField))
-            .get(),
       ]);
       return right(
         RechargeTotals(
           rechargeCount: results[0].count ?? 0,
-          rechargeAmount:
-              (results[0].getSum(rechargeField) ?? 0) +
-              (results[3].getSum(adminRechargeField) ?? 0),
+          rechargeAmount: results[0].getSum(rechargeField) ?? 0,
           creditAmount: results[1].getSum(creditField) ?? 0,
           debitAmount: results[2].getSum(debitField) ?? 0,
         ),

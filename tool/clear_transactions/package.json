@@ -1,0 +1,12 @@
+{
+  "name": "zuno-clear-transactions",
+  "private": true,
+  "description": "Backs up and deletes every document in the Firestore transactions collection with the Firebase Admin SDK.",
+  "scripts": {
+    "dry-run": "node clear.js",
+    "delete-all": "node clear.js --apply"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0"
+  }
+}

@@ -44,7 +44,16 @@ class SettingsRemoteDataSource {
   Future<Either<Failure, Unit>> saveHostPricing(HostPricing pricing) async {
     try {
       await _app.set({
-        HostPricing.field: pricing.toMap(),
+        HostPricing.field: {
+          for (final channel in PricingChannel.values)
+            channel.key: {
+              ...pricing
+                  .of(channel)
+                  .toMap(includeHostAmount: channel.hasHostAmount),
+              if (!channel.hasHostAmount)
+                ChannelPricing.hostAmountField: FieldValue.delete(),
+            },
+        },
         updatedAtField: FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
       return right(unit);
