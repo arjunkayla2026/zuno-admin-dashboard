@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_date_filter_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_filter_dropdown.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_search_field.dart';
 import 'package:zuno_admin_dashboard/features/calls/presentation/state/calls_cubit.dart';
 import 'package:zuno_admin_dashboard/features/calls/presentation/state/calls_state.dart';
+import 'package:zuno_admin_dashboard/features/calls/presentation/widgets/call_log_labels.dart';
 import 'package:zuno_admin_dashboard/features/calls/presentation/widgets/total_calls_card.dart';
 
 class CallsToolbar extends StatelessWidget {
@@ -15,34 +17,6 @@ class CallsToolbar extends StatelessWidget {
   static const double _runGap = 8;
   static const double _statusWidth = 220;
   static const double _typeWidth = 208;
-  static const double _periodWidth = 122;
-
-  static String _dateLabel(CallDateFilter date) => switch (date) {
-    CallDateFilter.today => AppStrings.today,
-    CallDateFilter.yesterday => AppStrings.yesterday,
-  };
-
-  static String _statusLabel(CallStatusFilter status) => switch (status) {
-    CallStatusFilter.incoming => AppStrings.incomingCalls,
-    CallStatusFilter.completed => AppStrings.completedCalls,
-    CallStatusFilter.busy => AppStrings.busyCalls,
-    CallStatusFilter.rejected => AppStrings.rejectedCalls,
-    CallStatusFilter.notAnswered => AppStrings.notAnsweredCalls,
-    CallStatusFilter.lowBalance => AppStrings.lowBalanceCalls,
-    CallStatusFilter.missed => AppStrings.missedCalls,
-  };
-
-  static String _typeLabel(CallTypeOption type) => switch (type) {
-    CallTypeOption.all => AppStrings.callsType,
-    CallTypeOption.audio => AppStrings.audioCall,
-    CallTypeOption.video => AppStrings.videoCall,
-  };
-
-  static String _periodLabel(CallPeriod period) => switch (period) {
-    CallPeriod.day => AppStrings.day,
-    CallPeriod.week => AppStrings.week,
-    CallPeriod.month => AppStrings.month,
-  };
 
   @override
   Widget build(BuildContext context) {
@@ -60,38 +34,33 @@ class CallsToolbar extends StatelessWidget {
                 ? constraints.maxWidth
                 : _searchWidth,
             child: AppSearchField(
-              hint: AppStrings.searchUsersHint,
+              hint: AppStrings.searchCallsHint,
               onChanged: cubit.search,
             ),
           ),
-          AppFilterDropdown<CallDateFilter>(
-            value: state.date,
-            options: CallDateFilter.values,
-            labelOf: _dateLabel,
-            onSelected: cubit.selectDate,
+          AppDateFilterButton(
+            value: state.dateFilter,
+            today: state.today,
+            customRange: state.customRange,
+            options: CallsState.dateOptions,
+            onFilterSelected: cubit.selectDateFilter,
+            onCustomRangeSelected: cubit.selectCustomRange,
           ),
           AppFilterDropdown<CallStatusFilter>(
-            value: state.status,
+            value: state.statusFilter,
             options: CallStatusFilter.values,
-            labelOf: _statusLabel,
+            labelOf: CallLogLabels.statusFilter,
             onSelected: cubit.selectStatus,
             width: _statusWidth,
           ),
           AppFilterDropdown<CallTypeOption>(
-            value: state.type,
+            value: state.typeFilter,
             options: CallTypeOption.values,
-            labelOf: _typeLabel,
+            labelOf: CallLogLabels.typeFilter,
             onSelected: cubit.selectType,
             width: _typeWidth,
           ),
-          AppFilterDropdown<CallPeriod>(
-            value: state.period,
-            options: CallPeriod.values,
-            labelOf: _periodLabel,
-            onSelected: cubit.selectPeriod,
-            width: _periodWidth,
-          ),
-          TotalCallsCard(count: state.filteredCalls.length),
+          TotalCallsCard(count: state.shownCount),
         ],
       ),
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/core/navigation/app_routes.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
@@ -8,6 +9,8 @@ import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_table_footer.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_table_load_state.dart';
+import 'package:zuno_admin_dashboard/features/calls/data/models/call_log.dart';
 import 'package:zuno_admin_dashboard/features/calls/presentation/state/calls_cubit.dart';
 import 'package:zuno_admin_dashboard/features/calls/presentation/state/calls_state.dart';
 import 'package:zuno_admin_dashboard/features/calls/presentation/widgets/calls_table.dart';
@@ -25,7 +28,8 @@ class CallsTableCard extends StatelessWidget {
 
     return BlocBuilder<CallsCubit, CallsState>(
       builder: (context, state) {
-        final calls = state.pageCalls;
+        final isLoaded = state.status == LoadStatus.loaded;
+        final calls = isLoaded ? state.calls : const <CallLog>[];
 
         return Container(
           clipBehavior: Clip.antiAlias,
@@ -67,7 +71,14 @@ class CallsTableCard extends StatelessWidget {
                     Navigator.of(context)
                         .pushNamed(AppRoutes.callDetails, arguments: call),
               ),
-              if (calls.isEmpty)
+              if (state.status == LoadStatus.loading)
+                const AppTableLoadingState()
+              else if (state.status == LoadStatus.failure)
+                AppTableErrorState(
+                  message: state.errorMessage ?? AppStrings.recordsLoadFailed,
+                  onRetry: context.read<CallsCubit>().loadCalls,
+                )
+              else if (calls.isEmpty)
                 SizedBox(
                   height: _emptyHeight,
                   child: Center(
@@ -81,7 +92,7 @@ class CallsTableCard extends StatelessWidget {
                 AppTableFooter(
                   firstIndex: state.firstIndex,
                   shownCount: calls.length,
-                  totalCount: state.filteredCalls.length,
+                  totalCount: state.shownCount,
                   currentPage: state.page,
                   totalPages: state.totalPages,
                   onPageChanged: context.read<CallsCubit>().goToPage,

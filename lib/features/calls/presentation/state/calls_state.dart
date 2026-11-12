@@ -1,127 +1,149 @@
+import 'package:flutter/material.dart';
+import 'package:zuno_admin_dashboard/core/enums/date_range_filter.dart';
+import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/models/call_log.dart';
-
-enum CallDateFilter { today, yesterday }
-
-enum CallPeriod { day, week, month }
 
 enum CallStatusFilter {
   incoming,
-  completed,
-  busy,
-  rejected,
-  notAnswered,
-  lowBalance,
-  missed,
+  completed(status: CallLogStatus.completed),
+  busy(status: CallLogStatus.busy),
+  rejected(status: CallLogStatus.rejected),
+  notAnswered(status: CallLogStatus.missed),
+  lowBalance(lowBalanceOnly: true),
+  missed(status: CallLogStatus.cancelled);
+
+  const CallStatusFilter({this.status, this.lowBalanceOnly = false});
+
+  final CallLogStatus? status;
+  final bool lowBalanceOnly;
+
+  bool includes(CallLog call) {
+    if (lowBalanceOnly) return call.isLowBalance;
+    final value = status;
+    return value == null || call.status == value;
+  }
 }
 
-enum CallTypeOption { all, audio, video }
+enum CallTypeOption {
+  all,
+  audio(type: CallLogType.audio),
+  video(type: CallLogType.video);
+
+  const CallTypeOption({this.type});
+
+  final CallLogType? type;
+
+  bool includes(CallLog call) {
+    final value = type;
+    return value == null || call.type == value;
+  }
+}
 
 class CallsState {
   const CallsState({
-    required this.calls,
     required this.today,
+    this.calls = const [],
+    this.status = LoadStatus.loading,
+    this.errorMessage,
     this.query = '',
-    this.date = CallDateFilter.today,
-    this.period = CallPeriod.day,
-    this.status = CallStatusFilter.incoming,
-    this.type = CallTypeOption.all,
+    this.dateFilter = DateRangeFilter.today,
+    this.customRange,
+    this.statusFilter = CallStatusFilter.incoming,
+    this.typeFilter = CallTypeOption.all,
     this.page = 1,
+    this.totalPages = 1,
+    this.firstIndex = 0,
+    this.totalCount,
+    this.matchCount,
   });
 
-  static const int pageSize = 12;
+  static const List<DateRangeFilter> dateOptions = [
+    DateRangeFilter.today,
+    DateRangeFilter.yesterday,
+    DateRangeFilter.last7Days,
+    DateRangeFilter.last30Days,
+    DateRangeFilter.custom,
+  ];
+
+  static final RegExp _nonDigits = RegExp(r'\D');
+  static final RegExp _phoneSeparators = RegExp(r'[\s+\-()]');
 
   final List<CallLog> calls;
+  final LoadStatus status;
+  final String? errorMessage;
   final DateTime today;
   final String query;
-  final CallDateFilter date;
-  final CallPeriod period;
-  final CallStatusFilter status;
-  final CallTypeOption type;
+  final DateRangeFilter dateFilter;
+  final DateTimeRange? customRange;
+  final CallStatusFilter statusFilter;
+  final CallTypeOption typeFilter;
   final int page;
+  final int totalPages;
+  final int firstIndex;
+  final int? totalCount;
+  final int? matchCount;
 
-  DateTime get _rangeEnd => switch (date) {
-    CallDateFilter.today => today,
-    CallDateFilter.yesterday => today.subtract(const Duration(days: 1)),
-  };
+  bool get isSearching => query.trim().isNotEmpty;
 
-  int get _periodDays => switch (period) {
-    CallPeriod.day => 1,
-    CallPeriod.week => 7,
-    CallPeriod.month => 30,
-  };
+  int? get shownCount => isSearching ? matchCount : totalCount;
 
-  bool _inRange(DateTime moment) {
-    final day = DateTime(moment.year, moment.month, moment.day);
-    final start = _rangeEnd.subtract(Duration(days: _periodDays - 1));
-    return !day.isBefore(start) && !day.isAfter(_rangeEnd);
-  }
-
-  bool _matchesStatus(CallLogStatus value) => switch (status) {
-    CallStatusFilter.incoming => true,
-    CallStatusFilter.completed => value == CallLogStatus.completed,
-    CallStatusFilter.busy => value == CallLogStatus.busy,
-    CallStatusFilter.rejected => value == CallLogStatus.rejected,
-    CallStatusFilter.notAnswered => value == CallLogStatus.notAnswered,
-    CallStatusFilter.lowBalance => value == CallLogStatus.lowBalance,
-    CallStatusFilter.missed => value == CallLogStatus.missed,
-  };
-
-  bool _matchesType(CallLogType value) => switch (type) {
-    CallTypeOption.all => true,
-    CallTypeOption.audio => value == CallLogType.audio,
-    CallTypeOption.video => value == CallLogType.video,
-  };
+  bool matchesSearch(CallLog call) =>
+      statusFilter.includes(call) &&
+      typeFilter.includes(call) &&
+      _matchesQuery(call);
 
   bool _matchesQuery(CallLog call) {
     final term = query.trim().toLowerCase();
     if (term.isEmpty) return true;
-    final digits = term.replaceAll(' ', '');
-    return call.userName.toLowerCase().contains(term) ||
-        call.userId.toLowerCase().contains(term) ||
-        call.hostName.toLowerCase().contains(term) ||
-        call.hostId.toLowerCase().contains(term) ||
-        (digits.isNotEmpty &&
-            call.userPhone.replaceAll(' ', '').contains(digits));
+    final texts = [
+      call.userName,
+      call.hostName,
+      call.hostDisplayId,
+      call.hostId,
+      call.userDisplayId,
+    ];
+    if (texts.any((text) => text.toLowerCase().contains(term))) return true;
+
+    final digits = term.replaceAll(_nonDigits, '');
+    final phone = call.userPhone?.replaceAll(_nonDigits, '') ?? '';
+    return digits.isNotEmpty &&
+        digits.length == term.replaceAll(_phoneSeparators, '').length &&
+        phone.contains(digits);
   }
-
-  List<CallLog> get filteredCalls => calls
-      .where(
-        (call) =>
-            _inRange(call.initiatedAt) &&
-            _matchesStatus(call.status) &&
-            _matchesType(call.type) &&
-            _matchesQuery(call),
-      )
-      .toList();
-
-  int get totalPages {
-    final count = filteredCalls.length;
-    if (count == 0) return 1;
-    return (count / pageSize).ceil();
-  }
-
-  int get firstIndex => (page - 1) * pageSize;
-
-  List<CallLog> get pageCalls =>
-      filteredCalls.skip(firstIndex).take(pageSize).toList();
 
   CallsState copyWith({
+    List<CallLog>? calls,
+    LoadStatus? status,
+    String? errorMessage,
+    DateTime? today,
     String? query,
-    CallDateFilter? date,
-    CallPeriod? period,
-    CallStatusFilter? status,
-    CallTypeOption? type,
+    DateRangeFilter? dateFilter,
+    DateTimeRange? customRange,
+    CallStatusFilter? statusFilter,
+    CallTypeOption? typeFilter,
     int? page,
+    int? totalPages,
+    int? firstIndex,
+    int? totalCount,
+    int? matchCount,
+    bool clearTotalCount = false,
+    bool clearMatchCount = false,
   }) {
     return CallsState(
-      calls: calls,
-      today: today,
-      query: query ?? this.query,
-      date: date ?? this.date,
-      period: period ?? this.period,
+      calls: calls ?? this.calls,
       status: status ?? this.status,
-      type: type ?? this.type,
+      errorMessage: errorMessage ?? this.errorMessage,
+      today: today ?? this.today,
+      query: query ?? this.query,
+      dateFilter: dateFilter ?? this.dateFilter,
+      customRange: customRange ?? this.customRange,
+      statusFilter: statusFilter ?? this.statusFilter,
+      typeFilter: typeFilter ?? this.typeFilter,
       page: page ?? this.page,
+      totalPages: totalPages ?? this.totalPages,
+      firstIndex: firstIndex ?? this.firstIndex,
+      totalCount: clearTotalCount ? null : totalCount ?? this.totalCount,
+      matchCount: clearMatchCount ? null : matchCount ?? this.matchCount,
     );
   }
 }

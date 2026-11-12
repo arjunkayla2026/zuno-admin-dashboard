@@ -27,7 +27,7 @@ class CallParticipants extends StatelessWidget {
         _Participant(
           name: call.userName,
           role: AppStrings.userRole,
-          id: call.userId,
+          id: call.userDisplayId,
           avatarIndex: 0,
         ),
         Icon(
@@ -38,8 +38,8 @@ class CallParticipants extends StatelessWidget {
         _Participant(
           name: call.hostName,
           role: AppStrings.hostRole,
-          id: call.hostId,
-          avatarIndex: NumberFormatter.parse(call.hostId),
+          id: call.hostDisplayId,
+          avatarIndex: NumberFormatter.parse(call.hostDisplayId),
         ),
       ],
     );

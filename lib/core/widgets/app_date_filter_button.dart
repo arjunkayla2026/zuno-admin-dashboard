@@ -15,20 +15,30 @@ class AppDateFilterButton extends StatelessWidget {
     required this.onFilterSelected,
     required this.onCustomRangeSelected,
     this.customRange,
+    this.options = defaultOptions,
   });
 
   static const double height = 46;
   static const double _iconSize = 18;
   static final DateTime _firstDate = DateTime(2020);
+  static const List<DateRangeFilter> defaultOptions = [
+    DateRangeFilter.all,
+    DateRangeFilter.yesterday,
+    DateRangeFilter.last7Days,
+    DateRangeFilter.last30Days,
+    DateRangeFilter.custom,
+  ];
 
   final DateRangeFilter value;
   final DateTime today;
   final DateTimeRange? customRange;
   final ValueChanged<DateRangeFilter> onFilterSelected;
   final ValueChanged<DateTimeRange> onCustomRangeSelected;
+  final List<DateRangeFilter> options;
 
   static String _optionLabel(DateRangeFilter filter) => switch (filter) {
     DateRangeFilter.all => AppStrings.allDates,
+    DateRangeFilter.today => AppStrings.today,
     DateRangeFilter.yesterday => AppStrings.yesterday,
     DateRangeFilter.last7Days => AppStrings.last7Days,
     DateRangeFilter.last30Days => AppStrings.last30Days,
@@ -50,7 +60,7 @@ class AppDateFilterButton extends StatelessWidget {
   Future<void> _open(BuildContext anchorContext) async {
     final selected = await showAppOptionsMenu<DateRangeFilter>(
       anchorContext: anchorContext,
-      options: DateRangeFilter.values,
+      options: options,
       labelOf: _optionLabel,
     );
     if (selected == null || !anchorContext.mounted) return;

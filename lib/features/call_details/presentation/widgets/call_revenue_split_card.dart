@@ -19,27 +19,22 @@ class CallRevenueSplitCard extends StatelessWidget {
           AppDetailItem(
             AppStrings.hostRevenue,
             value: AppStrings.perMinute(
-              NumberFormatter.rupees(call.hostRatePerMinute),
+              NumberFormatter.rupeesAmount(call.hostRatePerMinute),
             ),
           ),
           AppDetailItem(
             AppStrings.totalHostRevenue,
-            value: NumberFormatter.rupeesDecimal(call.hostEarnings),
+            value: NumberFormatter.rupeesAmount(call.hostEarnings),
           ),
           AppDetailItem(
             AppStrings.adminRevenue,
             value: AppStrings.perMinute(
-              NumberFormatter.rupees(call.adminRatePerMinute),
+              NumberFormatter.rupeesAmount(call.adminRatePerMinute),
             ),
           ),
           AppDetailItem(
             AppStrings.totalAdminRevenue,
-            value: NumberFormatter.rupeesDecimal(call.adminRevenue),
-          ),
-          AppDetailItem(
-            AppStrings.sessionId,
-            value: call.sessionId,
-            mono: true,
+            value: NumberFormatter.rupeesAmount(call.adminRevenue),
           ),
           AppDetailItem(AppStrings.callId, value: call.callId, mono: true),
         ],

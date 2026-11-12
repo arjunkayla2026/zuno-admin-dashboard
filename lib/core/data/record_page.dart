@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/firestore_failures.dart';
@@ -81,8 +82,10 @@ abstract final class RecordPages {
         ),
       );
     } on FirebaseException catch (error) {
+      debugPrint('Firestore read failed [${error.code}]: ${error.message}');
       return left(FirestoreFailures.read(error.code));
-    } catch (_) {
+    } catch (error, stackTrace) {
+      debugPrint('Record load failed: $error $stackTrace');
       return left(const DataFailure(AppStrings.recordsLoadFailed));
     }
   }
@@ -119,8 +122,10 @@ abstract final class RecordPages {
       ).count().get();
       return right(snapshot.count ?? 0);
     } on FirebaseException catch (error) {
+      debugPrint('Firestore read failed [${error.code}]: ${error.message}');
       return left(FirestoreFailures.read(error.code));
-    } catch (_) {
+    } catch (error, stackTrace) {
+      debugPrint('Record load failed: $error $stackTrace');
       return left(const DataFailure(AppStrings.recordsLoadFailed));
     }
   }

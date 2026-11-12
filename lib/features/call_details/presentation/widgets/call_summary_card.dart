@@ -31,7 +31,7 @@ class CallSummaryCard extends StatelessWidget {
     final muted = context.appColors.textSecondary;
     final footnote = AppTextStyles.tableFootnote.copyWith(color: muted);
     final mono = AppTextStyles.monoSmall.copyWith(color: muted);
-    final (statusLabel, status) = CallLogLabels.status(call.status);
+    final (statusLabel, status) = CallLogLabels.status(call);
 
     final summary = Row(
       children: [
@@ -79,11 +79,6 @@ class CallSummaryCard extends StatelessWidget {
                       text: '${AppStrings.metaSeparator}${AppStrings.callId} ',
                     ),
                     TextSpan(text: call.callId, style: mono),
-                    const TextSpan(
-                      text:
-                          '${AppStrings.metaSeparator}${AppStrings.sessionId} ',
-                    ),
-                    TextSpan(text: call.sessionId, style: mono),
                   ],
                 ),
               ),

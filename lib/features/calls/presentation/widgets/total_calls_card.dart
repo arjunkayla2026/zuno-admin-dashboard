@@ -13,7 +13,7 @@ class TotalCallsCard extends StatelessWidget {
   static const double _gap = 16;
   static const EdgeInsets _padding = EdgeInsets.symmetric(horizontal: 18);
 
-  final int count;
+  final int? count;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,9 @@ class TotalCallsCard extends StatelessWidget {
           ),
           const SizedBox(width: _gap),
           Text(
-            NumberFormatter.grouped(count),
+            count == null
+                ? AppStrings.emptyValue
+                : NumberFormatter.grouped(count!),
             style: AppTextStyles.statValue.copyWith(color: textColor),
           ),
         ],

@@ -366,6 +366,21 @@ abstract final class AppStrings {
   static const String adminRevenue = 'Admin Revenue';
   static const String missed = 'Missed';
   static const String noCallsFound = 'No calls found';
+  static const String searchCallsHint =
+      'Search user or host name, user mobile or host ID';
+  static const String callNotFound =
+      'Open a call from the Calls list to see its details.';
+  static const String ringing = 'Ringing';
+  static const String ongoing = 'Ongoing';
+  static const String systemRole = 'System';
+  static const String noAnswerReason = 'no answer';
+  static const String hostUnreachableReason = 'host unreachable';
+  static const String connectionFailedReason = 'connection failed';
+  static const String connectionLostReason = 'connection lost';
+  static const String timeLimitReason = 'time limit reached';
+
+  static String endedByReason(String party, String reason) =>
+      '$party – $reason';
 
   static String scrollSidewaysForFields(int count) =>
       'Scroll sideways to see all $count call fields';
@@ -636,7 +651,7 @@ abstract final class AppStrings {
   static const String adminEmailExists =
       'An admin with this email already exists.';
   static const String adminPasswordHelper =
-      'At least 12 characters. Share it with the admin so they can sign in. '
+      'At least 6 characters. Share it with the admin so they can sign in. '
       'If this email already has a login, its current password is kept.';
   static const String editAdminPasswordHelper =
       'Optional. Creates a login with this password if the admin does not '
@@ -644,7 +659,7 @@ abstract final class AppStrings {
   static const String adminLoginExists =
       'This admin already has a login, and its password cannot be changed '
       'here. Clear the password field to save the other changes.';
-  static const String passwordTooShort = 'Use at least 12 characters.';
+  static const String passwordTooShort = 'Use at least 6 characters.';
   static const String adminLoginWeakPassword =
       'This password was rejected. Choose a stronger one.';
   static const String adminLoginsDisabled =

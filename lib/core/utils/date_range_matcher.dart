@@ -17,6 +17,7 @@ extension DateRangeMatcher on DateRangeFilter {
   }) {
     final (DateTime? start, DateTime? end) = switch (this) {
       DateRangeFilter.all => (null, null),
+      DateRangeFilter.today => (today, today),
       DateRangeFilter.yesterday => (
         today.subtract(const Duration(days: 1)),
         today.subtract(const Duration(days: 1)),

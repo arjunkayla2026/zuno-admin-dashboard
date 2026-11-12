@@ -52,6 +52,7 @@ class CallsTable extends StatelessWidget {
           () {
             final duration = call.durationSeconds;
             final startedAt = call.startedAt;
+            final endedAt = call.endedAt;
             return [
               Text('${firstNumber + index}', style: cell),
               Text(DateFormatter.short(call.initiatedAt), style: cell),
@@ -79,22 +80,27 @@ class CallsTable extends StatelessWidget {
                     : DateFormatter.timeWithSeconds(startedAt),
                 style: cell,
               ),
-              Text(DateFormatter.timeWithSeconds(call.endedAt), style: cell),
+              Text(
+                endedAt == null
+                    ? AppStrings.emptyValue
+                    : DateFormatter.timeWithSeconds(endedAt),
+                style: cell,
+              ),
               Text(
                 duration == null
                     ? AppStrings.emptyValue
                     : DateFormatter.shortDuration(duration),
                 style: cell,
               ),
-              Text(call.endedBy, style: cell),
+              Text(CallLogLabels.endedBy(call), style: cell),
               Text(NumberFormatter.grouped(call.spendCoins), style: cell),
               Text(
-                NumberFormatter.rupeesDecimal(call.spendRupees),
+                NumberFormatter.rupeesAmount(call.spendRupees),
                 style: strong,
               ),
               Text(
                 AppStrings.perMinute(
-                  NumberFormatter.rupees(call.hostRatePerMinute),
+                  NumberFormatter.rupeesAmount(call.hostRatePerMinute),
                 ),
                 style: strong,
               ),

@@ -6,6 +6,7 @@ import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_labeled_card.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/models/call_log.dart';
+import 'package:zuno_admin_dashboard/features/calls/presentation/widgets/call_log_labels.dart';
 
 class CallTimelineCard extends StatelessWidget {
   const CallTimelineCard({super.key, required this.call});
@@ -18,6 +19,7 @@ class CallTimelineCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final startedAt = call.startedAt;
+    final endedAt = call.endedAt;
     final duration = call.durationSeconds;
     final items = [
       (
@@ -30,14 +32,19 @@ class CallTimelineCard extends StatelessWidget {
             ? AppStrings.emptyValue
             : DateFormatter.timeWithSeconds(startedAt),
       ),
-      (AppStrings.callEndTime, DateFormatter.timeWithSeconds(call.endedAt)),
+      (
+        AppStrings.callEndTime,
+        endedAt == null
+            ? AppStrings.emptyValue
+            : DateFormatter.timeWithSeconds(endedAt),
+      ),
       (
         AppStrings.callDuration,
         duration == null
             ? AppStrings.emptyValue
             : DateFormatter.shortDuration(duration),
       ),
-      (AppStrings.callEndedBy, call.endedBy),
+      (AppStrings.callEndedBy, CallLogLabels.endedBy(call)),
     ];
 
     return AppLabeledCard(

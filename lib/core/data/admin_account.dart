@@ -59,7 +59,7 @@ class AdminAccount {
   static const String permissionsField = 'permissions';
   static const String createdAtField = 'createdAt';
   static const String updatedAtField = 'updatedAt';
-  static const int minPasswordLength = 12;
+  static const int minPasswordLength = 6;
 
   final String id;
   final String name;

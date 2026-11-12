@@ -4,8 +4,8 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_nav_item.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_shell.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_empty_state.dart';
 import 'package:zuno_admin_dashboard/features/call_details/presentation/widgets/call_details_content.dart';
-import 'package:zuno_admin_dashboard/features/calls/data/mock/calls_mock_data.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/models/call_log.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/mock/user_mock_data.dart';
 
@@ -15,7 +15,6 @@ class CallDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final argument = ModalRoute.of(context)?.settings.arguments;
-    final call = argument is CallLog ? argument : CallsMockData.referenceCall;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: context.pageOverlayStyle,
@@ -26,7 +25,13 @@ class CallDetailsPage extends StatelessWidget {
         userName: UserMockData.adminName,
         userRole: UserMockData.adminRole,
         userInitials: UserMockData.adminInitials,
-        child: CallDetailsContent(call: call),
+        child: argument is CallLog
+            ? CallDetailsContent(call: argument)
+            : const AppEmptyState(
+                icon: Icons.call_outlined,
+                title: AppStrings.callDetails,
+                message: AppStrings.callNotFound,
+              ),
       ),
     );
   }

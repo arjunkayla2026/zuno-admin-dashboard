@@ -15,7 +15,7 @@ class CallUserSpendCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (statusLabel, status) = CallLogLabels.status(call.status);
+    final (statusLabel, status) = CallLogLabels.status(call);
 
     return AppLabeledCard(
       label: AppStrings.userSpend,
@@ -39,7 +39,7 @@ class CallUserSpendCard extends StatelessWidget {
           ),
           AppDetailItem(
             AppStrings.spendInrChat,
-            value: NumberFormatter.rupeesDecimal(call.spendRupees),
+            value: NumberFormatter.rupeesAmount(call.spendRupees),
           ),
           AppDetailItem(
             AppStrings.callStatus,
