@@ -101,6 +101,34 @@ class RechargeRepository {
     DateTime? until,
   }) => _transactions.fetchTotals(from: from, until: until);
 
+  Future<Either<Failure, RechargeRevenue>> fetchRevenue({
+    DateTime? from,
+    DateTime? until,
+  }) => _transactions.fetchRevenue(from: from, until: until);
+
+  Future<Either<Failure, List<AdminRechargeOffer>>> fetchAdminRechargeOffers({
+    required DateTime from,
+    required DateTime until,
+  }) => _transactions.fetchAdminRechargeOffers(from: from, until: until);
+
+  Future<Either<Failure, List<RechargeTransaction>>> fetchLatestRecharges(
+    int limit, {
+    DateTime? from,
+    DateTime? until,
+  }) async {
+    final result = await _transactions.fetchPage(
+      from: from,
+      until: until,
+      statuses: RechargeTransaction.completedStatuses,
+      types: RechargeTransaction.rechargeTypes,
+      pageSize: limit,
+    );
+    return result.fold(
+      (failure) async => left(failure),
+      (page) => _attachUsers(page.items),
+    );
+  }
+
   Future<Either<Failure, List<RechargeTransaction>>> fetchRecharges({
     DateTime? from,
     DateTime? until,

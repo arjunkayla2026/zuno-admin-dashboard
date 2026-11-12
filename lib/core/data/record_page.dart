@@ -27,7 +27,20 @@ class RecordPage<T> {
       RecordPage(transform(items), nextCursor: nextCursor);
 }
 
+class LocalPageCursor<T> {
+  const LocalPageCursor(this.remaining);
+
+  final List<T> remaining;
+}
+
 abstract final class RecordPages {
+  static RecordPage<T> local<T>(List<T> items, int pageSize) => RecordPage(
+    items.take(pageSize).toList(),
+    nextCursor: items.length > pageSize
+        ? LocalPageCursor(items.sublist(pageSize))
+        : null,
+  );
+
   static const String _defaultSortField = 'updatedAt';
 
   static Query<Map<String, dynamic>> _filtered(
@@ -73,13 +86,10 @@ abstract final class RecordPages {
       final snapshot = await query.get();
       final documents = snapshot.docs;
       return right(
-        RecordPage(
-          [
-            for (final document in documents)
-              toRecord(document.id, document.data()),
-          ],
-          nextCursor: documents.length == pageSize ? documents.last : null,
-        ),
+        RecordPage([
+          for (final document in documents)
+            toRecord(document.id, document.data()),
+        ], nextCursor: documents.length == pageSize ? documents.last : null),
       );
     } on FirebaseException catch (error) {
       debugPrint('Firestore read failed [${error.code}]: ${error.message}');

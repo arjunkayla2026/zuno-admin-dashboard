@@ -1,6 +1,5 @@
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/models/admin_host.dart';
-import 'package:zuno_admin_dashboard/features/host_management/data/models/call_pricing.dart';
 
 enum HostFilter {
   today(),
@@ -22,7 +21,6 @@ enum HostFilter {
 class HostManagementState {
   const HostManagementState({
     required this.hosts,
-    required this.pricing,
     this.status = LoadStatus.loaded,
     this.errorMessage,
     this.filter = HostFilter.today,
@@ -33,7 +31,6 @@ class HostManagementState {
   });
 
   final List<AdminHost> hosts;
-  final CallPricing pricing;
   final LoadStatus status;
   final String? errorMessage;
   final HostFilter filter;
@@ -46,7 +43,6 @@ class HostManagementState {
 
   HostManagementState copyWith({
     List<AdminHost>? hosts,
-    CallPricing? pricing,
     LoadStatus? status,
     String? errorMessage,
     HostFilter? filter,
@@ -57,7 +53,6 @@ class HostManagementState {
   }) {
     return HostManagementState(
       hosts: hosts ?? this.hosts,
-      pricing: pricing ?? this.pricing,
       status: status ?? this.status,
       errorMessage: errorMessage ?? this.errorMessage,
       filter: filter ?? this.filter,

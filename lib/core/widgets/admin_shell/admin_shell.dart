@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zuno_admin_dashboard/core/data/admin_account.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
+import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_content_transition.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_nav_item.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_sidebar.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_top_bar.dart';
@@ -46,17 +47,18 @@ class AdminShell extends StatelessWidget {
     final name = account?.name ?? userName;
     final role = account?.role.label ?? userRole;
     final initials = account?.initials ?? userInitials;
+    final isDesktop = AppUtils.isDesktop(context);
     final sidebar = AdminSidebar(
       items: account?.accessibleModules ?? AdminNavItem.values,
       selectedItem: selectedItem,
       selectedSubItem: selectedSubItem,
       userName: name,
       userRole: role,
+      animateSelectionChange: isDesktop,
       onItemSelected: (item) => _navigate(context, item.route),
       onSubItemSelected:
           onSubItemSelected ?? (item) => _navigate(context, item.route),
     );
-    final isDesktop = AppUtils.isDesktop(context);
 
     return Scaffold(
       drawer: isDesktop
@@ -83,7 +85,12 @@ class AdminShell extends StatelessWidget {
                         : () => Scaffold.of(context).openDrawer(),
                   ),
                 ),
-                Expanded(child: child),
+                Expanded(
+                  child: AdminContentTransition(
+                    transitionKey: selectedSubItem,
+                    child: child,
+                  ),
+                ),
               ],
             ),
           ),

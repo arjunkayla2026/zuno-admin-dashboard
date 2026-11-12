@@ -22,28 +22,49 @@ class HostManagementRepository {
     bool onlyNew = false,
     String? term,
     Object? cursor,
-  }) => RecordPages.untilMatch(
-    cursor,
-    (next) => _dataSource.fetchUsersPage(
-      _role,
-      RecordPageQuery(
-        term: term,
-        from: onlyNew ? UserRecord.newAccountCutoff : null,
-        cursor: next,
-      ),
-      pageSize: _pageSize,
-      onlyBlocked: status == HostStatus.blocked,
-      onlyDeleted:
-          status == HostStatus.deletedByAdmin ||
-          status == HostStatus.deletedByUser,
-      deletedBy: status == HostStatus.deletedByAdmin
-          ? UserRecord.deletedByAdmin
-          : null,
-    ),
-    (records) => records
+  }) async {
+    final from = onlyNew ? UserRecord.newAccountCutoff : null;
+    final onlyBlocked = status == HostStatus.blocked;
+    final onlyDeleted =
+        status == HostStatus.deletedByAdmin ||
+        status == HostStatus.deletedByUser;
+    final deletedBy = status == HostStatus.deletedByAdmin
+        ? UserRecord.deletedByAdmin
+        : null;
+    Iterable<AdminHost> select(List<UserRecord> records) => records
         .map(_toAdminHost)
-        .where((host) => status == null || host.status == status),
-  );
+        .where((host) => status == null || host.status == status);
+
+    if (term != null) {
+      if (cursor case LocalPageCursor<AdminHost>(:final remaining)) {
+        return right(RecordPages.local(remaining, _pageSize));
+      }
+      final result = await _dataSource.searchUsers(
+        _role,
+        term,
+        from: from,
+        onlyBlocked: onlyBlocked,
+        onlyDeleted: onlyDeleted,
+        deletedBy: deletedBy,
+      );
+      return result.map(
+        (records) => RecordPages.local(select(records).toList(), _pageSize),
+      );
+    }
+
+    return RecordPages.untilMatch(
+      cursor,
+      (next) => _dataSource.fetchUsersPage(
+        _role,
+        RecordPageQuery(from: from, cursor: next),
+        pageSize: _pageSize,
+        onlyBlocked: onlyBlocked,
+        onlyDeleted: onlyDeleted,
+        deletedBy: deletedBy,
+      ),
+      select,
+    );
+  }
 
   Future<Either<Failure, Unit>> updateDetails(
     AdminHost original,

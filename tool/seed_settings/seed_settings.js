@@ -16,8 +16,19 @@ const platformVersion = () => ({
   storeUrl: '',
 });
 
+const channelPrice = () => ({
+  adminAmount: 0,
+  hostAmount: 0,
+});
+
 const DEFAULTS = {
   isMaintenanceMode: false,
+  setHostPrice: {
+    audio: channelPrice(),
+    video: channelPrice(),
+    message: channelPrice(),
+    surgeCharge: [],
+  },
   appVersion: {
     android: platformVersion(),
     ios: platformVersion(),

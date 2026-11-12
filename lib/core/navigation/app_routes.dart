@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zuno_admin_dashboard/core/navigation/app_page_route.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_nav_item.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/pages/approval_page.dart';
 import 'package:zuno_admin_dashboard/features/auth/presentation/pages/admin_login_page.dart';
@@ -33,6 +34,19 @@ abstract final class AppRoutes {
   static const String recharge = '/recharge';
   static const String payment = '/payment';
   static const String settings = '/settings';
+
+  static final RouteObserver<PageRoute<dynamic>> observer =
+      RouteObserver<PageRoute<dynamic>>();
+
+  static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
+    final builder = routes[settings.name];
+    if (builder == null) return null;
+    return AppPageRoute<dynamic>(
+      builder: builder,
+      settings: settings,
+      fadeIn: settings.name == login,
+    );
+  }
 
   static final Map<String, WidgetBuilder> routes = {
     login: (_) => const AdminLoginPage(),

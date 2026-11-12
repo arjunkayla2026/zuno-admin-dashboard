@@ -4,7 +4,9 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
-import 'package:zuno_admin_dashboard/features/host_management/presentation/state/host_management_cubit.dart';
+import 'package:zuno_admin_dashboard/core/data/host_pricing.dart';
+import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
+import 'package:zuno_admin_dashboard/features/host_management/presentation/state/call_pricing_cubit.dart';
 
 class CallPricingSummary extends StatelessWidget {
   const CallPricingSummary({super.key});
@@ -13,11 +15,15 @@ class CallPricingSummary extends StatelessWidget {
   static const double _itemGap = 18;
   static const double _iconGap = 3;
 
+  static String _admin(ChannelPricing pricing) =>
+      NumberFormatter.rupeesAmount(pricing.adminAmount);
+
   @override
   Widget build(BuildContext context) {
     final pricing = context.select(
-      (HostManagementCubit cubit) => cubit.state.pricing,
+      (CallPricingCubit cubit) => cubit.state.pricing,
     );
+    if (pricing == null) return const SizedBox.shrink();
     final color = context.colorScheme.onSurface;
     final style = AppTextStyles.tableFootnote.copyWith(
       color: color,
@@ -43,14 +49,14 @@ class CallPricingSummary extends StatelessWidget {
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           item(
-            AppStrings.audioRateSummary(pricing.audioPerSecond),
+            AppStrings.audioRateSummary(_admin(pricing.audio)),
             Icons.mic_none_rounded,
           ),
           item(
-            AppStrings.videoRateSummary(pricing.videoPerSecond),
+            AppStrings.videoRateSummary(_admin(pricing.video)),
             Icons.videocam_outlined,
           ),
-          item(AppStrings.messageRateSummary(pricing.perMessage)),
+          item(AppStrings.messageRateSummary(_admin(pricing.message))),
         ],
       ),
     );

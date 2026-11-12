@@ -21,7 +21,7 @@ class AdminUser {
       adminDebit: record.adminDebit.truncate(),
       status: _statusOf(record),
       avatarIndex: record.avatarIndex,
-      userID: '',
+      userID: record.userIDLabel,
     );
   }
 

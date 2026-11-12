@@ -2,23 +2,15 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zuno_admin_dashboard/core/data/cursor_pager.dart';
-import 'package:zuno_admin_dashboard/core/data/search_keywords.dart';
+import 'package:zuno_admin_dashboard/core/data/user_search.dart';
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
-import 'package:zuno_admin_dashboard/features/host_management/data/mock/host_mock_data.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/models/admin_host.dart';
-import 'package:zuno_admin_dashboard/features/host_management/data/models/call_pricing.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/repositories/host_management_repository.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/host_management_state.dart';
 
 class HostManagementCubit extends Cubit<HostManagementState> {
   HostManagementCubit(this._repository)
-    : super(
-        const HostManagementState(
-          hosts: [],
-          pricing: HostMockData.pricing,
-          status: LoadStatus.loading,
-        ),
-      );
+    : super(const HostManagementState(hosts: [], status: LoadStatus.loading));
 
   static const Duration _searchDebounce = Duration(milliseconds: 450);
 
@@ -52,9 +44,6 @@ class HostManagementCubit extends Cubit<HostManagementState> {
 
   void goToPage(int page) => _pager.goToPage(page);
 
-  void updatePricing(CallPricing pricing) =>
-      emit(state.copyWith(pricing: pricing));
-
   void replaceHost(AdminHost replacement) => _pager.update(
     (host) => host.hostId != replacement.hostId
         ? host
@@ -65,7 +54,7 @@ class HostManagementCubit extends Cubit<HostManagementState> {
 
   void _applyQuery() {
     _debounce?.cancel();
-    final term = SearchKeywords.normalizeTerm(state.query);
+    final term = UserSearch.normalizeTerm(state.query);
     if (term == _appliedTerm && state.filter == _appliedFilter) return;
 
     final needsNewPages =

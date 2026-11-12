@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zuno_admin_dashboard/core/data/admins_remote_data_source.dart';
+import 'package:zuno_admin_dashboard/core/data/data_revision.dart';
 import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/datasources/payout_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/repositories/approval_repository.dart';
@@ -14,10 +15,13 @@ import 'package:zuno_admin_dashboard/features/auth/data/datasources/auth_remote_
 import 'package:zuno_admin_dashboard/features/auth/data/repositories/auth_repository.dart';
 import 'package:zuno_admin_dashboard/features/auth/presentation/state/admin_session_cubit.dart';
 import 'package:zuno_admin_dashboard/features/auth/presentation/state/auth_cubit.dart';
+import 'package:zuno_admin_dashboard/features/dashboard/data/repositories/dashboard_repository.dart';
+import 'package:zuno_admin_dashboard/features/dashboard/presentation/state/dashboard_cubit.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/datasources/calls_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/repositories/calls_repository.dart';
 import 'package:zuno_admin_dashboard/features/calls/presentation/state/calls_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/repositories/host_management_repository.dart';
+import 'package:zuno_admin_dashboard/features/host_management/presentation/state/call_pricing_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/host_actions_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/host_management_cubit.dart';
 import 'package:zuno_admin_dashboard/features/packages/data/datasources/packages_remote_data_source.dart';
@@ -31,6 +35,7 @@ import 'package:zuno_admin_dashboard/features/settings/data/datasources/notifica
 import 'package:zuno_admin_dashboard/features/settings/data/datasources/settings_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/repositories/settings_repository.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_cubit.dart';
+import 'package:zuno_admin_dashboard/features/surge_charge_sessions/presentation/state/surge_sessions_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/add_recharge_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_details_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_recharge_history_cubit.dart';
@@ -44,6 +49,7 @@ const String _functionsRegion = 'asia-south1';
 
 void configureDependencies() {
   getIt
+    ..registerLazySingleton<DataRevision>(DataRevision.new)
     ..registerLazySingleton<AuthRemoteDataSource>(
       () => AuthRemoteDataSource(FirebaseAuth.instance),
     )
@@ -91,6 +97,7 @@ void configureDependencies() {
       () => UsersRemoteDataSource(
         FirebaseFirestore.instance,
         FirebaseAuth.instance,
+        revision: getIt<DataRevision>(),
       ),
     )
     ..registerLazySingleton<UserManagementRepository>(
@@ -101,6 +108,12 @@ void configureDependencies() {
     )
     ..registerFactory<UserManagementCubit>(
       () => UserManagementCubit(getIt<UserManagementRepository>()),
+    )
+    ..registerFactory<SurgeSessionsCubit>(
+      () => SurgeSessionsCubit(getIt<SettingsRepository>()),
+    )
+    ..registerFactory<CallPricingCubit>(
+      () => CallPricingCubit(getIt<SettingsRepository>()),
     )
     ..registerFactory<HostManagementCubit>(
       () => HostManagementCubit(getIt<HostManagementRepository>()),
@@ -138,6 +151,7 @@ void configureDependencies() {
       () => RechargeRemoteDataSource(
         FirebaseFirestore.instance,
         FirebaseFunctions.instanceFor(region: _functionsRegion),
+        revision: getIt<DataRevision>(),
       ),
     )
     ..registerLazySingleton<RechargeRepository>(
@@ -145,6 +159,16 @@ void configureDependencies() {
         getIt<RechargeRemoteDataSource>(),
         getIt<UsersRemoteDataSource>(),
       ),
+    )
+    ..registerLazySingleton<DashboardRepository>(
+      () => DashboardRepository(
+        getIt<RechargeRepository>(),
+        getIt<UsersRemoteDataSource>(),
+        getIt<DataRevision>(),
+      ),
+    )
+    ..registerFactory<DashboardCubit>(
+      () => DashboardCubit(getIt<DashboardRepository>()),
     )
     ..registerFactory<RechargeCubit>(
       () => RechargeCubit(getIt<RechargeRepository>()),

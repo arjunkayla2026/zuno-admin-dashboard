@@ -1,14 +1,7 @@
 import 'package:zuno_admin_dashboard/features/host_management/data/models/admin_host.dart';
-import 'package:zuno_admin_dashboard/features/host_management/data/models/call_pricing.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/models/host_profile_options.dart';
 
 abstract final class HostMockData {
-  static const CallPricing pricing = CallPricing(
-    audioPerSecond: 1,
-    videoPerSecond: 2,
-    perMessage: 2,
-  );
-
   static const int _totalHosts = 30;
   static const int _firstHostNumber = 10290;
 
