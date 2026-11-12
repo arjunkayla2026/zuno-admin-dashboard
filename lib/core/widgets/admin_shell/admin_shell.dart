@@ -86,10 +86,7 @@ class AdminShell extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                  child: AdminContentTransition(
-                    transitionKey: selectedSubItem,
-                    child: child,
-                  ),
+                  child: AdminContentTransition(child: child),
                 ),
               ],
             ),

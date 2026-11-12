@@ -333,7 +333,7 @@ Rules:
 - Follow the existing navigation implementation once one exists.
 - Keep feature pages independent of navigation implementation details wherever possible.
 - Avoid defining the same route in multiple places.
-- `MaterialApp` builds every route through `AppRoutes.onGenerateRoute` as an `AppPageRoute` (`core/navigation/app_page_route.dart`). Shell pages swap with no route animation, so the sidebar and top bar never move. `AdminShell` fades and slides only its content through `AdminContentTransition`, which plays on page entry, when `selectedSubItem` changes, and when a page above it is popped (via `AppRoutes.observer`). Only the login route fades the whole page. Use the `AppTheme.pageTransition*` tokens for page motion and do not add per-page route transitions.
+- `MaterialApp` builds every route through `AppRoutes.onGenerateRoute` as an `AppPageRoute` (`core/navigation/app_page_route.dart`). Shell pages swap with no route animation, so the sidebar and top bar never move. `AdminShell` fades and slides only its content through `AdminContentTransition`, which plays on page entry and when a page above it is popped (via `AppRoutes.observer`); switching tabs or `selectedSubItem` within a page does not replay it. `AppUnderlineTabs` and `AppSegmentedControl` size each label for its bold weight through `AppWeightStableText`, so selecting one does not shift its neighbours. Only the login route fades the whole page. Use the `AppTheme.pageTransition*` tokens for page motion and do not add per-page route transitions.
 
 ## 10. Naming Conventions
 

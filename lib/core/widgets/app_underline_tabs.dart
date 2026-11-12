@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_weight_stable_text.dart';
 
 class AppUnderlineTabs<T> extends StatelessWidget {
   const AppUnderlineTabs({
@@ -76,13 +77,16 @@ class _UnderlineTab extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
+            AppWeightStableText(
               label,
               style: AppTextStyles.labelMedium.copyWith(
                 color: selected
                     ? context.colorScheme.onSurface
                     : colors.textSecondary,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              ),
+              widestStyle: AppTextStyles.labelMedium.copyWith(
+                fontWeight: FontWeight.w700,
               ),
             ),
             if (count case final count?) ...[

@@ -3,13 +3,8 @@ import 'package:zuno_admin_dashboard/core/navigation/app_routes.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
 
 class AdminContentTransition extends StatefulWidget {
-  const AdminContentTransition({
-    super.key,
-    required this.child,
-    this.transitionKey,
-  });
+  const AdminContentTransition({super.key, required this.child});
 
-  final Object? transitionKey;
   final Widget child;
 
   @override
@@ -45,12 +40,6 @@ class _AdminContentTransitionState extends State<AdminContentTransition>
       _started = true;
       _play();
     }
-  }
-
-  @override
-  void didUpdateWidget(AdminContentTransition oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.transitionKey != widget.transitionKey) _play();
   }
 
   @override

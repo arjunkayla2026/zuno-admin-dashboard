@@ -3,6 +3,7 @@ import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_weight_stable_text.dart';
 
 class AppSegmentedControl<T> extends StatelessWidget {
   const AppSegmentedControl({
@@ -56,7 +57,7 @@ class AppSegmentedControl<T> extends StatelessWidget {
                     ),
                     child: Center(
                       widthFactor: 1,
-                      child: Text(
+                      child: AppWeightStableText(
                         label,
                         style: AppTextStyles.labelSmall.copyWith(
                           color: option == value
@@ -65,6 +66,9 @@ class AppSegmentedControl<T> extends StatelessWidget {
                           fontWeight: option == value
                               ? FontWeight.w700
                               : FontWeight.w500,
+                        ),
+                        widestStyle: AppTextStyles.labelSmall.copyWith(
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
