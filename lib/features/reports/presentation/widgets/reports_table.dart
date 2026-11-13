@@ -42,7 +42,7 @@ class ReportsTable extends StatelessWidget {
               SizedBox(
                 width: _countWidth,
                 child: Text(
-                  '${report.totalReports}',
+                  report.receivedTotal?.toString() ?? AppStrings.emptyValue,
                   textAlign: TextAlign.center,
                   style: cell.copyWith(fontWeight: FontWeight.w700),
                 ),

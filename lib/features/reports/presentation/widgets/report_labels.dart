@@ -5,18 +5,35 @@ import 'package:zuno_admin_dashboard/features/reports/presentation/state/reports
 
 abstract final class ReportLabels {
   static (String, AppStatus) type(ReportType type) => switch (type) {
-    ReportType.fakeProfile => (AppStrings.fakeProfile, AppStatus.pending),
-    ReportType.harassment => (AppStrings.harassment, AppStatus.error),
-    ReportType.abusiveLanguage => (AppStrings.abusiveLanguage, AppStatus.error),
+    ReportType.askingPersonalDetails => (
+      AppStrings.askingPersonalDetails,
+      AppStatus.pending,
+    ),
+    ReportType.offensiveLanguage => (
+      AppStrings.offensiveLanguage,
+      AppStatus.error,
+    ),
+    ReportType.inappropriateBehavior => (
+      AppStrings.inappropriateBehavior,
+      AppStatus.error,
+    ),
+    ReportType.requestingPersonalDetails => (
+      AppStrings.requestingPersonalDetails,
+      AppStatus.pending,
+    ),
+    ReportType.notResponding => (AppStrings.notResponding, AppStatus.inactive),
+    ReportType.moneyRequests => (AppStrings.moneyRequests, AppStatus.error),
     ReportType.other => (AppStrings.otherReason, AppStatus.inactive),
   };
 
-  static String typeFilter(ReportTypeFilter filter) => switch (filter) {
-    ReportTypeFilter.all => AppStrings.allReportTypes,
-    ReportTypeFilter.fakeProfile => AppStrings.fakeProfile,
-    ReportTypeFilter.harassment => AppStrings.harassment,
-    ReportTypeFilter.abusiveLanguage => AppStrings.abusiveLanguage,
-    ReportTypeFilter.other => AppStrings.otherReason,
+  static String typeFilter(ReportTypeFilter filter) => switch (filter.type) {
+    null => AppStrings.allReportTypes,
+    final type => ReportLabels.type(type).$1,
+  };
+
+  static String reporterFilter(ReporterFilter filter) => switch (filter.role) {
+    null => AppStrings.all,
+    final role => ReportLabels.role(role),
   };
 
   static String role(ReportPartyRole role) => switch (role) {

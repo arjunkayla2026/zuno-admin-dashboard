@@ -13,6 +13,7 @@ class ReportPartyCell extends StatelessWidget {
   static const double _avatarGap = 8;
   static const double _roleGap = 8;
   static const double _roleRadius = 5;
+  static const double _detailsGap = 2;
   static const EdgeInsets _rolePadding = EdgeInsets.symmetric(
     horizontal: 7,
     vertical: 2,
@@ -37,26 +38,45 @@ class ReportPartyCell extends StatelessWidget {
         ),
         const SizedBox(width: _avatarGap),
         Flexible(
-          child: Text(
-            party.name,
-            style: AppTextStyles.bodySmall.copyWith(
-              color: context.colorScheme.onSurface,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        const SizedBox(width: _roleGap),
-        Container(
-          padding: _rolePadding,
-          decoration: BoxDecoration(
-            color: colors.inactiveBadge,
-            borderRadius: BorderRadius.circular(_roleRadius),
-          ),
-          child: Text(
-            ReportLabels.role(party.role),
-            style: AppTextStyles.captionSmall.copyWith(
-              color: colors.inactiveText,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      party.name,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: context.colorScheme.onSurface,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: _roleGap),
+                  Container(
+                    padding: _rolePadding,
+                    decoration: BoxDecoration(
+                      color: colors.inactiveBadge,
+                      borderRadius: BorderRadius.circular(_roleRadius),
+                    ),
+                    child: Text(
+                      ReportLabels.role(party.role),
+                      style: AppTextStyles.captionSmall.copyWith(
+                        color: colors.inactiveText,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: _detailsGap),
+              Text(
+                party.detailsLabel,
+                style: AppTextStyles.captionSmall.copyWith(
+                  color: colors.textSecondary,
+                ),
+              ),
+            ],
           ),
         ),
       ],

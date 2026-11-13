@@ -13,13 +13,8 @@ class ReportsToolbar extends StatelessWidget {
   const ReportsToolbar({super.key});
 
   static const double _searchWidth = 478;
+  static const double _typeWidth = 290;
   static const double _dropdownWidth = 228;
-
-  static String _reporterLabel(ReporterFilter filter) => switch (filter) {
-    ReporterFilter.all => AppStrings.all,
-    ReporterFilter.user => AppStrings.userRole,
-    ReporterFilter.host => AppStrings.hostRole,
-  };
 
   @override
   Widget build(BuildContext context) {
@@ -53,12 +48,12 @@ class ReportsToolbar extends StatelessWidget {
             options: ReportTypeFilter.values,
             labelOf: ReportLabels.typeFilter,
             onSelected: cubit.selectType,
-            width: _dropdownWidth,
+            width: _typeWidth,
           ),
           AppFilterDropdown<ReporterFilter>(
             value: state.reporterFilter,
             options: ReporterFilter.values,
-            labelOf: _reporterLabel,
+            labelOf: ReportLabels.reporterFilter,
             onSelected: cubit.selectReporter,
             width: _dropdownWidth,
           ),
