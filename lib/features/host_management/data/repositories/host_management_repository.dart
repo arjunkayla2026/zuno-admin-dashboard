@@ -78,10 +78,7 @@ class HostManagementRepository {
     }
 
     return _dataSource.updateRecord(original.hostId, {
-      if (edited.name != original.name) ...{
-        'userName': edited.name,
-        '$_details.userName': edited.name,
-      },
+      if (edited.name != original.name) '$_details.userName': edited.name,
       if (edited.fullName != original.fullName)
         '$_details.fullName': edited.fullName,
       if (edited.district != original.district)
@@ -111,11 +108,7 @@ class HostManagementRepository {
 
   AdminHost _toAdminHost(UserRecord record) {
     final details = record.hostDetails;
-    final name =
-        record.userName ??
-        UserRecord.readText(details['userName']) ??
-        record.name ??
-        AppStrings.emptyValue;
+    final name = record.hostUserName ?? AppStrings.emptyValue;
 
     return AdminHost(
       createdDate: record.createdDateLabel,

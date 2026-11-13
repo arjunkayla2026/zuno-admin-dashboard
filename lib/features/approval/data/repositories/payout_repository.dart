@@ -75,11 +75,7 @@ class PayoutRepository {
   PayoutRequest _toPayout(BankAccountRecord account, UserRecord? found) {
     final user = found ?? UserRecord(id: account.id);
     final details = user.hostDetails;
-    final hostName =
-        user.userName ??
-        UserRecord.readText(details['userName']) ??
-        user.name ??
-        AppStrings.emptyValue;
+    final hostName = user.hostUserName ?? AppStrings.emptyValue;
     final location = [
       ?UserRecord.readText(details['district']),
       ?UserRecord.readText(details['state']),

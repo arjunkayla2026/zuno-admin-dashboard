@@ -94,11 +94,7 @@ class ApprovalRepository {
 
   ProfilePhotoRequest _toProfilePhoto(UserRecord record) {
     final details = record.hostDetails;
-    final displayName =
-        record.userName ??
-        UserRecord.readText(details['userName']) ??
-        record.name ??
-        AppStrings.emptyValue;
+    final displayName = record.hostUserName ?? AppStrings.emptyValue;
 
     return ProfilePhotoRequest(
       requestId: record.id,
@@ -138,10 +134,7 @@ class ApprovalRepository {
       userID: record.userIDLabel,
       submittedOn: _submittedOn(record),
       realName: realName,
-      nickName:
-          record.userName ??
-          UserRecord.readText(details['userName']) ??
-          AppStrings.emptyValue,
+      nickName: record.hostUserName ?? AppStrings.emptyValue,
       phone: record.phoneLabel,
       dateOfBirth: DateTime.tryParse(UserRecord.readText(details['dob']) ?? ''),
       city:

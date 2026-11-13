@@ -130,6 +130,9 @@ class UserRecord {
 
   String? get hostApprovedBy => readText(hostDetails[hostApprovedByField]);
 
+  String? get hostUserName =>
+      readText(hostDetails['userName']) ?? userName ?? name;
+
   bool get hasValidSubmittedImage {
     final uri = Uri.tryParse(submittedImageUrl ?? '');
     return uri != null &&
