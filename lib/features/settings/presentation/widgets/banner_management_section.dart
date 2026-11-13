@@ -34,7 +34,7 @@ class BannerManagementSection extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            BannerToolbar(bannerCount: state.banners.length),
+            BannerToolbar(banners: state.banners),
             const Divider(color: AppColors.cardBorder),
             _body(context, state),
           ],

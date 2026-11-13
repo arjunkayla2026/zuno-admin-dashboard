@@ -8,10 +8,12 @@ class BannerUpload {
     required this.fileName,
     required this.contentType,
     required this.role,
+    required this.screen,
   });
 
   final Uint8List bytes;
   final String fileName;
   final String contentType;
   final BannerAudience role;
+  final BannerScreen screen;
 }

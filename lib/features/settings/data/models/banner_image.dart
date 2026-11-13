@@ -4,12 +4,22 @@ enum BannerAudience { user, host }
 
 enum BannerStatus { active, inactive }
 
+enum BannerScreen {
+  home([BannerAudience.user, BannerAudience.host]),
+  recharge([BannerAudience.user]);
+
+  const BannerScreen(this.audiences);
+
+  final List<BannerAudience> audiences;
+}
+
 class BannerImage {
   const BannerImage({
     required this.id,
     required this.imageName,
     required this.imageUrl,
     required this.role,
+    required this.screen,
     required this.status,
     required this.createdAt,
   });
@@ -25,6 +35,11 @@ class BannerImage {
         data[roleField],
         BannerAudience.user,
       ),
+      screen: _byName(
+        BannerScreen.values,
+        data[screenField],
+        BannerScreen.home,
+      ),
       status: _byName(
         BannerStatus.values,
         data[statusField],
@@ -35,6 +50,7 @@ class BannerImage {
   }
 
   static const String roleField = 'role';
+  static const String screenField = 'screen';
   static const String createdAtField = 'createdAt';
   static const String statusField = 'status';
   static const String imageNameField = 'imageName';
@@ -44,11 +60,13 @@ class BannerImage {
   final String imageName;
   final String imageUrl;
   final BannerAudience role;
+  final BannerScreen screen;
   final BannerStatus status;
   final DateTime? createdAt;
 
   Map<String, dynamic> toFirestore() => {
     roleField: role.name,
+    screenField: screen.name,
     createdAtField: FieldValue.serverTimestamp(),
     statusField: status.name,
     imageNameField: imageName,

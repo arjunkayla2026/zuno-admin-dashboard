@@ -129,6 +129,7 @@ void configureDependencies() {
         getIt<PayoutRemoteDataSource>(),
         getIt<UsersRemoteDataSource>(),
         getIt<AuthRemoteDataSource>(),
+        getIt<AdminsRemoteDataSource>(),
       ),
     )
     ..registerLazySingleton<ApprovalRepository>(

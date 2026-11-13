@@ -16,10 +16,16 @@ import 'package:zuno_admin_dashboard/core/widgets/app_segmented_control.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/models/banner_image.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/models/banner_upload.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/banner_drop_target.dart';
+import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/banner_labels.dart';
 
 class AddBannerDialog extends StatefulWidget {
-  const AddBannerDialog({super.key, required this.onSubmit});
+  const AddBannerDialog({
+    super.key,
+    required this.screen,
+    required this.onSubmit,
+  });
 
+  final BannerScreen screen;
   final Future<String?> Function(BannerUpload upload) onSubmit;
 
   @override
@@ -43,7 +49,7 @@ class _AddBannerDialogState extends State<AddBannerDialog> {
   static const EdgeInsets _headerPadding = EdgeInsets.fromLTRB(24, 22, 24, 12);
   static const EdgeInsets _bodyPadding = EdgeInsets.fromLTRB(24, 20, 24, 16);
 
-  BannerAudience _audience = BannerAudience.user;
+  late BannerAudience _audience = widget.screen.audiences.first;
   BannerUpload? _upload;
   String? _errorMessage;
   bool _saving = false;
@@ -82,6 +88,7 @@ class _AddBannerDialogState extends State<AddBannerDialog> {
           fileName: file.name,
           contentType: contentType,
           role: _audience,
+          screen: widget.screen,
         );
       });
     } catch (_) {
@@ -103,6 +110,7 @@ class _AddBannerDialogState extends State<AddBannerDialog> {
         fileName: upload.fileName,
         contentType: upload.contentType,
         role: _audience,
+        screen: widget.screen,
       ),
     );
     if (!mounted) return;
@@ -139,7 +147,9 @@ class _AddBannerDialogState extends State<AddBannerDialog> {
                   ),
                 ),
                 title: AppStrings.addBannerImage,
-                subtitle: AppStrings.screenPlacementHome,
+                subtitle: AppStrings.screenPlacementOf(
+                  BannerLabels.screen(widget.screen),
+                ),
               ),
             ),
             const Divider(color: AppColors.cardBorder),
@@ -150,9 +160,9 @@ class _AddBannerDialogState extends State<AddBannerDialog> {
                 children: [
                   Center(
                     child: AppSegmentedControl<BannerAudience>(
-                      options: const {
-                        BannerAudience.user: AppStrings.userAudience,
-                        BannerAudience.host: AppStrings.hostAudience,
+                      options: {
+                        for (final audience in widget.screen.audiences)
+                          audience: BannerLabels.audience(audience),
                       },
                       value: _audience,
                       segmentWidth: _segmentWidth,

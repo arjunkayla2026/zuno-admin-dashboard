@@ -1,9 +1,11 @@
 import 'package:fpdart/fpdart.dart';
+import 'package:zuno_admin_dashboard/core/data/admins_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
 import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_nav_item.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/datasources/payout_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/bank_account_record.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/payout_request.dart';
@@ -11,11 +13,12 @@ import 'package:zuno_admin_dashboard/features/auth/data/datasources/auth_remote_
 import 'package:zuno_admin_dashboard/features/host_management/data/repositories/host_management_repository.dart';
 
 class PayoutRepository {
-  const PayoutRepository(this._payouts, this._users, this._auth);
+  const PayoutRepository(this._payouts, this._users, this._auth, this._admins);
 
   final PayoutRemoteDataSource _payouts;
   final UsersRemoteDataSource _users;
   final AuthRemoteDataSource _auth;
+  final AdminsRemoteDataSource _admins;
 
   Future<Either<Failure, RecordPage<PayoutRequest>>> fetchPayoutRequests(
     RecordPageQuery query,
@@ -44,8 +47,9 @@ class PayoutRepository {
     PayoutRequest payout,
     PayoutRequestStatus decision,
   ) async {
-    final isAdmin = await _auth.isCurrentUserAdmin(forceRefresh: true);
-    if (!isAdmin.getOrElse((_) => false)) {
+    final canReview = await _canReviewPayouts();
+    if (canReview case Left(:final value)) return left(value);
+    if (!canReview.getOrElse((_) => false)) {
       return left(const DataFailure(AppStrings.recordsWriteDenied));
     }
     return _payouts.decide(
@@ -53,6 +57,18 @@ class PayoutRepository {
       approved: decision == PayoutRequestStatus.accepted,
       reviewedAccountNumber: payout.accountNumber,
       reviewedIfscCode: payout.ifscCode,
+    );
+  }
+
+  Future<Either<Failure, bool>> _canReviewPayouts() async {
+    final session = await _auth.restoreSession();
+    if (session case Left(:final value)) return left(value);
+    final email = session.getOrElse((_) => null)?.email;
+    if (email == null) return right(false);
+
+    final account = await _admins.findByEmail(email);
+    return account.map(
+      (admin) => admin?.canAccess(AdminNavItem.approval) ?? false,
     );
   }
 

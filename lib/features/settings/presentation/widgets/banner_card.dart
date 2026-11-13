@@ -7,6 +7,7 @@ import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/models/banner_image.dart';
+import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/banner_labels.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/banner_preview.dart';
 
 class BannerCard extends StatelessWidget {
@@ -59,10 +60,8 @@ class BannerCard extends StatelessWidget {
                       Text(
                         AppStrings.bannerMeta(
                           banner.imageName,
-                          switch (banner.role) {
-                            BannerAudience.user => AppStrings.userAudience,
-                            BannerAudience.host => AppStrings.hostAudience,
-                          },
+                          BannerLabels.audience(banner.role),
+                          BannerLabels.screen(banner.screen),
                           switch (banner.createdAt) {
                             final date? => DateFormatter.short(date),
                             null => null,

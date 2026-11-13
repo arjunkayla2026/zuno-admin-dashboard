@@ -46,15 +46,17 @@ class BannerGrid extends StatelessWidget {
                 ),
               SizedBox(
                 width: width,
-                child: BannerDropTarget(
-                  height: _addTileHeight,
-                  iconAsset: AppImages.bannerImageIcon,
-                  tileColor: AppColors.iconTileBackground,
-                  iconColor: AppColors.primaryDark,
-                  title: AppStrings.addBannerImage,
-                  helper: AppStrings.bannerFormatHint,
-                  helperColor: context.appColors.textTertiary,
-                  onTap: () => openAddBannerDialog(context),
+                child: Builder(
+                  builder: (tileContext) => BannerDropTarget(
+                    height: _addTileHeight,
+                    iconAsset: AppImages.bannerImageIcon,
+                    tileColor: AppColors.iconTileBackground,
+                    iconColor: AppColors.primaryDark,
+                    title: AppStrings.addBannerImage,
+                    helper: AppStrings.bannerFormatHint,
+                    helperColor: context.appColors.textTertiary,
+                    onTap: () => openAddBannerDialog(tileContext),
+                  ),
                 ),
               ),
             ],

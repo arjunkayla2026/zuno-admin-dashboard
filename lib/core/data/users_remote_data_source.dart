@@ -216,14 +216,19 @@ class UsersRemoteDataSource {
               .limit(UserSearch.maxResultsPerPrefix)
               .get(),
       ]);
-      final records = <String, UserRecord>{
-        for (final snapshot in snapshots)
-          for (final document in snapshot.docs)
-            document.id: UserRecord.fromDocument(document.id, document.data()),
-      }.values.where((record) {
-        final createdAt = record.createdAt;
-        return from == null || (createdAt != null && !createdAt.isBefore(from));
-      }).toList();
+      final records =
+          <String, UserRecord>{
+            for (final snapshot in snapshots)
+              for (final document in snapshot.docs)
+                document.id: UserRecord.fromDocument(
+                  document.id,
+                  document.data(),
+                ),
+          }.values.where((record) {
+            final createdAt = record.createdAt;
+            return from == null ||
+                (createdAt != null && !createdAt.isBefore(from));
+          }).toList();
       final oldest = DateTime.fromMillisecondsSinceEpoch(0);
       records.sort(
         (a, b) => (b.createdAt ?? oldest).compareTo(a.createdAt ?? oldest),

@@ -725,7 +725,9 @@ abstract final class AppStrings {
 
   static const String screenPlacement = 'Screen placement';
   static const String homeScreen = 'Home Screen';
-  static const String screenPlacementHome = '$screenPlacement: $homeScreen';
+  static const String rechargeScreen = 'Recharge Screen';
+  static const String homeBanner = 'Home Banner';
+  static const String rechargeBanner = 'Recharge Banner';
   static const String addBanner = 'Add Banner';
   static const String addBannerImage = 'Add banner image';
   static const String addBannerAction = 'Add banner';
@@ -745,20 +747,30 @@ abstract final class AppStrings {
   static const String addingBanner = 'Adding...';
   static const String deleteBannerTitle = 'Delete this banner?';
   static const String deleteBannerAction = 'Delete banner';
-  static const String deleteBannerMessageTail =
-      ' will be removed from the Home screen.';
+  static String deleteBannerMessageTail(String screen) =>
+      ' will be removed from the $screen.';
+
+  static String screenPlacementOf(String screen) => '$screenPlacement: $screen';
+
+  static String bannerScreenCount(String screen, int count) =>
+      '$screen · $count';
 
   static String bannerName(int number) => 'Banner $number';
 
-  static String bannerMeta(String fileName, String role, String? addedOn) => [
+  static String bannerMeta(
+    String fileName,
+    String role,
+    String screen,
+    String? addedOn,
+  ) => [
     fileName,
     role,
-    homeScreen,
+    screen,
     if (addedOn != null) 'Added $addedOn',
   ].join(' · ');
 
   static String bannersSummary(int count) =>
-      '$count ${count == 1 ? 'banner' : 'banners'} · auto-sliding on the Home '
+      '$count ${count == 1 ? 'banner' : 'banners'} · auto-sliding on each '
       'screen';
 
   static String adminsCount(int count) => '$count admins';

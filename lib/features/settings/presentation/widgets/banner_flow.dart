@@ -4,15 +4,24 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_confirm_dialog.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_dialog_surface.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_options_menu.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/models/banner_image.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_cubit.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/add_banner_dialog.dart';
+import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/banner_labels.dart';
 
-Future<void> openAddBannerDialog(BuildContext context) async {
-  final cubit = context.read<SettingsCubit>();
+Future<void> openAddBannerDialog(BuildContext anchorContext) async {
+  final cubit = anchorContext.read<SettingsCubit>();
+  final screen = await showAppOptionsMenu<BannerScreen>(
+    anchorContext: anchorContext,
+    options: BannerScreen.values,
+    labelOf: BannerLabels.option,
+  );
+  if (screen == null || !anchorContext.mounted) return;
+
   await showAppDialog<void>(
-    context: context,
-    builder: (_) => AddBannerDialog(onSubmit: cubit.addBanner),
+    context: anchorContext,
+    builder: (_) => AddBannerDialog(screen: screen, onSubmit: cubit.addBanner),
   );
 }
 
@@ -35,7 +44,11 @@ Future<void> confirmDeleteBanner(
             fontWeight: FontWeight.w700,
           ),
         ),
-        const TextSpan(text: AppStrings.deleteBannerMessageTail),
+        TextSpan(
+          text: AppStrings.deleteBannerMessageTail(
+            BannerLabels.screen(banner.screen),
+          ),
+        ),
       ],
     ),
     confirmLabel: AppStrings.deleteBannerAction,

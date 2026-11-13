@@ -61,6 +61,7 @@ class BannerImagesRemoteDataSource {
       imageName: upload.fileName,
       imageUrl: imageUrl,
       role: upload.role,
+      screen: upload.screen,
       status: BannerStatus.active,
       createdAt: DateTime.now(),
     );
