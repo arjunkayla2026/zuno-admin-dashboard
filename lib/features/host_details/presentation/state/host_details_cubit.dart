@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zuno_admin_dashboard/core/enums/call_filter.dart';
 import 'package:zuno_admin_dashboard/core/enums/wallet_adjustment_type.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_wallet_adjustment_dialog.dart';
@@ -18,12 +17,8 @@ class HostDetailsCubit extends Cubit<HostDetailsState> {
        super(
          HostDetailsState(
            host: host,
-           calls: HostDetailsMockData.calls,
            withdrawals: HostDetailsMockData.withdrawals,
            walletTransactions: HostDetailsMockData.walletTransactions,
-           rangeStart: HostDetailsMockData.rangeStart,
-           rangeEnd: HostDetailsMockData.rangeEnd,
-           singleDate: HostDetailsMockData.rangeEnd,
            totalCredit: HostDetailsMockData.totalCreditFromAdmin,
            totalDebit: HostDetailsMockData.totalDebitFromAdmin,
          ),
@@ -74,16 +69,4 @@ class HostDetailsCubit extends Cubit<HostDetailsState> {
 
   void selectWalletFilter(WalletFilter filter) =>
       emit(state.copyWith(walletFilter: filter));
-
-  void selectType(CallTypeFilter filter) =>
-      emit(state.copyWith(typeFilter: filter));
-
-  void selectDateMode(CallDateMode mode) =>
-      emit(state.copyWith(dateMode: mode));
-
-  void setRangeStart(DateTime date) => emit(state.copyWith(rangeStart: date));
-
-  void setRangeEnd(DateTime date) => emit(state.copyWith(rangeEnd: date));
-
-  void setSingleDate(DateTime date) => emit(state.copyWith(singleDate: date));
 }

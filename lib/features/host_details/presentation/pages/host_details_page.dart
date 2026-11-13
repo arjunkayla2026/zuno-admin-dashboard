@@ -6,6 +6,8 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_nav_item.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_shell.dart';
+import 'package:zuno_admin_dashboard/features/calls/data/models/call_participant.dart';
+import 'package:zuno_admin_dashboard/features/calls/presentation/state/call_history_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_details/presentation/state/host_details_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_details/presentation/widgets/host_details_content.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/mock/host_mock_data.dart';
@@ -32,6 +34,11 @@ class HostDetailsPage extends StatelessWidget {
               host: arguments.host,
               onHostChanged: arguments.onHostChanged,
             ),
+          ),
+          BlocProvider(
+            create: (_) => getIt<CallHistoryCubit>(
+              param1: CallParticipant.host(arguments.host.hostId),
+            )..load(),
           ),
           BlocProvider(create: (_) => getIt<HostActionsCubit>()),
         ],

@@ -4,9 +4,11 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
+import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_data_table.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_status_badge.dart';
-import 'package:zuno_admin_dashboard/features/user_details/data/models/call_record.dart';
+import 'package:zuno_admin_dashboard/features/calls/data/models/call_log.dart';
+import 'package:zuno_admin_dashboard/features/calls/presentation/widgets/call_log_labels.dart';
 
 class CallHistoryTable extends StatelessWidget {
   const CallHistoryTable({super.key, required this.calls});
@@ -26,19 +28,11 @@ class CallHistoryTable extends StatelessWidget {
     AppTableColumn(AppStrings.hostRevenue, 100, alignEnd: true),
   ];
 
-  final List<CallRecord> calls;
+  final List<CallLog> calls;
 
-  static String _typeLabel(CallType type) => switch (type) {
-    CallType.audio => AppStrings.audio,
-    CallType.video => AppStrings.video,
-  };
-
-  static (String, AppStatus) _status(CallStatus status) => switch (status) {
-    CallStatus.completed => (AppStrings.completed, AppStatus.active),
-    CallStatus.rejected => (AppStrings.rejected, AppStatus.error),
-    CallStatus.notAnswered => (AppStrings.notAnswered, AppStatus.pending),
-    CallStatus.lowBalance => (AppStrings.lowBalance, AppStatus.pending),
-  };
+  static String _time(DateTime? moment) => moment == null
+      ? AppStrings.emptyValue
+      : DateFormatter.timeWithSeconds(moment);
 
   @override
   Widget build(BuildContext context) {
@@ -51,23 +45,37 @@ class CallHistoryTable extends StatelessWidget {
       rows: [
         for (final call in calls)
           () {
-            final (statusLabel, status) = _status(call.status);
+            final (statusLabel, status) = CallLogLabels.status(call);
+            final duration = call.durationSeconds;
             return [
-              Text(DateFormatter.short(call.date), style: cell),
+              Text(DateFormatter.short(call.initiatedAt), style: cell),
               Text(call.hostName, style: strong),
               AppStatusBadge(
-                label: _typeLabel(call.type),
+                label: CallLogLabels.type(call.type),
                 status: AppStatus.isNew,
               ),
-              Text(call.initiatedTime, style: cell),
-              Text(call.startTime ?? AppStrings.emptyValue, style: cell),
-              Text(call.endTime, style: cell),
-              Text(call.endedBy, style: cell),
+              Text(_time(call.initiatedAt), style: cell),
+              Text(_time(call.startedAt), style: cell),
+              Text(_time(call.endedAt), style: cell),
+              Text(CallLogLabels.endedBy(call), style: cell),
               AppStatusBadge(label: statusLabel, status: status),
-              Text(call.duration ?? AppStrings.emptyValue, style: cell),
-              Text(call.spendCoins, style: cell),
-              Text(call.totalSpend, style: strong),
-              Text(call.hostRevenue, style: strong),
+              Text(
+                duration == null
+                    ? AppStrings.emptyValue
+                    : DateFormatter.shortDuration(duration),
+                style: cell,
+              ),
+              Text(NumberFormatter.grouped(call.spendCoins), style: cell),
+              Text(
+                NumberFormatter.rupeesAmount(call.spendRupees),
+                style: strong,
+              ),
+              Text(
+                AppStrings.perMinute(
+                  NumberFormatter.rupeesAmount(call.hostRatePerMinute),
+                ),
+                style: strong,
+              ),
             ];
           }(),
       ],

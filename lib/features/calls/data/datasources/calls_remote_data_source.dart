@@ -4,6 +4,7 @@ import 'package:zuno_admin_dashboard/core/data/data_action.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/models/call_log.dart';
+import 'package:zuno_admin_dashboard/features/calls/data/models/call_participant.dart';
 
 class CallsRemoteDataSource {
   const CallsRemoteDataSource(this._firestore);
@@ -16,10 +17,14 @@ class CallsRemoteDataSource {
     String? status,
     bool lowBalanceOnly = false,
     String? callType,
+    CallParticipant? participant,
   }) {
     Query<Map<String, dynamic>> query = _firestore.collection(
       CallLog.collection,
     );
+    if (participant != null) {
+      query = query.where(participant.field, isEqualTo: participant.id);
+    }
     if (status != null) {
       query = query.where(CallLog.statusField, isEqualTo: status);
     }
@@ -50,6 +55,7 @@ class CallsRemoteDataSource {
     String? status,
     bool lowBalanceOnly = false,
     String? callType,
+    CallParticipant? participant,
     Object? cursor,
     required int pageSize,
   }) => DataAction.guard(
@@ -59,6 +65,7 @@ class CallsRemoteDataSource {
         status: status,
         lowBalanceOnly: lowBalanceOnly,
         callType: callType,
+        participant: participant,
       ),
       RecordPageQuery(from: from, until: until, cursor: cursor),
       CallLog.fromDocument,
@@ -73,6 +80,7 @@ class CallsRemoteDataSource {
     String? status,
     bool lowBalanceOnly = false,
     String? callType,
+    CallParticipant? participant,
   }) => DataAction.read('calls.count', () async {
     final snapshot = await _filtered(
       from: from,
@@ -80,6 +88,7 @@ class CallsRemoteDataSource {
       status: status,
       lowBalanceOnly: lowBalanceOnly,
       callType: callType,
+      participant: participant,
     ).count().get();
     return snapshot.count ?? 0;
   });

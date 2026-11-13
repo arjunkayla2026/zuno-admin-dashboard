@@ -4,6 +4,7 @@ import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/datasources/calls_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/models/call_log.dart';
+import 'package:zuno_admin_dashboard/features/calls/data/models/call_participant.dart';
 
 class CallsRepository {
   const CallsRepository(this._calls, this._users);
@@ -19,6 +20,7 @@ class CallsRepository {
     String? status,
     bool lowBalanceOnly = false,
     String? callType,
+    CallParticipant? participant,
     Object? cursor,
   }) => _calls.fetchPage(
     from: from,
@@ -26,6 +28,7 @@ class CallsRepository {
     status: status,
     lowBalanceOnly: lowBalanceOnly,
     callType: callType,
+    participant: participant,
     cursor: cursor,
     pageSize: pageSize,
   );
@@ -36,12 +39,14 @@ class CallsRepository {
     String? status,
     bool lowBalanceOnly = false,
     String? callType,
+    CallParticipant? participant,
   }) => _calls.count(
     from: from,
     until: until,
     status: status,
     lowBalanceOnly: lowBalanceOnly,
     callType: callType,
+    participant: participant,
   );
 
   Future<Either<Failure, List<CallLog>>> fetchCallsWithUsers({

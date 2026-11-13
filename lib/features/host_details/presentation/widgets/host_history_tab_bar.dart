@@ -8,6 +8,7 @@ import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_underline_tabs.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_wallet_adjustment_dialog.dart';
+import 'package:zuno_admin_dashboard/features/calls/presentation/state/call_history_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_details/presentation/state/host_details_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_details/presentation/state/host_details_state.dart';
 
@@ -32,6 +33,9 @@ class HostHistoryTabBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<HostDetailsCubit>().state;
+    final totalCalls = context.select(
+      (CallHistoryCubit cubit) => cubit.state.totalCount,
+    );
 
     return Wrap(
       alignment: WrapAlignment.spaceBetween,
@@ -44,7 +48,7 @@ class HostHistoryTabBar extends StatelessWidget {
             HostDetailsTab.wallet: AppStrings.walletHistory,
           },
           counts: {
-            HostDetailsTab.calls: state.calls.length,
+            HostDetailsTab.calls: ?totalCalls,
             HostDetailsTab.withdrawals: state.withdrawals.length,
           },
           value: state.tab,

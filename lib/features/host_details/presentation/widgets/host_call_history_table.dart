@@ -4,9 +4,11 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
+import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_data_table.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_status_badge.dart';
-import 'package:zuno_admin_dashboard/features/host_details/data/models/host_call_record.dart';
+import 'package:zuno_admin_dashboard/features/calls/data/models/call_log.dart';
+import 'package:zuno_admin_dashboard/features/calls/presentation/widgets/call_log_labels.dart';
 
 class HostCallHistoryTable extends StatelessWidget {
   const HostCallHistoryTable({super.key, required this.calls});
@@ -14,7 +16,7 @@ class HostCallHistoryTable extends StatelessWidget {
   static const List<AppTableColumn> _columns = [
     AppTableColumn(AppStrings.date, 101),
     AppTableColumn(AppStrings.userName, 104),
-    AppTableColumn(AppStrings.hostId, 86),
+    AppTableColumn(AppStrings.userId, 86),
     AppTableColumn(AppStrings.type, 84),
     AppTableColumn(AppStrings.callInitiatedTime, 125),
     AppTableColumn(AppStrings.callStartTime, 107),
@@ -27,19 +29,11 @@ class HostCallHistoryTable extends StatelessWidget {
     AppTableColumn(AppStrings.hostRevenue, 100, alignEnd: true),
   ];
 
-  final List<HostCallRecord> calls;
+  final List<CallLog> calls;
 
-  static String _typeLabel(HostCallType type) => switch (type) {
-    HostCallType.audio => AppStrings.audio,
-    HostCallType.video => AppStrings.video,
-  };
-
-  static (String, AppStatus) _status(HostCallStatus status) => switch (status) {
-    HostCallStatus.completed => (AppStrings.completed, AppStatus.active),
-    HostCallStatus.lowBalance => (AppStrings.lowBalance, AppStatus.pending),
-    HostCallStatus.busy => (AppStrings.busy, AppStatus.pending),
-    HostCallStatus.rejected => (AppStrings.rejected, AppStatus.error),
-  };
+  static String _time(DateTime? moment) => moment == null
+      ? AppStrings.emptyValue
+      : DateFormatter.timeWithSeconds(moment);
 
   @override
   Widget build(BuildContext context) {
@@ -53,24 +47,36 @@ class HostCallHistoryTable extends StatelessWidget {
       rows: [
         for (final call in calls)
           () {
-            final (statusLabel, status) = _status(call.status);
+            final (statusLabel, status) = CallLogLabels.status(call);
+            final duration = call.durationSeconds;
             return [
-              Text(DateFormatter.short(call.date), style: cell),
+              Text(DateFormatter.short(call.initiatedAt), style: cell),
               Text(call.userName, style: strong),
-              Text(call.userId, style: mono),
+              Text(call.userDisplayId, style: mono),
               AppStatusBadge(
-                label: _typeLabel(call.type),
+                label: CallLogLabels.type(call.type),
                 status: AppStatus.isNew,
               ),
-              Text(call.initiatedTime, style: cell),
-              Text(call.startTime ?? AppStrings.emptyValue, style: cell),
-              Text(call.endTime, style: cell),
-              Text(call.endedBy, style: cell),
-              Text(call.duration ?? AppStrings.emptyValue, style: cell),
+              Text(_time(call.initiatedAt), style: cell),
+              Text(_time(call.startedAt), style: cell),
+              Text(_time(call.endedAt), style: cell),
+              Text(CallLogLabels.endedBy(call), style: cell),
+              Text(
+                duration == null
+                    ? AppStrings.emptyValue
+                    : DateFormatter.shortDuration(duration),
+                style: cell,
+              ),
               AppStatusBadge(label: statusLabel, status: status),
-              Text(call.spendCoins, style: cell),
-              Text(call.totalSpend, style: strong),
-              Text(call.hostRevenue, style: strong),
+              Text(NumberFormatter.grouped(call.spendCoins), style: cell),
+              Text(
+                NumberFormatter.rupeesAmount(call.spendRupees),
+                style: strong,
+              ),
+              Text(
+                NumberFormatter.rupeesAmount(call.hostEarnings),
+                style: strong,
+              ),
             ];
           }(),
       ],

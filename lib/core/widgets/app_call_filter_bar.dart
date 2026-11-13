@@ -20,7 +20,7 @@ class AppCallFilterBar extends StatelessWidget {
     required this.onRangeStartChanged,
     required this.rangeEnd,
     required this.onRangeEndChanged,
-    required this.callCount,
+    this.callCount,
   });
 
   static const double _dateWidth = 150;
@@ -40,7 +40,7 @@ class AppCallFilterBar extends StatelessWidget {
   final ValueChanged<DateTime> onRangeStartChanged;
   final DateTime rangeEnd;
   final ValueChanged<DateTime> onRangeEndChanged;
-  final int callCount;
+  final int? callCount;
 
   @override
   Widget build(BuildContext context) {
@@ -129,7 +129,8 @@ class AppCallFilterBar extends StatelessWidget {
                   Text(AppStrings.scrollSidewaysHint, style: footnote),
                 ],
               ),
-              Text(AppStrings.callsCount(callCount), style: footnote),
+              if (callCount case final count?)
+                Text(AppStrings.callsCount(count), style: footnote),
             ],
           ),
         ],

@@ -27,7 +27,7 @@ abstract final class DateFormatter {
   static String _twoDigits(int value) => value.toString().padLeft(2, '0');
 
   static String numeric(DateTime date) =>
-      '${_twoDigits(date.month)}/${_twoDigits(date.day)}/${date.year}';
+      '${_twoDigits(date.day)}/${_twoDigits(date.month)}/${date.year}';
 
   static String short(DateTime date) =>
       '${_twoDigits(date.day)} ${_months[date.month - 1]} ${date.year}';

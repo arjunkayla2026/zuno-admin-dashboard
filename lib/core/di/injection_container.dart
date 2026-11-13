@@ -18,7 +18,9 @@ import 'package:zuno_admin_dashboard/features/auth/presentation/state/auth_cubit
 import 'package:zuno_admin_dashboard/features/dashboard/data/repositories/dashboard_repository.dart';
 import 'package:zuno_admin_dashboard/features/dashboard/presentation/state/dashboard_cubit.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/datasources/calls_remote_data_source.dart';
+import 'package:zuno_admin_dashboard/features/calls/data/models/call_participant.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/repositories/calls_repository.dart';
+import 'package:zuno_admin_dashboard/features/calls/presentation/state/call_history_cubit.dart';
 import 'package:zuno_admin_dashboard/features/calls/presentation/state/calls_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/repositories/host_management_repository.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/call_pricing_cubit.dart';
@@ -184,6 +186,10 @@ void configureDependencies() {
       ),
     )
     ..registerFactory<CallsCubit>(() => CallsCubit(getIt<CallsRepository>()))
+    ..registerFactoryParam<CallHistoryCubit, CallParticipant, void>(
+      (participant, _) =>
+          CallHistoryCubit(getIt<CallsRepository>(), participant),
+    )
     ..registerFactory<AddRechargeCubit>(
       () => AddRechargeCubit(
         getIt<PackagesRepository>(),
