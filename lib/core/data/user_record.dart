@@ -243,14 +243,24 @@ class UserRecord {
     return date == null ? AppStrings.emptyValue : DateFormatter.short(date);
   }
 
-  String get phoneLabel {
-    final number = phoneNumber;
+  String get phoneLabel => formatPhone(countryCode, phoneNumber);
+
+  static String formatPhone(String? countryCode, String? number) {
     if (number == null) return AppStrings.emptyValue;
     final grouped = number.length == _nationalNumberLength
         ? '${number.substring(0, _nationalNumberGroup)} '
               '${number.substring(_nationalNumberGroup)}'
         : number;
     return [?countryCode, grouped].join(' ');
+  }
+
+  static String formatFullPhone(String phone) {
+    final fields = phoneFields(phone);
+    if (fields == null) return phone;
+    return formatPhone(
+      fields['countryCode'] as String?,
+      fields['phoneNumber'] as String?,
+    );
   }
 
   int get avatarIndex => id.codeUnits.fold(0, (total, unit) => total + unit);

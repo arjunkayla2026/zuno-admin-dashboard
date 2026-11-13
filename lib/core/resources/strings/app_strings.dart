@@ -474,9 +474,12 @@ abstract final class AppStrings {
       [if (languages.isNotEmpty) languages, 'Submitted $date'].join(' · ');
 
   static const String allReportTypes = 'All report types';
-  static const String fakeProfile = 'Fake profile';
-  static const String harassment = 'Harassment';
-  static const String abusiveLanguage = 'Abusive language';
+  static const String askingPersonalDetails = 'Asking personal details';
+  static const String offensiveLanguage = 'Offensive or abusive language';
+  static const String inappropriateBehavior = 'Inappropriate behavior';
+  static const String requestingPersonalDetails = 'Requesting personal details';
+  static const String notResponding = 'Not responding during call';
+  static const String moneyRequests = 'Money requests or scam';
   static const String otherReason = 'Other';
   static const String reportedByName = 'Reported by Name';
   static const String reported = 'Reported';

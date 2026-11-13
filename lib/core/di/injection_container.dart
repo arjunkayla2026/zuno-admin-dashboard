@@ -32,6 +32,9 @@ import 'package:zuno_admin_dashboard/features/packages/presentation/state/packag
 import 'package:zuno_admin_dashboard/features/recharge/data/datasources/recharge_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/repositories/recharge_repository.dart';
 import 'package:zuno_admin_dashboard/features/recharge/presentation/state/recharge_cubit.dart';
+import 'package:zuno_admin_dashboard/features/reports/data/datasources/reports_remote_data_source.dart';
+import 'package:zuno_admin_dashboard/features/reports/data/repositories/reports_repository.dart';
+import 'package:zuno_admin_dashboard/features/reports/presentation/state/reports_cubit.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/datasources/banner_images_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/datasources/notifications_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/datasources/settings_remote_data_source.dart';
@@ -186,6 +189,15 @@ void configureDependencies() {
       ),
     )
     ..registerFactory<CallsCubit>(() => CallsCubit(getIt<CallsRepository>()))
+    ..registerLazySingleton<ReportsRemoteDataSource>(
+      () => ReportsRemoteDataSource(FirebaseFirestore.instance),
+    )
+    ..registerFactory<ReportsRepository>(
+      () => ReportsRepository(getIt<ReportsRemoteDataSource>()),
+    )
+    ..registerFactory<ReportsCubit>(
+      () => ReportsCubit(getIt<ReportsRepository>()),
+    )
     ..registerFactoryParam<CallHistoryCubit, CallParticipant, void>(
       (participant, _) =>
           CallHistoryCubit(getIt<CallsRepository>(), participant),
