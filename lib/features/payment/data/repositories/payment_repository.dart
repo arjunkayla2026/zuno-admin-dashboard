@@ -8,20 +8,12 @@ import 'package:zuno_admin_dashboard/features/payment/data/datasources/payment_r
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_summary.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
 
-class WithdrawalListCursor {
-  const WithdrawalListCursor({required this.inPaid, this.cursor});
-
-  final bool inPaid;
-  final Object? cursor;
-}
-
 class PaymentRepository {
   const PaymentRepository(this._dataSource, this._usersDataSource);
 
   static const String _hostRole = 'host';
   static const String _withdrawIdPrefix = 'WD-';
   static const int _maxPaidSearchHosts = 30;
-  static const int _pageSize = RecordPageQuery.pageSize;
 
   final PaymentRemoteDataSource _dataSource;
   final UsersRemoteDataSource _usersDataSource;
@@ -52,48 +44,7 @@ class PaymentRepository {
   Future<Either<Failure, RecordPage<Withdrawal>>> fetchListPage({
     required double? minimum,
     Object? cursor,
-  }) async {
-    final position = cursor is WithdrawalListCursor
-        ? cursor
-        : const WithdrawalListCursor(inPaid: false);
-    if (position.inPaid) return _paidListPage(position.cursor, _pageSize);
-
-    final pending = await fetchEligiblePage(
-      minimum: minimum,
-      cursor: position.cursor,
-    );
-    switch (pending) {
-      case Left():
-        return pending;
-      case Right(value: final page) when page.nextCursor != null:
-        return right(
-          RecordPage(
-            page.items,
-            nextCursor: WithdrawalListCursor(
-              inPaid: false,
-              cursor: page.nextCursor,
-            ),
-          ),
-        );
-      case Right(value: final page):
-        final remaining = _pageSize - page.items.length;
-        if (remaining <= 0) {
-          return right(
-            RecordPage(
-              page.items,
-              nextCursor: const WithdrawalListCursor(inPaid: true),
-            ),
-          );
-        }
-        final paid = await _paidListPage(null, remaining);
-        return paid.map(
-          (paidPage) => RecordPage([
-            ...page.items,
-            ...paidPage.items,
-          ], nextCursor: paidPage.nextCursor),
-        );
-    }
-  }
+  }) => fetchEligiblePage(minimum: minimum, cursor: cursor);
 
   Future<Either<Failure, List<Withdrawal>>> search(
     String term, {
@@ -146,24 +97,6 @@ class PaymentRepository {
     );
     return result.map(
       (receipt) => withdrawal.markedPaid(receipt, DateTime.now()),
-    );
-  }
-
-  Future<Either<Failure, RecordPage<Withdrawal>>> _paidListPage(
-    Object? cursor,
-    int pageSize,
-  ) async {
-    final page = await _dataSource.fetchPaidPage(
-      cursor: cursor,
-      pageSize: pageSize,
-    );
-    return page.map(
-      (paid) => RecordPage(
-        paid.items,
-        nextCursor: paid.nextCursor == null
-            ? null
-            : WithdrawalListCursor(inPaid: true, cursor: paid.nextCursor),
-      ),
     );
   }
 

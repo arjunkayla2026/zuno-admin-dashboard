@@ -546,6 +546,7 @@ abstract final class AppStrings {
   static const String searchWithdrawalsHint =
       'Search host, host ID or withdraw ID';
   static const String exportWithdrawalSheet = 'Export Withdrawal Sheet';
+  static const String exportBeneficiarySheet = 'Export Beneficiary Sheet';
   static const String totalCallsCount = 'Total Calls Count';
   static const String callDurationMinutes = 'Call Duration (min)';
   static const String totalAmount = 'Total Amount';
@@ -614,6 +615,15 @@ abstract final class AppStrings {
   static String withdrawalSheetFileName(String scope, String date) =>
       'withdrawal-sheet-$scope-$date.xlsx';
 
+  static String beneficiariesExported(int count) =>
+      '$count beneficiaries were exported.';
+
+  static String beneficiarySheetRows(int count) =>
+      'Beneficiary sheet · $count rows';
+
+  static String beneficiarySheetFileName(String scope, String date) =>
+      'beneficiary-sheet-$scope-$date.xlsx';
+
   static String tdsLabel(int percent) => 'TDS ($percent%)';
 
   static String deduction(String amount) => '– $amount';
@@ -634,6 +644,20 @@ abstract final class AppStrings {
   static const String noRecentRechargesMessage =
       'Successful recharges will appear here as soon as they are completed.';
   static const String maintenanceMode = 'Maintenance Mode';
+  static const String appSettings = 'App Settings';
+  static const String allowedAppVersions = 'Allowed app versions';
+  static const String allowedAppVersionsDescription =
+      'Only these app versions can use the apps. Add each version exactly as '
+      'it appears in the store, for example 1.0.3.';
+  static const String appVersion = 'Version';
+  static const String appVersionHint = 'e.g. 1.0.3';
+  static const String enterAppVersion = 'Enter a version like 1.0.3';
+  static const String appVersionExists = 'This version is already added';
+  static const String addVersion = 'Add version';
+  static const String noAllowedVersions = 'No versions added yet';
+  static const String allowedVersionAdded = 'Version added';
+  static const String allowedVersionRemoved = 'Version removed';
+  static const String removeVersion = 'Remove version';
   static const String adminManagement = 'Admin Management';
   static const String notificationManagement = 'Notification Management';
   static const String bannerImageManagement = 'Banner Image Management';

@@ -32,7 +32,7 @@ class SettingsTabsCard extends StatelessWidget {
             children: [
               AppUnderlineTabs<SettingsTab>(
                 tabs: const {
-                  SettingsTab.maintenanceMode: AppStrings.maintenanceMode,
+                  SettingsTab.maintenanceMode: AppStrings.appSettings,
                   SettingsTab.adminManagement: AppStrings.adminManagement,
                   SettingsTab.notificationManagement:
                       AppStrings.notificationManagement,

@@ -31,12 +31,34 @@ class SettingsRemoteDataSource {
           minimumPayoutAmount: PayoutSettings.readMinimum(
             data?[PayoutSettings.minimumPayoutField],
           ),
+          allowedVersions: GeneralSettings.readAllowedVersions(
+            data?[GeneralSettings.allowedVersionsField],
+          ),
         ),
       );
     } on FirebaseException catch (error) {
       return left(FirestoreFailures.read(error.code));
     } catch (_) {
       return left(const DataFailure(AppStrings.recordsLoadFailed));
+    }
+  }
+
+  Future<Either<Failure, Unit>> changeAllowedVersion(
+    String version, {
+    required bool add,
+  }) async {
+    try {
+      await _app.set({
+        GeneralSettings.allowedVersionsField: add
+            ? FieldValue.arrayUnion([version])
+            : FieldValue.arrayRemove([version]),
+        updatedAtField: FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      return right(unit);
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.write(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsSaveFailed));
     }
   }
 

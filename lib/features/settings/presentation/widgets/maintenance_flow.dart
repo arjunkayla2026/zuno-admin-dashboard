@@ -14,6 +14,29 @@ Future<void> saveMinimumPayout(BuildContext context, double amount) async {
   );
 }
 
+Future<bool> changeAllowedVersion(
+  BuildContext context,
+  String version, {
+  required bool add,
+}) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final error = await context.read<SettingsCubit>().changeAllowedVersion(
+    version,
+    add: add,
+  );
+  messenger.showSnackBar(
+    SnackBar(
+      content: Text(
+        error ??
+            (add
+                ? AppStrings.allowedVersionAdded
+                : AppStrings.allowedVersionRemoved),
+      ),
+    ),
+  );
+  return error == null;
+}
+
 Future<void> toggleMaintenance(BuildContext context, bool enable) async {
   final cubit = context.read<SettingsCubit>();
   final messenger = ScaffoldMessenger.of(context);

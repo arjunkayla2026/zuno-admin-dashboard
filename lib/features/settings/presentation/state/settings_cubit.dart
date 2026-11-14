@@ -60,8 +60,41 @@ class SettingsCubit extends Cubit<SettingsState> {
           maintenanceStatus: LoadStatus.loaded,
           maintenanceEnabled: settings.maintenanceEnabled,
           minimumPayout: settings.minimumPayoutAmount,
+          allowedVersions: settings.allowedVersions,
         ),
       ),
+    );
+  }
+
+  Future<String?> changeAllowedVersion(
+    String version, {
+    required bool add,
+  }) async {
+    emit(state.copyWith(allowedVersionSaving: true));
+    final result = await _repository.changeAllowedVersion(version, add: add);
+    if (isClosed) return null;
+
+    return result.match(
+      (failure) {
+        emit(state.copyWith(allowedVersionSaving: false));
+        return failure.message;
+      },
+      (_) {
+        final current = state.allowedVersions;
+        final updated = add
+            ? [...current.where((item) => item != version), version]
+            : [
+                for (final item in current)
+                  if (item != version) item,
+              ];
+        emit(
+          state.copyWith(
+            allowedVersionSaving: false,
+            allowedVersions: updated,
+          ),
+        );
+        return null;
+      },
     );
   }
 

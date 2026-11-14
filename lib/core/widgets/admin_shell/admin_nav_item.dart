@@ -16,7 +16,7 @@ enum AdminSubNavItem {
   withdrawalList(AppStrings.withdrawalList, route: AppRoutes.payment),
   pendingWithdrawals(AppStrings.pendingWithdrawals),
   successfulWithdrawals(AppStrings.successfulWithdrawals),
-  maintenanceMode(AppStrings.maintenanceMode, route: AppRoutes.settings),
+  maintenanceMode(AppStrings.appSettings, route: AppRoutes.settings),
   adminManagement(AppStrings.adminManagement),
   notificationManagement(AppStrings.notificationManagement),
   bannerImageManagement(AppStrings.bannerImageManagement);

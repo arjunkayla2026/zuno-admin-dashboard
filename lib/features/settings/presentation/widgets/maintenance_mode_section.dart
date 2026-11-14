@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_error_banner.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_cubit.dart';
+import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/allowed_versions_card.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_state.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/maintenance_flow.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/maintenance_mode_card.dart';
@@ -27,7 +28,9 @@ class MaintenanceModeSection extends StatelessWidget {
             previous.maintenanceStatus != current.maintenanceStatus ||
             previous.maintenanceSaving != current.maintenanceSaving ||
             previous.minimumPayout != current.minimumPayout ||
-            previous.minimumPayoutSaving != current.minimumPayoutSaving,
+            previous.minimumPayoutSaving != current.minimumPayoutSaving ||
+            previous.allowedVersions != current.allowedVersions ||
+            previous.allowedVersionSaving != current.allowedVersionSaving,
         builder: (context, state) {
           final editable =
               state.maintenanceStatus == LoadStatus.loaded &&
@@ -55,6 +58,16 @@ class MaintenanceModeSection extends StatelessWidget {
                 enabled: state.maintenanceStatus == LoadStatus.loaded,
                 saving: state.minimumPayoutSaving,
                 onSave: (amount) => saveMinimumPayout(context, amount),
+              ),
+              const SizedBox(height: _gap),
+              AllowedVersionsCard(
+                versions: state.allowedVersions,
+                enabled: state.maintenanceStatus == LoadStatus.loaded,
+                saving: state.allowedVersionSaving,
+                onAdd: (version) =>
+                    changeAllowedVersion(context, version, add: true),
+                onRemove: (version) =>
+                    changeAllowedVersion(context, version, add: false),
               ),
             ],
           );

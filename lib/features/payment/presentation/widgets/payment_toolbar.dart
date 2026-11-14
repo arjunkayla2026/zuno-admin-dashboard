@@ -18,6 +18,16 @@ class PaymentToolbar extends StatelessWidget {
   static const double _iconSize = 16;
   static const EdgeInsets _padding = EdgeInsets.all(12);
 
+  Widget _downloadIcon(BuildContext context) => SvgPicture.asset(
+    AppImages.downloadIcon,
+    width: _iconSize,
+    height: _iconSize,
+    colorFilter: ColorFilter.mode(
+      context.colorScheme.onSurface,
+      BlendMode.srcIn,
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -39,18 +49,21 @@ class PaymentToolbar extends StatelessWidget {
                 onChanged: context.read<PaymentCubit>().search,
               ),
             ),
-            AppSecondaryButton(
-              label: AppStrings.exportWithdrawalSheet,
-              leading: SvgPicture.asset(
-                AppImages.downloadIcon,
-                width: _iconSize,
-                height: _iconSize,
-                colorFilter: ColorFilter.mode(
-                  context.colorScheme.onSurface,
-                  BlendMode.srcIn,
+            Wrap(
+              spacing: AppUtils.spacingSm,
+              runSpacing: AppUtils.spacingSm,
+              children: [
+                AppSecondaryButton(
+                  label: AppStrings.exportBeneficiarySheet,
+                  leading: _downloadIcon(context),
+                  onPressed: () => exportBeneficiaries(context),
                 ),
-              ),
-              onPressed: () => exportWithdrawals(context),
+                AppSecondaryButton(
+                  label: AppStrings.exportWithdrawalSheet,
+                  leading: _downloadIcon(context),
+                  onPressed: () => exportWithdrawals(context),
+                ),
+              ],
             ),
           ],
         ),

@@ -29,6 +29,8 @@ class SettingsState {
     this.maintenanceSaving = false,
     this.minimumPayout,
     this.minimumPayoutSaving = false,
+    this.allowedVersions = const [],
+    this.allowedVersionSaving = false,
   });
 
   final List<AdminAccount> admins;
@@ -48,6 +50,8 @@ class SettingsState {
   final bool maintenanceSaving;
   final double? minimumPayout;
   final bool minimumPayoutSaving;
+  final List<String> allowedVersions;
+  final bool allowedVersionSaving;
 
   SettingsState copyWith({
     List<AdminAccount>? admins,
@@ -67,6 +71,8 @@ class SettingsState {
     bool? maintenanceSaving,
     double? minimumPayout,
     bool? minimumPayoutSaving,
+    List<String>? allowedVersions,
+    bool? allowedVersionSaving,
   }) {
     return SettingsState(
       admins: admins ?? this.admins,
@@ -86,6 +92,8 @@ class SettingsState {
       maintenanceSaving: maintenanceSaving ?? this.maintenanceSaving,
       minimumPayout: minimumPayout ?? this.minimumPayout,
       minimumPayoutSaving: minimumPayoutSaving ?? this.minimumPayoutSaving,
+      allowedVersions: allowedVersions ?? this.allowedVersions,
+      allowedVersionSaving: allowedVersionSaving ?? this.allowedVersionSaving,
     );
   }
 }

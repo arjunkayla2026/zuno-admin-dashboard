@@ -89,6 +89,30 @@ Future<void> _reviewWithdrawal(
   );
 }
 
+Future<void> exportBeneficiaries(BuildContext context) {
+  final state = context.read<PaymentCubit>().state;
+  final rowCount = state.totalCount ?? state.withdrawals.length;
+  final scope = switch (state.tab) {
+    PaymentTab.withdrawalList => AppStrings.exportScopeAll,
+    PaymentTab.pending => AppStrings.exportScopePending,
+    PaymentTab.success => AppStrings.exportScopeSuccess,
+  };
+
+  return showAppSuccessDialog(
+    context: context,
+    title: AppStrings.exportComplete,
+    message: AppStrings.beneficiariesExported(rowCount),
+    details: AppExportFileTile(
+      fileName: AppStrings.beneficiarySheetFileName(
+        scope,
+        DateFormatter.short(DateTime.now()).replaceAll(' ', '-'),
+      ),
+      description: AppStrings.beneficiarySheetRows(rowCount),
+    ),
+    actionLabel: AppStrings.done,
+  );
+}
+
 Future<void> exportWithdrawals(BuildContext context) {
   final state = context.read<PaymentCubit>().state;
   final rowCount = state.totalCount ?? state.withdrawals.length;

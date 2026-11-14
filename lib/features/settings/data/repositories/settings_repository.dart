@@ -73,6 +73,11 @@ class SettingsRepository {
   Future<Either<Failure, GeneralSettings>> fetchGeneralSettings() =>
       _settingsDataSource.fetchGeneralSettings();
 
+  Future<Either<Failure, Unit>> changeAllowedVersion(
+    String version, {
+    required bool add,
+  }) => _settingsDataSource.changeAllowedVersion(version, add: add);
+
   Future<Either<Failure, Unit>> saveMinimumPayout(double amount) =>
       _settingsDataSource.saveMinimumPayout(amount);
 

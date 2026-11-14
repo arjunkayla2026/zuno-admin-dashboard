@@ -171,7 +171,7 @@ class PaymentRemoteDataSource {
       final snapshots = await Future.wait([
         for (var start = 0; start < ids.length; start += _idsPerQuery)
           _firestore
-              .collection(SearchKeywords.bankAccountsCollection)
+              .collection(SearchKeywords.bankDetailsCollection)
               .where(
                 FieldPath.documentId,
                 whereIn: ids.sublist(

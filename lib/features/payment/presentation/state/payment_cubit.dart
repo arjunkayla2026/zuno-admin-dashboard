@@ -105,8 +105,8 @@ class PaymentCubit extends Cubit<PaymentState> {
         ),
       );
       _pagers[PaymentTab.pending]!.update(remove);
-      _pagers[PaymentTab.withdrawalList]!.update(replace);
-      _searchPager?.update(state.tab == PaymentTab.pending ? remove : replace);
+      _pagers[PaymentTab.withdrawalList]!.update(remove);
+      _searchPager?.update(state.tab == PaymentTab.success ? replace : remove);
     });
     return result;
   }
@@ -169,7 +169,7 @@ class PaymentCubit extends Cubit<PaymentState> {
       state.query,
       minimum: state.minimumPayout,
       includePending: tab != PaymentTab.success,
-      includePaid: tab != PaymentTab.pending,
+      includePaid: tab == PaymentTab.success,
     );
     if (isClosed || request != _searchRequest) return;
 

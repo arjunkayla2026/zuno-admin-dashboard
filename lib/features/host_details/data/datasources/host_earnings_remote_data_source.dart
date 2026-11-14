@@ -97,7 +97,7 @@ class HostEarningsRemoteDataSource {
   ) async {
     try {
       final snapshot = await _firestore
-          .collection(SearchKeywords.bankAccountsCollection)
+          .collection(SearchKeywords.bankDetailsCollection)
           .doc(hostId)
           .get();
       final data = snapshot.data();
