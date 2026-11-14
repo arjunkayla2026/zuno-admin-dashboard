@@ -54,11 +54,17 @@ class WithdrawalsTable extends StatelessWidget {
               avatarIndex: withdrawal.avatarIndex,
               name: withdrawal.hostName,
             ),
-            Text(withdrawal.hostId, style: mono),
+            Text(withdrawal.hostUserId, style: mono),
             Text(withdrawal.withdrawId, style: mono),
             Text(NumberFormatter.grouped(withdrawal.callCount), style: cell),
-            Text(NumberFormatter.rupees(withdrawal.amountEarned), style: cell),
-            Text(NumberFormatter.rupees(withdrawal.totalAmount), style: strong),
+            Text(
+              NumberFormatter.rupeesAmount(withdrawal.amountEarned),
+              style: cell,
+            ),
+            Text(
+              NumberFormatter.rupeesAmount(withdrawal.totalAmount),
+              style: strong,
+            ),
             const SizedBox.shrink(),
             _statusBadge(withdrawal),
             AppSecondaryButton(

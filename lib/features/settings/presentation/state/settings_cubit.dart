@@ -43,9 +43,9 @@ class SettingsCubit extends Cubit<SettingsState> {
     return result;
   }
 
-  Future<void> loadMaintenance() async {
+  Future<void> loadGeneralSettings() async {
     emit(state.copyWith(maintenanceStatus: LoadStatus.loading));
-    final result = await _repository.fetchMaintenanceMode();
+    final result = await _repository.fetchGeneralSettings();
     if (isClosed) return;
 
     result.match(
@@ -55,12 +55,30 @@ class SettingsCubit extends Cubit<SettingsState> {
           maintenanceError: failure.message,
         ),
       ),
-      (enabled) => emit(
+      (settings) => emit(
         state.copyWith(
           maintenanceStatus: LoadStatus.loaded,
-          maintenanceEnabled: enabled,
+          maintenanceEnabled: settings.maintenanceEnabled,
+          minimumPayout: settings.minimumPayoutAmount,
         ),
       ),
+    );
+  }
+
+  Future<String?> saveMinimumPayout(double amount) async {
+    emit(state.copyWith(minimumPayoutSaving: true));
+    final result = await _repository.saveMinimumPayout(amount);
+    if (isClosed) return null;
+
+    return result.match(
+      (failure) {
+        emit(state.copyWith(minimumPayoutSaving: false));
+        return failure.message;
+      },
+      (_) {
+        emit(state.copyWith(minimumPayoutSaving: false, minimumPayout: amount));
+        return null;
+      },
     );
   }
 

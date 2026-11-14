@@ -7,6 +7,7 @@ import 'package:zuno_admin_dashboard/features/settings/presentation/state/settin
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/maintenance_flow.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/maintenance_mode_card.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/maintenance_mode_note.dart';
+import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/minimum_payout_card.dart';
 
 class MaintenanceModeSection extends StatelessWidget {
   const MaintenanceModeSection({super.key});
@@ -24,7 +25,9 @@ class MaintenanceModeSection extends StatelessWidget {
         buildWhen: (previous, current) =>
             previous.maintenanceEnabled != current.maintenanceEnabled ||
             previous.maintenanceStatus != current.maintenanceStatus ||
-            previous.maintenanceSaving != current.maintenanceSaving,
+            previous.maintenanceSaving != current.maintenanceSaving ||
+            previous.minimumPayout != current.minimumPayout ||
+            previous.minimumPayoutSaving != current.minimumPayoutSaving,
         builder: (context, state) {
           final editable =
               state.maintenanceStatus == LoadStatus.loaded &&
@@ -38,16 +41,23 @@ class MaintenanceModeSection extends StatelessWidget {
                 ? (value) => toggleMaintenance(context, value)
                 : null,
           );
-          final card = error == null
-              ? toggle
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    AppErrorBanner(message: error),
-                    const SizedBox(height: _gap),
-                    toggle,
-                  ],
-                );
+          final card = Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (error != null) ...[
+                AppErrorBanner(message: error),
+                const SizedBox(height: _gap),
+              ],
+              toggle,
+              const SizedBox(height: _gap),
+              MinimumPayoutCard(
+                amount: state.minimumPayout,
+                enabled: state.maintenanceStatus == LoadStatus.loaded,
+                saving: state.minimumPayoutSaving,
+                onSave: (amount) => saveMinimumPayout(context, amount),
+              ),
+            ],
+          );
 
           return LayoutBuilder(
             builder: (context, constraints) {

@@ -61,15 +61,34 @@ class WithdrawalDetailsSheet extends StatelessWidget {
               ),
               AppDetailItem(
                 AppStrings.amountEarned,
-                value: NumberFormatter.rupees(withdrawal.amountEarned),
+                value: NumberFormatter.rupeesAmount(withdrawal.amountEarned),
               ),
               AppDetailItem(
                 AppStrings.surgeChargeSession,
-                value: NumberFormatter.rupees(withdrawal.hostCredit),
+                value: NumberFormatter.rupeesAmount(withdrawal.surgeEarnings),
               ),
+              if (withdrawal.adminCreditAmount > 0)
+                AppDetailItem(
+                  AppStrings.adminCredit,
+                  value: NumberFormatter.rupeesAmount(
+                    withdrawal.adminCreditAmount,
+                  ),
+                ),
+              if (withdrawal.adminDebitAmount > 0)
+                AppDetailItem(
+                  AppStrings.adminDebit,
+                  value: AppStrings.deduction(
+                    NumberFormatter.rupeesAmount(withdrawal.adminDebitAmount),
+                  ),
+                ),
+              if (withdrawal.bonusAmount > 0)
+                AppDetailItem(
+                  AppStrings.bonus,
+                  value: NumberFormatter.rupeesAmount(withdrawal.bonusAmount),
+                ),
               AppDetailItem(
                 AppStrings.withdrawAmount,
-                value: NumberFormatter.rupees(withdrawal.totalAmount),
+                value: NumberFormatter.rupeesAmount(withdrawal.totalAmount),
               ),
             ],
           ),

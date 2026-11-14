@@ -30,10 +30,7 @@ class HostDetailsPage extends StatelessWidget {
       child: MultiBlocProvider(
         providers: [
           BlocProvider(
-            create: (_) => HostDetailsCubit(
-              host: arguments.host,
-              onHostChanged: arguments.onHostChanged,
-            ),
+            create: (_) => getIt<HostDetailsCubit>(param1: arguments)..load(),
           ),
           BlocProvider(
             create: (_) => getIt<CallHistoryCubit>(

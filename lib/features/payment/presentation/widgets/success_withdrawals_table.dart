@@ -59,7 +59,7 @@ class SuccessWithdrawalsTable extends StatelessWidget {
                 avatarIndex: withdrawal.avatarIndex,
                 name: withdrawal.hostName,
               ),
-              Text(withdrawal.hostId, style: mono),
+              Text(withdrawal.hostUserId, style: mono),
               Text(withdrawal.phone, style: mono),
               Text(NumberFormatter.grouped(withdrawal.callCount), style: cell),
               Text(
@@ -69,17 +69,20 @@ class SuccessWithdrawalsTable extends StatelessWidget {
                 style: cell,
               ),
               Text(
-                NumberFormatter.rupees(withdrawal.amountEarned),
+                NumberFormatter.rupeesAmount(withdrawal.amountEarned),
                 style: cell,
               ),
-              Text(NumberFormatter.rupees(withdrawal.totalAmount), style: cell),
               Text(
-                NumberFormatter.rupeesPaise(withdrawal.tdsPaise(tds)),
+                NumberFormatter.rupeesAmount(withdrawal.totalAmount),
+                style: cell,
+              ),
+              Text(
+                NumberFormatter.rupeesAmount(withdrawal.tdsAmount(tds)),
                 style: cell,
               ),
               Text(AppStrings.percentValue(tds), style: cell),
               Text(
-                NumberFormatter.rupeesPaise(withdrawal.receivablePaise(tds)),
+                NumberFormatter.rupeesAmount(withdrawal.receivableAmount(tds)),
                 style: strong,
               ),
               const SizedBox.shrink(),

@@ -22,11 +22,18 @@ import 'package:zuno_admin_dashboard/features/calls/data/models/call_participant
 import 'package:zuno_admin_dashboard/features/calls/data/repositories/calls_repository.dart';
 import 'package:zuno_admin_dashboard/features/calls/presentation/state/call_history_cubit.dart';
 import 'package:zuno_admin_dashboard/features/calls/presentation/state/calls_cubit.dart';
+import 'package:zuno_admin_dashboard/features/host_details/data/datasources/host_earnings_remote_data_source.dart';
+import 'package:zuno_admin_dashboard/features/host_details/data/repositories/host_earnings_repository.dart';
+import 'package:zuno_admin_dashboard/features/host_details/presentation/state/host_details_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/repositories/host_management_repository.dart';
+import 'package:zuno_admin_dashboard/features/host_management/presentation/state/host_details_arguments.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/call_pricing_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/host_actions_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/host_management_cubit.dart';
 import 'package:zuno_admin_dashboard/features/packages/data/datasources/packages_remote_data_source.dart';
+import 'package:zuno_admin_dashboard/features/payment/data/datasources/payment_remote_data_source.dart';
+import 'package:zuno_admin_dashboard/features/payment/data/repositories/payment_repository.dart';
+import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_cubit.dart';
 import 'package:zuno_admin_dashboard/features/packages/data/repositories/packages_repository.dart';
 import 'package:zuno_admin_dashboard/features/packages/presentation/state/packages_cubit.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/datasources/recharge_remote_data_source.dart';
@@ -179,6 +186,21 @@ void configureDependencies() {
     ..registerFactory<RechargeCubit>(
       () => RechargeCubit(getIt<RechargeRepository>()),
     )
+    ..registerLazySingleton<PaymentRemoteDataSource>(
+      () => PaymentRemoteDataSource(
+        FirebaseFirestore.instance,
+        FirebaseFunctions.instanceFor(region: _functionsRegion),
+      ),
+    )
+    ..registerLazySingleton<PaymentRepository>(
+      () => PaymentRepository(
+        getIt<PaymentRemoteDataSource>(),
+        getIt<UsersRemoteDataSource>(),
+      ),
+    )
+    ..registerFactory<PaymentCubit>(
+      () => PaymentCubit(getIt<PaymentRepository>()),
+    )
     ..registerLazySingleton<CallsRemoteDataSource>(
       () => CallsRemoteDataSource(FirebaseFirestore.instance),
     )
@@ -224,5 +246,21 @@ void configureDependencies() {
     )
     ..registerFactory<HostActionsCubit>(
       () => HostActionsCubit(getIt<HostManagementRepository>()),
+    )
+    ..registerLazySingleton<HostEarningsRemoteDataSource>(
+      () => HostEarningsRemoteDataSource(
+        FirebaseFirestore.instance,
+        FirebaseFunctions.instanceFor(region: _functionsRegion),
+      ),
+    )
+    ..registerLazySingleton<HostEarningsRepository>(
+      () => HostEarningsRepository(getIt<HostEarningsRemoteDataSource>()),
+    )
+    ..registerFactoryParam<HostDetailsCubit, HostDetailsArguments, void>(
+      (arguments, _) => HostDetailsCubit(
+        getIt<HostEarningsRepository>(),
+        host: arguments.host,
+        onHostChanged: arguments.onHostChanged,
+      ),
     );
 }

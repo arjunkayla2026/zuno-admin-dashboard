@@ -39,7 +39,7 @@ class SettingsPage extends StatelessWidget {
       child: BlocProvider(
         create: (_) => getIt<SettingsCubit>()
           ..loadAdmins()
-          ..loadMaintenance()
+          ..loadGeneralSettings()
           ..loadBanners()
           ..loadNotificationAudience(),
         child: BlocSelector<SettingsCubit, SettingsState, (SettingsTab, bool)>(

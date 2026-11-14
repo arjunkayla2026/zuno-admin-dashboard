@@ -92,7 +92,7 @@ class WithdrawalReviewSummary extends StatelessWidget {
       _row(
         AppStrings.totalAmount,
         TextSpan(
-          text: NumberFormatter.rupees(withdrawal.totalAmount),
+          text: NumberFormatter.rupeesAmount(withdrawal.totalAmount),
           style: styledValue,
         ),
         label,
@@ -101,7 +101,7 @@ class WithdrawalReviewSummary extends StatelessWidget {
         AppStrings.tdsLabel(tdsPercent),
         TextSpan(
           text: AppStrings.deduction(
-            NumberFormatter.rupeesPaise(withdrawal.tdsPaise(tdsPercent)),
+            NumberFormatter.rupeesAmount(withdrawal.tdsAmount(tdsPercent)),
           ),
           style: styledValue,
         ),
@@ -128,8 +128,8 @@ class WithdrawalReviewSummary extends StatelessWidget {
           _row(
             AppStrings.totalReceivableAmount,
             TextSpan(
-              text: NumberFormatter.rupeesPaise(
-                withdrawal.receivablePaise(tdsPercent),
+              text: NumberFormatter.rupeesAmount(
+                withdrawal.receivableAmount(tdsPercent),
               ),
               style: totalValue,
             ),

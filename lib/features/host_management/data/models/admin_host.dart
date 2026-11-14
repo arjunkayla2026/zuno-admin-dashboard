@@ -23,6 +23,9 @@ class AdminHost {
     this.languages = const {},
     this.aadhaarImageUrl,
     this.selfieImageUrl,
+    this.totalRevenue = 0,
+    this.isOnline = false,
+    this.lastLoggedIn,
     String? userID,
   }) : userID = userID ?? hostId;
 
@@ -45,8 +48,14 @@ class AdminHost {
   final Set<HostLanguage> languages;
   final String? aadhaarImageUrl;
   final String? selfieImageUrl;
+  final double totalRevenue;
+  final bool isOnline;
+  final DateTime? lastLoggedIn;
 
   String get initials => NameFormatter.initials(name);
+
+  bool get isDeleted =>
+      status == HostStatus.deletedByAdmin || status == HostStatus.deletedByUser;
 
   bool get hasActions =>
       status != HostStatus.deletedByAdmin && status != HostStatus.deletedByUser;
@@ -84,6 +93,9 @@ class AdminHost {
       languages: languages ?? this.languages,
       aadhaarImageUrl: aadhaarImageUrl,
       selfieImageUrl: selfieImageUrl,
+      totalRevenue: totalRevenue,
+      isOnline: isOnline,
+      lastLoggedIn: lastLoggedIn,
     );
   }
 }

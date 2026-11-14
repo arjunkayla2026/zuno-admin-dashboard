@@ -23,11 +23,16 @@ class HostHistoryTabBar extends StatelessWidget {
 
   Future<void> _adjustWallet(BuildContext context) async {
     final cubit = context.read<HostDetailsCubit>();
+    final messenger = ScaffoldMessenger.of(context);
     final adjustment = await showWalletAdjustmentDialog(
       context: context,
-      walletBalance: cubit.state.host.walletBalance,
+      walletBalance: cubit.state.pendingTotal.floor(),
     );
-    if (adjustment != null) cubit.adjustWallet(adjustment);
+    if (adjustment == null) return;
+    final error = await cubit.adjustWallet(adjustment);
+    if (error != null) {
+      messenger.showSnackBar(SnackBar(content: Text(error)));
+    }
   }
 
   @override
@@ -49,7 +54,7 @@ class HostHistoryTabBar extends StatelessWidget {
           },
           counts: {
             HostDetailsTab.calls: ?totalCalls,
-            HostDetailsTab.withdrawals: state.withdrawals.length,
+            HostDetailsTab.withdrawals: ?state.withdrawalCount,
           },
           value: state.tab,
           onChanged: context.read<HostDetailsCubit>().selectTab,
@@ -58,7 +63,7 @@ class HostHistoryTabBar extends StatelessWidget {
           padding: _buttonPadding,
           child: AppSecondaryButton(
             label: AppStrings.creditDebitWallet,
-            onPressed: () => _adjustWallet(context),
+            onPressed: state.adjusting ? null : () => _adjustWallet(context),
             leading: SvgPicture.asset(
               AppImages.paymentIcon,
               width: _walletIconSize,

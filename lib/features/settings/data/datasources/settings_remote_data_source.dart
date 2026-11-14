@@ -2,8 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/firestore_failures.dart';
 import 'package:zuno_admin_dashboard/core/data/host_pricing.dart';
+import 'package:zuno_admin_dashboard/core/data/payout_settings.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/models/general_settings.dart';
 import 'package:zuno_admin_dashboard/features/surge_charge_sessions/data/models/surge_session.dart';
 
 class SettingsRemoteDataSource {
@@ -19,10 +21,18 @@ class SettingsRemoteDataSource {
   DocumentReference<Map<String, dynamic>> get _app =>
       _firestore.collection(_collection).doc(_appDocument);
 
-  Future<Either<Failure, bool>> fetchMaintenanceMode() async {
+  Future<Either<Failure, GeneralSettings>> fetchGeneralSettings() async {
     try {
       final snapshot = await _app.get();
-      return right(snapshot.data()?[maintenanceModeField] == true);
+      final data = snapshot.data();
+      return right(
+        GeneralSettings(
+          maintenanceEnabled: data?[maintenanceModeField] == true,
+          minimumPayoutAmount: PayoutSettings.readMinimum(
+            data?[PayoutSettings.minimumPayoutField],
+          ),
+        ),
+      );
     } on FirebaseException catch (error) {
       return left(FirestoreFailures.read(error.code));
     } catch (_) {
@@ -90,6 +100,20 @@ class SettingsRemoteDataSource {
             for (final session in sessions) session.toMap(),
           ],
         },
+        updatedAtField: FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+      return right(unit);
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.write(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsSaveFailed));
+    }
+  }
+
+  Future<Either<Failure, Unit>> saveMinimumPayout(double amount) async {
+    try {
+      await _app.set({
+        PayoutSettings.minimumPayoutField: amount,
         updatedAtField: FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
       return right(unit);

@@ -40,7 +40,10 @@ class WithdrawalDetailsHeader extends StatelessWidget {
                 ),
               ),
               Text(
-                AppStrings.dotSeparated(withdrawal.hostId, withdrawal.phone),
+                AppStrings.dotSeparated(
+                  withdrawal.hostUserId,
+                  withdrawal.phone,
+                ),
                 style: AppTextStyles.monoSmall.copyWith(
                   color: context.appColors.textSecondary,
                 ),

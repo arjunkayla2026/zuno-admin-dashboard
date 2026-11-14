@@ -23,6 +23,7 @@ const channelPrice = () => ({
 
 const DEFAULTS = {
   isMaintenanceMode: false,
+  minimumPayoutAmount: 0,
   setHostPrice: {
     audio: channelPrice(),
     video: channelPrice(),

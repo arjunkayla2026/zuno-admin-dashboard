@@ -7,7 +7,7 @@ import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_data_table.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_status_badge.dart';
-import 'package:zuno_admin_dashboard/features/host_details/data/models/host_withdrawal.dart';
+import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
 
 class HostWithdrawalHistoryTable extends StatelessWidget {
   const HostWithdrawalHistoryTable({super.key, required this.withdrawals});
@@ -28,12 +28,12 @@ class HostWithdrawalHistoryTable extends StatelessWidget {
     AppTableColumn(AppStrings.status, 100),
   ];
 
-  final List<HostWithdrawal> withdrawals;
+  final List<Withdrawal> withdrawals;
 
-  static (String, AppStatus) _status(HostWithdrawalStatus status) =>
+  static (String, AppStatus) _status(WithdrawalStatus status) =>
       switch (status) {
-        HostWithdrawalStatus.pending => (AppStrings.pending, AppStatus.pending),
-        HostWithdrawalStatus.success => (AppStrings.success, AppStatus.active),
+        WithdrawalStatus.pending => (AppStrings.pending, AppStatus.pending),
+        WithdrawalStatus.success => (AppStrings.success, AppStatus.active),
       };
 
   @override
@@ -49,23 +49,23 @@ class HostWithdrawalHistoryTable extends StatelessWidget {
         for (final withdrawal in withdrawals)
           () {
             final (statusLabel, status) = _status(withdrawal.status);
-            final surge = withdrawal.surgeCharge;
+            final surge = withdrawal.surgeEarnings;
             return [
-              Text(DateFormatter.short(withdrawal.date), style: cell),
+              Text(DateFormatter.short(withdrawal.settledDate), style: cell),
               Text('${withdrawal.callCount}', style: cell),
               Text(AppStrings.minutes(withdrawal.callMinutes), style: cell),
               Text(
-                NumberFormatter.rupees(withdrawal.amountEarned),
+                NumberFormatter.rupeesAmount(withdrawal.amountEarned),
                 style: strong,
               ),
               Text(
-                surge == null
-                    ? AppStrings.emptyValue
-                    : NumberFormatter.rupees(surge),
+                surge > 0
+                    ? NumberFormatter.rupeesAmount(surge)
+                    : AppStrings.emptyValue,
                 style: cell,
               ),
               Text(
-                NumberFormatter.rupees(withdrawal.withdrawAmount),
+                NumberFormatter.rupeesAmount(withdrawal.totalAmount),
                 style: strong,
               ),
               const SizedBox.shrink(),

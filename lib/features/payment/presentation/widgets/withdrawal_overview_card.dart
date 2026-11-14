@@ -42,10 +42,15 @@ class WithdrawalOverviewCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      AppStrings.withdrawalOverviewNote(
-                        state.pendingCount,
-                        NumberFormatter.rupees(state.minimumWithdrawal),
-                      ),
+                      switch (state.minimumPayout) {
+                        final minimum? => AppStrings.withdrawalOverviewNote(
+                          state.pendingCount,
+                          NumberFormatter.rupeesAmount(minimum),
+                        ),
+                        null => AppStrings.withdrawalOverviewNoteUnset(
+                          state.pendingCount,
+                        ),
+                      },
                       style: AppTextStyles.tableFootnote.copyWith(
                         color: context.appColors.textSecondary,
                       ),
@@ -62,7 +67,7 @@ class WithdrawalOverviewCard extends StatelessWidget {
                   stats: [
                     AppStat(
                       label: AppStrings.hostRevenue,
-                      value: NumberFormatter.rupees(state.pendingEarned),
+                      value: NumberFormatter.rupeesAmount(state.pendingEarned),
                     ),
                     AppStat(
                       label: AppStrings.duration,
@@ -71,15 +76,15 @@ class WithdrawalOverviewCard extends StatelessWidget {
                     ),
                     AppStat(
                       label: AppStrings.totalHostCredit,
-                      value: NumberFormatter.rupees(state.pendingCredit),
+                      value: NumberFormatter.rupeesAmount(state.pendingCredit),
                     ),
                     AppStat(
                       label: AppStrings.totalHostRevenueStat,
-                      value: NumberFormatter.rupees(state.pendingTotal),
+                      value: NumberFormatter.rupeesAmount(state.pendingTotal),
                     ),
                     AppStat(
                       label: AppStrings.totalWithdraw,
-                      value: NumberFormatter.rupees(state.pendingTotal),
+                      value: NumberFormatter.rupeesAmount(state.pendingTotal),
                     ),
                   ],
                 ),

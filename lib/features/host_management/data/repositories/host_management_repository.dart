@@ -130,6 +130,9 @@ class HostManagementRepository {
       languages: _languages(details['languages']),
       aadhaarImageUrl: _documentUrl(details['aadharFrontPreview']),
       selfieImageUrl: _documentUrl(details['selfiPreview']),
+      totalRevenue: _rupeesFromPaise(details['lifetimeEarningsPaise']),
+      isOnline: _onlineStatuses.contains(details['onlineStatus']),
+      lastLoggedIn: record.lastLoggedIn,
     );
   }
 
@@ -150,6 +153,12 @@ class HostManagementRepository {
     if (value is! List) return const {};
     return {for (final item in value) ?_optionNamed(HostLanguage.values, item)};
   }
+
+  static const Set<String> _onlineStatuses = {'online', 'busy'};
+  static const int _paisePerRupee = 100;
+
+  double _rupeesFromPaise(Object? value) =>
+      value is num ? value / _paisePerRupee : 0;
 
   String? _documentUrl(Object? value) =>
       value is Map ? UserRecord.readText(value['url']) : null;

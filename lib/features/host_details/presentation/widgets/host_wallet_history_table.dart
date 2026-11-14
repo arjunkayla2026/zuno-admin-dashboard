@@ -44,7 +44,7 @@ class HostWalletHistoryTable extends StatelessWidget {
             ),
             Text(
               AppStrings.signedAmount(
-                NumberFormatter.rupees(transaction.amount),
+                NumberFormatter.rupeesAmount(transaction.amount),
                 isCredit: transaction.isCredit,
               ),
               style: cell.copyWith(

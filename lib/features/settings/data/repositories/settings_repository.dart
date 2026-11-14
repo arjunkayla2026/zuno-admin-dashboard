@@ -11,6 +11,7 @@ import 'package:zuno_admin_dashboard/features/settings/data/datasources/notifica
 import 'package:zuno_admin_dashboard/features/settings/data/datasources/settings_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/models/banner_image.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/models/banner_upload.dart';
+import 'package:zuno_admin_dashboard/features/settings/data/models/general_settings.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/models/notification_audience_counts.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/models/notification_request.dart';
 import 'package:zuno_admin_dashboard/features/surge_charge_sessions/data/models/surge_session.dart';
@@ -69,8 +70,11 @@ class SettingsRepository {
   Future<Either<Failure, Unit>> deleteBanner(BannerImage banner) =>
       _bannerImagesDataSource.deleteBanner(banner);
 
-  Future<Either<Failure, bool>> fetchMaintenanceMode() =>
-      _settingsDataSource.fetchMaintenanceMode();
+  Future<Either<Failure, GeneralSettings>> fetchGeneralSettings() =>
+      _settingsDataSource.fetchGeneralSettings();
+
+  Future<Either<Failure, Unit>> saveMinimumPayout(double amount) =>
+      _settingsDataSource.saveMinimumPayout(amount);
 
   Future<Either<Failure, Unit>> setMaintenanceMode(bool enabled) =>
       _settingsDataSource.setMaintenanceMode(enabled);

@@ -568,9 +568,32 @@ abstract final class AppStrings {
   static const String exportScopeAll = 'all';
   static const String exportScopePending = 'pending';
   static const String exportScopeSuccess = 'success';
+  static const String bonus = 'Bonus';
+  static const String payoutFailed =
+      "The payout couldn't be completed. Try again.";
+  static const String payoutNoBankAccount =
+      "This host doesn't have an approved bank account yet.";
+  static const String minimumPayoutAmount = 'Minimum payout amount';
+  static const String minimumPayoutDescription =
+      'Hosts appear in the payment list once their pending earnings reach '
+      'this amount.';
+  static const String minimumPayoutNotSet =
+      'Not set. Every pending payout is listed.';
+  static const String minimumPayoutSaved = 'Minimum payout amount saved.';
+  static const String callEarnings = 'Call earnings';
+  static const String hostAdjustmentFailed =
+      "The wallet couldn't be updated. Try again.";
 
   static String withdrawalOverviewNote(int hosts, String minimum) =>
       '$hosts hosts waiting · minimum withdrawal $minimum';
+
+  static String withdrawalOverviewNoteUnset(int hosts) =>
+      '$hosts hosts waiting · minimum withdrawal not set in Settings';
+
+  static String dateTimeValue(String date, String time) => '$date, $time';
+
+  static String payoutLedgerDescription(String withdrawId) =>
+      'Withdrawal $withdrawId';
 
   static String dotSeparated(String first, String second) => '$first · $second';
 

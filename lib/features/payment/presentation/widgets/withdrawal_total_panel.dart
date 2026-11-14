@@ -12,7 +12,7 @@ class WithdrawalTotalPanel extends StatelessWidget {
   static const double _valueGap = 4;
   static const EdgeInsets _padding = EdgeInsets.fromLTRB(16, 20, 16, 22);
 
-  final int totalAmount;
+  final double totalAmount;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +34,7 @@ class WithdrawalTotalPanel extends StatelessWidget {
           ),
           const SizedBox(height: _valueGap),
           Text(
-            NumberFormatter.rupees(totalAmount),
+            NumberFormatter.rupeesAmount(totalAmount),
             style: AppTextStyles.headlineMedium.copyWith(
               color: context.colorScheme.onSurface,
               fontWeight: FontWeight.w700,

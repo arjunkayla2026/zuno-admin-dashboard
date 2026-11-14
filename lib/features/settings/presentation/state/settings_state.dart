@@ -27,6 +27,8 @@ class SettingsState {
     this.maintenanceStatus = LoadStatus.loading,
     this.maintenanceError,
     this.maintenanceSaving = false,
+    this.minimumPayout,
+    this.minimumPayoutSaving = false,
   });
 
   final List<AdminAccount> admins;
@@ -44,6 +46,8 @@ class SettingsState {
   final LoadStatus maintenanceStatus;
   final String? maintenanceError;
   final bool maintenanceSaving;
+  final double? minimumPayout;
+  final bool minimumPayoutSaving;
 
   SettingsState copyWith({
     List<AdminAccount>? admins,
@@ -61,6 +65,8 @@ class SettingsState {
     LoadStatus? maintenanceStatus,
     String? maintenanceError,
     bool? maintenanceSaving,
+    double? minimumPayout,
+    bool? minimumPayoutSaving,
   }) {
     return SettingsState(
       admins: admins ?? this.admins,
@@ -78,6 +84,8 @@ class SettingsState {
       maintenanceStatus: maintenanceStatus ?? this.maintenanceStatus,
       maintenanceError: maintenanceError ?? this.maintenanceError,
       maintenanceSaving: maintenanceSaving ?? this.maintenanceSaving,
+      minimumPayout: minimumPayout ?? this.minimumPayout,
+      minimumPayoutSaving: minimumPayoutSaving ?? this.minimumPayoutSaving,
     );
   }
 }

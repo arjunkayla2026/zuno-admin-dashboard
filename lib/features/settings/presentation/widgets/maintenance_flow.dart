@@ -6,6 +6,14 @@ import 'package:zuno_admin_dashboard/core/widgets/app_confirm_dialog.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_success_dialog.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_cubit.dart';
 
+Future<void> saveMinimumPayout(BuildContext context, double amount) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final error = await context.read<SettingsCubit>().saveMinimumPayout(amount);
+  messenger.showSnackBar(
+    SnackBar(content: Text(error ?? AppStrings.minimumPayoutSaved)),
+  );
+}
+
 Future<void> toggleMaintenance(BuildContext context, bool enable) async {
   final cubit = context.read<SettingsCubit>();
   final messenger = ScaffoldMessenger.of(context);

@@ -36,7 +36,14 @@ Future<void> _reviewWithdrawal(
   Withdrawal withdrawal,
 ) async {
   final cubit = pageContext.read<PaymentCubit>();
-  final tdsPercent = cubit.state.tdsPercent;
+  final messenger = ScaffoldMessenger.of(pageContext);
+  if (!withdrawal.hasBankAccount) {
+    messenger.showSnackBar(
+      const SnackBar(content: Text(AppStrings.payoutNoBankAccount)),
+    );
+    return;
+  }
+  const tdsPercent = PaymentState.tdsPercent;
   final emphasis = AppTextStyles.tableCell.copyWith(
     fontWeight: FontWeight.w700,
   );
@@ -62,15 +69,20 @@ Future<void> _reviewWithdrawal(
   );
   if (!confirmed || !sheetContext.mounted) return;
 
-  cubit.markPaid(withdrawal);
-  Navigator.of(sheetContext).pop();
+  final result = await cubit.markPaid(withdrawal);
+  final paid = result.match((failure) {
+    messenger.showSnackBar(SnackBar(content: Text(failure.message)));
+    return null;
+  }, (paid) => paid);
+  if (paid == null) return;
+  if (sheetContext.mounted) Navigator.of(sheetContext).pop();
   if (!pageContext.mounted) return;
 
   await showAppSuccessDialog(
     context: pageContext,
     title: AppStrings.withdrawalCompleted,
     message: AppStrings.withdrawalCompletedMessage(
-      NumberFormatter.rupeesPaise(withdrawal.receivablePaise(tdsPercent)),
+      NumberFormatter.rupeesAmount(paid.receivableAmount(tdsPercent)),
       withdrawal.hostName,
     ),
     actionLabel: AppStrings.done,
@@ -79,7 +91,7 @@ Future<void> _reviewWithdrawal(
 
 Future<void> exportWithdrawals(BuildContext context) {
   final state = context.read<PaymentCubit>().state;
-  final rowCount = state.visibleWithdrawals.length;
+  final rowCount = state.totalCount ?? state.withdrawals.length;
   final scope = switch (state.tab) {
     PaymentTab.withdrawalList => AppStrings.exportScopeAll,
     PaymentTab.pending => AppStrings.exportScopePending,
@@ -93,7 +105,7 @@ Future<void> exportWithdrawals(BuildContext context) {
     details: AppExportFileTile(
       fileName: AppStrings.withdrawalSheetFileName(
         scope,
-        DateFormatter.short(state.today).replaceAll(' ', '-'),
+        DateFormatter.short(DateTime.now()).replaceAll(' ', '-'),
       ),
       description: AppStrings.withdrawalSheetRows(rowCount),
     ),

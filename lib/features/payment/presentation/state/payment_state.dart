@@ -1,104 +1,108 @@
+import 'package:zuno_admin_dashboard/core/data/cursor_pager.dart';
+import 'package:zuno_admin_dashboard/core/data/payout_settings.dart';
+import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
+import 'package:zuno_admin_dashboard/features/payment/data/models/payout_summary.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
 
 enum PaymentTab { withdrawalList, pending, success }
 
 class PaymentState {
   const PaymentState({
-    required this.withdrawals,
-    required this.minimumWithdrawal,
-    required this.tdsPercent,
-    required this.today,
     this.tab = PaymentTab.withdrawalList,
     this.query = '',
+    this.withdrawals = const [],
+    this.status = LoadStatus.loading,
+    this.errorMessage,
     this.page = 1,
+    this.totalPages = 1,
+    this.firstIndex = 0,
+    this.minimumPayout,
+    this.minimumLoaded = false,
+    this.summary,
+    this.paidCount,
+    this.searchCount,
   });
 
-  static const int pageSize = 10;
+  static const int tdsPercent = PayoutSettings.tdsPercent;
 
-  final List<Withdrawal> withdrawals;
-  final int minimumWithdrawal;
-  final int tdsPercent;
-  final DateTime today;
   final PaymentTab tab;
   final String query;
+  final List<Withdrawal> withdrawals;
+  final LoadStatus status;
+  final String? errorMessage;
   final int page;
+  final int totalPages;
+  final int firstIndex;
+  final double? minimumPayout;
+  final bool minimumLoaded;
+  final PayoutSummary? summary;
+  final int? paidCount;
+  final int? searchCount;
 
-  List<Withdrawal> get pendingWithdrawals =>
-      withdrawals.where((withdrawal) => withdrawal.isPending).toList();
+  bool get isSearching => query.trim().isNotEmpty;
 
-  int get pendingCount => pendingWithdrawals.length;
+  int get pendingCount => summary?.hostCount ?? 0;
 
-  int get successCount => withdrawals.length - pendingCount;
+  double get pendingEarned => summary?.amountEarned ?? 0;
 
-  int _sumPending(int Function(Withdrawal withdrawal) value) =>
-      pendingWithdrawals.fold(0, (sum, withdrawal) => sum + value(withdrawal));
+  int get pendingMinutes => summary?.callMinutes ?? 0;
 
-  int get pendingEarned => _sumPending((withdrawal) => withdrawal.amountEarned);
+  double get pendingCredit => summary?.hostCredit ?? 0;
 
-  int get pendingMinutes => _sumPending((withdrawal) => withdrawal.callMinutes);
+  double get pendingTotal => summary?.totalAmount ?? 0;
 
-  int get pendingCredit => _sumPending((withdrawal) => withdrawal.hostCredit);
-
-  int get pendingTotal => _sumPending((withdrawal) => withdrawal.totalAmount);
-
-  bool _matchesQuery(Withdrawal withdrawal) {
-    final term = query.trim().toLowerCase();
-    if (term.isEmpty) return true;
-    return [
-      withdrawal.hostName,
-      withdrawal.hostId,
-      withdrawal.withdrawId,
-    ].any((text) => text.toLowerCase().contains(term));
-  }
-
-  static int _byDateThenId(Withdrawal a, Withdrawal b) {
-    final byDate = b.date.compareTo(a.date);
-    return byDate != 0 ? byDate : a.withdrawId.compareTo(b.withdrawId);
-  }
-
-  static int _bySettledDateDescending(Withdrawal a, Withdrawal b) {
-    final byDate = b.settledDate.compareTo(a.settledDate);
-    return byDate != 0 ? byDate : b.withdrawId.compareTo(a.withdrawId);
-  }
-
-  List<Withdrawal> get visibleWithdrawals {
-    final matches = withdrawals.where(_matchesQuery);
+  int? countOf(PaymentTab tab) {
+    final pending = summary?.hostCount;
+    final paid = paidCount;
     return switch (tab) {
-      PaymentTab.withdrawalList => matches.toList()..sort(_byDateThenId),
-      PaymentTab.pending =>
-        matches.where((withdrawal) => withdrawal.isPending).toList()
-          ..sort((a, b) => a.withdrawId.compareTo(b.withdrawId)),
-      PaymentTab.success =>
-        matches.where((withdrawal) => !withdrawal.isPending).toList()
-          ..sort(_bySettledDateDescending),
+      PaymentTab.withdrawalList =>
+        pending == null || paid == null ? null : pending + paid,
+      PaymentTab.pending => pending,
+      PaymentTab.success => paid,
     };
   }
 
-  int get totalPages {
-    final count = visibleWithdrawals.length;
-    if (count == 0) return 1;
-    return (count / pageSize).ceil();
-  }
+  int? get totalCount => isSearching ? searchCount : countOf(tab);
 
-  int get firstIndex => (page - 1) * pageSize;
-
-  List<Withdrawal> get pageWithdrawals =>
-      visibleWithdrawals.skip(firstIndex).take(pageSize).toList();
+  PaymentState withView(CursorPageView<Withdrawal> view) => copyWith(
+    withdrawals: view.items,
+    status: view.status,
+    errorMessage: view.error,
+    page: view.page,
+    totalPages: view.totalPages,
+    firstIndex: view.firstIndex,
+  );
 
   PaymentState copyWith({
-    List<Withdrawal>? withdrawals,
     PaymentTab? tab,
     String? query,
+    List<Withdrawal>? withdrawals,
+    LoadStatus? status,
+    String? errorMessage,
     int? page,
+    int? totalPages,
+    int? firstIndex,
+    double? minimumPayout,
+    bool? minimumLoaded,
+    PayoutSummary? summary,
+    int? paidCount,
+    int? searchCount,
+    bool clearSearchCount = false,
   }) {
     return PaymentState(
-      withdrawals: withdrawals ?? this.withdrawals,
-      minimumWithdrawal: minimumWithdrawal,
-      tdsPercent: tdsPercent,
-      today: today,
       tab: tab ?? this.tab,
       query: query ?? this.query,
+      withdrawals: withdrawals ?? this.withdrawals,
+      status: status ?? this.status,
+      errorMessage: errorMessage ?? this.errorMessage,
       page: page ?? this.page,
+      totalPages: totalPages ?? this.totalPages,
+      firstIndex: firstIndex ?? this.firstIndex,
+      minimumPayout: minimumPayout ?? this.minimumPayout,
+      minimumLoaded: minimumLoaded ?? this.minimumLoaded,
+      summary: summary ?? this.summary,
+      paidCount: paidCount ?? this.paidCount,
+      searchCount: clearSearchCount ? null : searchCount ?? this.searchCount,
     );
   }
 }

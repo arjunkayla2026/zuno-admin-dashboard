@@ -10,7 +10,11 @@ import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dar
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_flow.dart';
 
 class PendingWithdrawalsTable extends StatelessWidget {
-  const PendingWithdrawalsTable({super.key, required this.withdrawals});
+  const PendingWithdrawalsTable({
+    super.key,
+    required this.withdrawals,
+    this.firstIndex = 0,
+  });
 
   static const List<AppTableColumn> _columns = [
     AppTableColumn(AppStrings.number, 70),
@@ -29,6 +33,7 @@ class PendingWithdrawalsTable extends StatelessWidget {
   ];
 
   final List<Withdrawal> withdrawals;
+  final int firstIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -43,17 +48,23 @@ class PendingWithdrawalsTable extends StatelessWidget {
       rows: [
         for (final (index, withdrawal) in withdrawals.indexed)
           [
-            Text('${index + 1}', style: cell),
+            Text('${firstIndex + index + 1}', style: cell),
             AppAvatarNameCell(
               initials: withdrawal.initials,
               avatarIndex: withdrawal.avatarIndex,
               name: withdrawal.hostName,
             ),
-            Text(withdrawal.hostId, style: mono),
+            Text(withdrawal.hostUserId, style: mono),
             Text(NumberFormatter.grouped(withdrawal.callCount), style: cell),
             Text(NumberFormatter.grouped(withdrawal.callMinutes), style: cell),
-            Text(NumberFormatter.rupees(withdrawal.amountEarned), style: cell),
-            Text(NumberFormatter.rupees(withdrawal.totalAmount), style: strong),
+            Text(
+              NumberFormatter.rupeesAmount(withdrawal.amountEarned),
+              style: cell,
+            ),
+            Text(
+              NumberFormatter.rupeesAmount(withdrawal.totalAmount),
+              style: strong,
+            ),
             const SizedBox.shrink(),
             Text(withdrawal.branchName, style: cell),
             Text(withdrawal.accountHolderName, style: cell),

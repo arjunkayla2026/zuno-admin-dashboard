@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
@@ -10,7 +11,6 @@ import 'package:zuno_admin_dashboard/core/widgets/app_action_menu.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_initials_avatar.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_meta_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_profile_menu_button.dart';
-import 'package:zuno_admin_dashboard/features/host_details/data/mock/host_details_mock_data.dart';
 import 'package:zuno_admin_dashboard/features/host_details/presentation/state/host_details_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_details/presentation/widgets/host_presence_status.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/models/admin_host.dart';
@@ -113,16 +113,20 @@ class HostProfileCard extends StatelessWidget {
                 minWidth: 130,
                 mono: true,
               ),
-              const AppMetaField(
+              AppMetaField(
                 label: AppStrings.status,
                 minWidth: 70,
-                valueWidget: HostPresenceStatus(
-                  isOnline: HostDetailsMockData.isOnline,
-                ),
+                valueWidget: HostPresenceStatus(isOnline: host.isOnline),
               ),
-              const AppMetaField(
+              AppMetaField(
                 label: AppStrings.lastOnline,
-                value: HostDetailsMockData.lastOnline,
+                value: switch (host.lastLoggedIn) {
+                  final date? => AppStrings.dateTimeValue(
+                    DateFormatter.short(date),
+                    DateFormatter.time(date),
+                  ),
+                  null => AppStrings.emptyValue,
+                },
                 minWidth: 150,
               ),
             ],
