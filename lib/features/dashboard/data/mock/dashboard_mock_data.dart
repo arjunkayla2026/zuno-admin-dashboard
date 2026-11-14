@@ -17,20 +17,4 @@ abstract final class DashboardMockData {
     DashboardStat(label: AppStrings.hostVideoCallRevenue, value: '₹58,320'),
     DashboardStat(label: AppStrings.adminCallRevenue, value: '₹1,31,271'),
   ];
-
-  static const List<DashboardStat> todayCalls = [
-    DashboardStat(label: AppStrings.incomingCalls, value: '1,840'),
-    DashboardStat(label: AppStrings.answeredCalls, value: '1,306'),
-    DashboardStat(label: AppStrings.rejectedCalls, value: '202'),
-    DashboardStat(label: AppStrings.missedCalls, value: '332'),
-    DashboardStat(label: AppStrings.totalTalkingMinutes, value: '9,620'),
-  ];
-
-  static const List<DashboardStat> customCalls = [
-    DashboardStat(label: AppStrings.incomingCalls, value: '24,472'),
-    DashboardStat(label: AppStrings.answeredCalls, value: '17,375'),
-    DashboardStat(label: AppStrings.rejectedCalls, value: '2,692'),
-    DashboardStat(label: AppStrings.missedCalls, value: '4,405'),
-    DashboardStat(label: AppStrings.totalTalkingMinutes, value: '1,27,946'),
-  ];
 }

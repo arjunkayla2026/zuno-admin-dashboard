@@ -21,6 +21,7 @@ class UserRecord {
     this.isActive = false,
     this.hostDetails = const {},
     this.submittedImageUrl,
+    this.avatarImageUrl,
     this.avatarApprovedAt,
     this.avatarApprovedBy,
     this.welcomeBonusClaimedAt,
@@ -56,6 +57,7 @@ class UserRecord {
       isActive: data['isActive'] == true,
       hostDetails: hostDetails is Map<String, dynamic> ? hostDetails : const {},
       submittedImageUrl: readText(data[submittedImageField]),
+      avatarImageUrl: readText(data[avatarImageField]),
       avatarApprovedAt: readDate(data[avatarApprovedAtField]),
       avatarApprovedBy: readText(data[avatarApprovedByField]),
       welcomeBonusClaimedAt: readDate(data[welcomeBonusClaimedAtField]),
@@ -80,6 +82,16 @@ class UserRecord {
   static const String avatarImageField = 'avatharImage';
   static const String submittedImageField = 'submitedImageUrl';
   static const String avatarSubmitted = 'submited';
+  static const String maleAvatarFolder = 'users_avathar';
+  static const String femaleAvatarFolder = 'host_avathar';
+  static const List<String> defaultAvatarFolders = [
+    maleAvatarFolder,
+    femaleAvatarFolder,
+  ];
+  static const String _storageHost = 'firebasestorage.googleapis.com';
+  static const String _storageObjectSegment = 'o';
+  static const String genderField = 'gender';
+  static const String hostStatusField = 'hostStatus';
   static const String avatarApprovedAtField = 'avatarApprovedAt';
   static const String avatarApprovedByField = 'avatarApprovedBy';
   static const String hostApprovedAtField = 'approvedAt';
@@ -115,6 +127,7 @@ class UserRecord {
   final bool isActive;
   final Map<String, dynamic> hostDetails;
   final String? submittedImageUrl;
+  final String? avatarImageUrl;
   final DateTime? avatarApprovedAt;
   final String? avatarApprovedBy;
   final DateTime? welcomeBonusClaimedAt;
@@ -136,11 +149,59 @@ class UserRecord {
   String? get hostUserName =>
       readText(hostDetails['userName']) ?? userName ?? name;
 
-  bool get hasValidSubmittedImage {
-    final uri = Uri.tryParse(submittedImageUrl ?? '');
+  bool get hasValidSubmittedImage => isWebUrl(submittedImageUrl);
+
+  bool get hasCustomAvatar => isCustomAvatar(avatarImageUrl);
+
+  static bool isWebUrl(String? value) {
+    final uri = Uri.tryParse(value ?? '');
     return uri != null &&
         (uri.isScheme('https') || uri.isScheme('http')) &&
         uri.host.isNotEmpty;
+  }
+
+  static String? storagePathOf(String? url) {
+    final uri = Uri.tryParse(url ?? '');
+    if (uri == null || uri.host != _storageHost) return null;
+    final segments = uri.pathSegments;
+    final objectIndex = segments.indexOf(_storageObjectSegment);
+    if (objectIndex < 0 || objectIndex != segments.length - 2) return null;
+    return readText(segments.last);
+  }
+
+  static bool isDefaultAvatarUrl(String? url) {
+    final path = storagePathOf(url);
+    return path != null &&
+        defaultAvatarFolders.any((folder) => path.startsWith('$folder/'));
+  }
+
+  static bool isCustomAvatar(Object? imageUrl) {
+    final url = readText(imageUrl);
+    return url != null && !isDefaultAvatarUrl(url);
+  }
+
+  static Map<String, Object?>? defaultAvatarAssignment(
+    Map<String, dynamic> data, {
+    required String avatarUrl,
+    required String? previousUrl,
+  }) {
+    final details = data['hostDetails'];
+    final current = readText(data[avatarImageField]);
+    final canAssign =
+        details is Map &&
+        details[hostStatusField] == documentApproved &&
+        current == previousUrl &&
+        !isCustomAvatar(current) &&
+        isDefaultAvatarUrl(avatarUrl);
+    if (!canAssign) return null;
+
+    return {
+      avatarImageField: avatarUrl,
+      if (data[avatarStatusField] == null) ...{
+        isAvatarField: true,
+        avatarStatusField: documentApproved,
+      },
+    };
   }
 
   static Map<String, Object?>? profilePhotoDecision(
@@ -193,11 +254,23 @@ class UserRecord {
       return null;
     }
 
-    final allDocumentsApproved = hostDocumentFields.every((field) {
-      final entry = details[field];
-      return entry is Map && entry[documentStatusField] == documentApproved;
-    });
-    if (!allDocumentsApproved) return null;
+    final statuses = [
+      for (final field in hostDocumentFields)
+        switch (details[field]) {
+          final Map entry => entry[documentStatusField],
+          _ => null,
+        },
+    ];
+    final allDocumentsApproved = statuses.every(
+      (status) => status == documentApproved,
+    );
+    final anyDocumentFailed = statuses.any(
+      (status) => status != documentSubmitted && status != documentApproved,
+    );
+    final allowed = approved
+        ? allDocumentsApproved
+        : allDocumentsApproved || anyDocumentFailed;
+    if (!allowed) return null;
 
     return {
       'hostDetails.hostStatus': approved ? documentApproved : documentRejected,

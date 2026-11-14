@@ -3,6 +3,7 @@ import 'package:zuno_admin_dashboard/core/data/user_account_totals.dart';
 import 'package:zuno_admin_dashboard/core/enums/date_range_filter.dart';
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/core/utils/date_range_matcher.dart';
+import 'package:zuno_admin_dashboard/features/calls/data/models/call_statistics.dart';
 import 'package:zuno_admin_dashboard/features/dashboard/data/repositories/dashboard_repository.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/models/recharge_transaction.dart';
 
@@ -20,6 +21,9 @@ class DashboardState {
     this.recentStatus = LoadStatus.loading,
     this.recentRecharges = const [],
     this.recentError,
+    this.callsStatus = LoadStatus.loading,
+    this.callStats,
+    this.callsError,
   });
 
   final DateTime today;
@@ -34,6 +38,9 @@ class DashboardState {
   final LoadStatus recentStatus;
   final List<RechargeTransaction> recentRecharges;
   final String? recentError;
+  final LoadStatus callsStatus;
+  final CallStatistics? callStats;
+  final String? callsError;
 
   DashboardRange get range =>
       dateFilter.momentBounds(today: today, customRange: customRange);
@@ -43,6 +50,9 @@ class DashboardState {
 
   UserAccountTotals? get loadedAccounts =>
       accountsStatus == LoadStatus.loaded ? accounts : null;
+
+  CallStatistics? get loadedCallStats =>
+      callsStatus == LoadStatus.loaded ? callStats : null;
 
   DashboardState withRange({
     required DateTime today,
@@ -61,6 +71,9 @@ class DashboardState {
     recentStatus: recentStatus,
     recentRecharges: recentRecharges,
     recentError: recentError,
+    callsStatus: callsStatus,
+    callStats: callStats,
+    callsError: callsError,
   );
 
   DashboardState copyWith({
@@ -73,6 +86,9 @@ class DashboardState {
     LoadStatus? recentStatus,
     List<RechargeTransaction>? recentRecharges,
     String? recentError,
+    LoadStatus? callsStatus,
+    CallStatistics? callStats,
+    String? callsError,
   }) {
     return DashboardState(
       today: today,
@@ -87,6 +103,9 @@ class DashboardState {
       recentStatus: recentStatus ?? this.recentStatus,
       recentRecharges: recentRecharges ?? this.recentRecharges,
       recentError: recentError ?? this.recentError,
+      callsStatus: callsStatus ?? this.callsStatus,
+      callStats: callStats ?? this.callStats,
+      callsError: callsError ?? this.callsError,
     );
   }
 }

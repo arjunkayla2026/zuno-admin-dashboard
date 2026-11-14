@@ -27,6 +27,13 @@ enum CallLogStatus {
 
   static const String _acceptedValue = 'accepted';
 
+  /// Raw status values of calls the host picked up.
+  static const List<String> answeredValues = [
+    'completed',
+    'ongoing',
+    _acceptedValue,
+  ];
+
   final String value;
 
   static CallLogStatus fromValue(Object? value) {

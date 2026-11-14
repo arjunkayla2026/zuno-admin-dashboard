@@ -101,7 +101,30 @@ abstract final class DashboardLabels {
     ];
   }
 
-  static List<DashboardStat> calls(DashboardState state) => _isToday(state)
-      ? DashboardMockData.todayCalls
-      : DashboardMockData.customCalls;
+  static List<DashboardStat> calls(DashboardState state) {
+    final stats = state.loadedCallStats;
+
+    return [
+      DashboardStat(
+        label: AppStrings.incomingCalls,
+        value: _count(stats?.incoming),
+      ),
+      DashboardStat(
+        label: AppStrings.answeredCalls,
+        value: _count(stats?.answered),
+      ),
+      DashboardStat(
+        label: AppStrings.rejectedCalls,
+        value: _count(stats?.rejected),
+      ),
+      DashboardStat(
+        label: AppStrings.missedCalls,
+        value: _count(stats?.missed),
+      ),
+      DashboardStat(
+        label: AppStrings.totalTalkingMinutes,
+        value: _count(stats?.talkMinutes),
+      ),
+    ];
+  }
 }

@@ -452,12 +452,26 @@ class UsersRemoteDataSource {
     ),
   );
 
+  Future<Either<Failure, Unit>> assignDefaultAvatar(
+    String id, {
+    required String avatarUrl,
+    required String? previousUrl,
+  }) => _transact(
+    id,
+    (data, _) => UserRecord.defaultAvatarAssignment(
+      data,
+      avatarUrl: avatarUrl,
+      previousUrl: previousUrl,
+    ),
+    refusedMessage: AppStrings.avatarAlreadyChanged,
+  );
+
   Future<Either<Failure, Unit>> _transact(
     String id,
     Map<String, Object?>? Function(Map<String, dynamic> data, String adminUid)
     buildUpdate, {
     required String refusedMessage,
-    required Map<String, Object?> Function(String adminUid) audit,
+    Map<String, Object?> Function(String adminUid)? audit,
     String auditCollection = ApprovalAudit.collection,
   }) async {
     final adminUid = _auth.currentUser?.uid;
@@ -482,10 +496,12 @@ class UsersRemoteDataSource {
           ...update,
           _updatedAtField: FieldValue.serverTimestamp(),
         });
-        transaction.set(
-          _firestore.collection(auditCollection).doc(),
-          audit(adminUid),
-        );
+        if (audit != null) {
+          transaction.set(
+            _firestore.collection(auditCollection).doc(),
+            audit(adminUid),
+          );
+        }
       });
     } on FirebaseException catch (error) {
       return left(FirestoreFailures.write(error.code));

@@ -18,8 +18,12 @@ class DashboardCubit extends Cubit<DashboardState> {
   static DateTime _dayOf(DateTime moment) =>
       DateTime(moment.year, moment.month, moment.day);
 
-  Future<void> load() =>
-      Future.wait([_loadRevenue(), _loadAccounts(), _loadRecent()]);
+  Future<void> load() => Future.wait([
+    _loadRevenue(),
+    _loadAccounts(),
+    _loadRecent(),
+    _loadCallStats(),
+  ]);
 
   static const Duration _defaultCustomSpan = Duration(days: 13);
 
@@ -73,6 +77,8 @@ class DashboardCubit extends Cubit<DashboardState> {
 
   void retryRecent() => _loadRecent();
 
+  void retryCallStats() => _loadCallStats();
+
   Future<void> _loadRevenue() => _loadSection(
     cached: _repository.cachedRevenue,
     fetch: _repository.fetchRevenue,
@@ -107,6 +113,16 @@ class DashboardCubit extends Cubit<DashboardState> {
     ),
     failed: (state, message) =>
         state.copyWith(recentStatus: LoadStatus.failure, recentError: message),
+  );
+
+  Future<void> _loadCallStats() => _loadSection(
+    cached: _repository.cachedCallStatistics,
+    fetch: _repository.fetchCallStatistics,
+    loading: (state) => state.copyWith(callsStatus: LoadStatus.loading),
+    loaded: (state, stats) =>
+        state.copyWith(callsStatus: LoadStatus.loaded, callStats: stats),
+    failed: (state, message) =>
+        state.copyWith(callsStatus: LoadStatus.failure, callsError: message),
   );
 
   Future<void> _loadSection<T>({

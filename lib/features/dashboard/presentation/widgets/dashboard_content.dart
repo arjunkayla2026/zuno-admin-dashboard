@@ -85,6 +85,10 @@ class DashboardContent extends StatelessWidget {
                 stats: DashboardLabels.calls(state),
                 columns: 5,
                 tileMinHeight: _callTileHeight,
+                errorMessage: state.callsStatus == LoadStatus.failure
+                    ? state.callsError
+                    : null,
+                onRetry: cubit.retryCallStats,
               ),
               const SizedBox(height: _tableGap),
               RecentRechargeCard(

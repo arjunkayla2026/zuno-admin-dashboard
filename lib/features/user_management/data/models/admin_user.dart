@@ -22,6 +22,7 @@ class AdminUser {
       status: _statusOf(record),
       avatarIndex: record.avatarIndex,
       userID: record.userIDLabel,
+      updatedAt: record.updatedAt,
     );
   }
 
@@ -38,6 +39,7 @@ class AdminUser {
     required this.userID,
     this.adminCredit = 0,
     this.adminDebit = 0,
+    this.updatedAt,
   });
 
   final String createdDate;
@@ -52,6 +54,9 @@ class AdminUser {
   final String userID;
   final int adminCredit;
   final int adminDebit;
+
+  /// The user document's `updatedAt`, shown as Last Online.
+  final DateTime? updatedAt;
 
   static UserStatus _statusOf(UserRecord record) {
     if (record.isDeleted) {
@@ -96,6 +101,7 @@ class AdminUser {
       adminDebit: adminDebit ?? this.adminDebit,
       status: status ?? this.status,
       avatarIndex: avatarIndex,
+      updatedAt: updatedAt,
     );
   }
 }

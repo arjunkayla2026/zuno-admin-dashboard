@@ -1,10 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' as aggregate show sum;
 import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/data_action.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
+import 'package:zuno_admin_dashboard/core/utils/app_logger.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/models/call_log.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/models/call_participant.dart';
+import 'package:zuno_admin_dashboard/features/calls/data/models/call_statistics.dart';
 
 class CallsRemoteDataSource {
   const CallsRemoteDataSource(this._firestore);
@@ -106,4 +109,46 @@ class CallsRemoteDataSource {
         CallLog.fromDocument(document.id, document.data()),
     ];
   });
+
+  Future<Either<Failure, CallStatistics>> fetchStatistics({
+    DateTime? from,
+    DateTime? until,
+  }) => DataAction.read('calls.fetchStatistics', () async {
+    Query<Map<String, dynamic>> ranged({String? status}) =>
+        _filtered(from: from, until: until, status: status);
+    final answered = ranged().where(
+      CallLog.statusField,
+      whereIn: CallLogStatus.answeredValues,
+    );
+
+    final talkSeconds = _sumTalkSeconds(answered);
+    final [incoming, answeredCount, rejected, missed] = await Future.wait([
+      ranged().count().get(),
+      answered.count().get(),
+      ranged(status: CallLogStatus.rejected.value).count().get(),
+      ranged(status: CallLogStatus.cancelled.value).count().get(),
+    ]);
+    return CallStatistics(
+      incoming: incoming.count ?? 0,
+      answered: answeredCount.count ?? 0,
+      rejected: rejected.count ?? 0,
+      missed: missed.count ?? 0,
+      talkSeconds: await talkSeconds,
+    );
+  });
+
+  /// Summing durations needs a composite index that includes the duration
+  /// field, so a failure here leaves the call counts intact.
+  Future<int?> _sumTalkSeconds(Query<Map<String, dynamic>> answered) async {
+    const durationField = CallLog.durationSecondsField;
+    try {
+      final snapshot = await answered
+          .aggregate(aggregate.sum(durationField))
+          .get();
+      return (snapshot.getSum(durationField) ?? 0).round();
+    } catch (error, stackTrace) {
+      AppLogger.error('✖ calls.sumTalkSeconds $error', error, stackTrace);
+      return null;
+    }
+  }
 }

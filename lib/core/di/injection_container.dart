@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:zuno_admin_dashboard/core/data/admins_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/core/data/data_revision.dart';
 import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
+import 'package:zuno_admin_dashboard/features/approval/data/datasources/avatar_storage_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/datasources/payout_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/repositories/approval_repository.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/repositories/payout_repository.dart';
@@ -144,8 +145,14 @@ void configureDependencies() {
         getIt<AdminsRemoteDataSource>(),
       ),
     )
+    ..registerLazySingleton<AvatarStorageRemoteDataSource>(
+      () => AvatarStorageRemoteDataSource(FirebaseStorage.instance),
+    )
     ..registerLazySingleton<ApprovalRepository>(
-      () => ApprovalRepository(getIt<UsersRemoteDataSource>()),
+      () => ApprovalRepository(
+        getIt<UsersRemoteDataSource>(),
+        avatars: getIt<AvatarStorageRemoteDataSource>(),
+      ),
     )
     ..registerFactory<ApprovalCubit>(
       () =>
@@ -177,6 +184,7 @@ void configureDependencies() {
       () => DashboardRepository(
         getIt<RechargeRepository>(),
         getIt<UsersRemoteDataSource>(),
+        getIt<CallsRepository>(),
         getIt<DataRevision>(),
       ),
     )

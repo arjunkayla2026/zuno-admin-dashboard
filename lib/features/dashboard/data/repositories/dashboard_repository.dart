@@ -4,6 +4,8 @@ import 'package:zuno_admin_dashboard/core/data/user_account_totals.dart';
 import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
+import 'package:zuno_admin_dashboard/features/calls/data/models/call_statistics.dart';
+import 'package:zuno_admin_dashboard/features/calls/data/repositories/calls_repository.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/models/recharge_transaction.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/repositories/recharge_repository.dart';
 
@@ -13,6 +15,7 @@ class DashboardRepository {
   DashboardRepository(
     this._recharges,
     this._users,
+    this._calls,
     this._revision, {
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now;
@@ -22,12 +25,14 @@ class DashboardRepository {
 
   final RechargeRepository _recharges;
   final UsersRemoteDataSource _users;
+  final CallsRepository _calls;
   final DataRevision _revision;
   final DateTime Function() _clock;
 
   final _RangeCache<UserAccountTotals> _accounts = _RangeCache();
   final _RangeCache<List<RechargeTransaction>> _recent = _RangeCache();
   final _RangeCache<RechargeRevenue> _revenue = _RangeCache();
+  final _RangeCache<CallStatistics> _callStats = _RangeCache();
 
   UserAccountTotals? cachedAccounts(DashboardRange range) =>
       _accounts.peek(range);
@@ -36,6 +41,9 @@ class DashboardRepository {
       _recent.peek(range);
 
   RechargeRevenue? cachedRevenue(DashboardRange range) => _revenue.peek(range);
+
+  CallStatistics? cachedCallStatistics(DashboardRange range) =>
+      _callStats.peek(range);
 
   Future<Either<Failure, UserAccountTotals>> fetchAccounts(
     DashboardRange range, {
@@ -61,6 +69,15 @@ class DashboardRepository {
   }) => _revenue.load(
     range,
     () => _recharges.fetchRevenue(from: range.$1, until: range.$2),
+    _context(force),
+  );
+
+  Future<Either<Failure, CallStatistics>> fetchCallStatistics(
+    DashboardRange range, {
+    bool force = false,
+  }) => _callStats.load(
+    range,
+    () => _calls.fetchStatistics(from: range.$1, until: range.$2),
     _context(force),
   );
 

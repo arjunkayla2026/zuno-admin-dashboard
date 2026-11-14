@@ -461,6 +461,12 @@ abstract final class AppStrings {
   static const String profilePhotoChanged =
       'This photo was already reviewed or replaced. Reload the page to see '
       'the latest request.';
+  static const String avatarAlreadyChanged =
+      'This profile picture changed before an avatar could be assigned.';
+  static const String avatarFolderEmpty = 'No avatars are available.';
+  static const String avatarLoadFailed = 'Could not load an avatar.';
+  static const String avatarAccessDenied =
+      'You do not have permission to read avatars.';
   static const String acceptPhotoTitle = 'Accept profile photo?';
   static const String rejectPhotoTitle = 'Reject profile photo?';
 
