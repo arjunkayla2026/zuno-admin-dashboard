@@ -20,6 +20,8 @@ class DashboardCubit extends Cubit<DashboardState> {
 
   Future<void> load() => Future.wait([
     _loadRevenue(),
+    _loadCallRevenue(),
+    _loadMessageRevenue(),
     _loadAccounts(),
     _loadRecent(),
     _loadCallStats(),
@@ -71,7 +73,13 @@ class DashboardCubit extends Cubit<DashboardState> {
     load();
   }
 
-  void retryRevenue() => _loadRevenue();
+  void retryRevenue() {
+    if (state.revenueStatus == LoadStatus.failure) _loadRevenue();
+    if (state.callRevenueStatus == LoadStatus.failure) _loadCallRevenue();
+    if (state.messageRevenueStatus == LoadStatus.failure) {
+      _loadMessageRevenue();
+    }
+  }
 
   void retryAccounts() => _loadAccounts();
 
@@ -88,6 +96,35 @@ class DashboardCubit extends Cubit<DashboardState> {
     failed: (state, message) => state.copyWith(
       revenueStatus: LoadStatus.failure,
       revenueError: message,
+    ),
+  );
+
+  Future<void> _loadCallRevenue() => _loadSection(
+    cached: _repository.cachedCallRevenue,
+    fetch: _repository.fetchCallRevenue,
+    loading: (state) => state.copyWith(callRevenueStatus: LoadStatus.loading),
+    loaded: (state, revenue) => state.copyWith(
+      callRevenueStatus: LoadStatus.loaded,
+      callRevenue: revenue,
+    ),
+    failed: (state, message) => state.copyWith(
+      callRevenueStatus: LoadStatus.failure,
+      callRevenueError: message,
+    ),
+  );
+
+  Future<void> _loadMessageRevenue() => _loadSection(
+    cached: _repository.cachedMessageRevenue,
+    fetch: _repository.fetchMessageRevenue,
+    loading: (state) =>
+        state.copyWith(messageRevenueStatus: LoadStatus.loading),
+    loaded: (state, revenue) => state.copyWith(
+      messageRevenueStatus: LoadStatus.loaded,
+      messageRevenue: revenue,
+    ),
+    failed: (state, message) => state.copyWith(
+      messageRevenueStatus: LoadStatus.failure,
+      messageRevenueError: message,
     ),
   );
 

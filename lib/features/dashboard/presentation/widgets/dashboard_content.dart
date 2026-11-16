@@ -33,9 +33,7 @@ class DashboardContent extends StatelessWidget {
           rangeLabel: rangeLabel,
           stats: DashboardLabels.revenue(state),
           columns: 3,
-          errorMessage: state.revenueStatus == LoadStatus.failure
-              ? state.revenueError
-              : null,
+          errorMessage: state.revenueSectionError,
           onRetry: cubit.retryRevenue,
         );
         final users = StatSection(

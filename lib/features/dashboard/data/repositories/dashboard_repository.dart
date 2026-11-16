@@ -4,8 +4,10 @@ import 'package:zuno_admin_dashboard/core/data/user_account_totals.dart';
 import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
+import 'package:zuno_admin_dashboard/features/calls/data/models/call_revenue.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/models/call_statistics.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/repositories/calls_repository.dart';
+import 'package:zuno_admin_dashboard/features/dashboard/data/datasources/message_revenue_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/models/recharge_transaction.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/repositories/recharge_repository.dart';
 
@@ -16,6 +18,7 @@ class DashboardRepository {
     this._recharges,
     this._users,
     this._calls,
+    this._messages,
     this._revision, {
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now;
@@ -26,6 +29,7 @@ class DashboardRepository {
   final RechargeRepository _recharges;
   final UsersRemoteDataSource _users;
   final CallsRepository _calls;
+  final MessageRevenueRemoteDataSource _messages;
   final DataRevision _revision;
   final DateTime Function() _clock;
 
@@ -33,6 +37,8 @@ class DashboardRepository {
   final _RangeCache<List<RechargeTransaction>> _recent = _RangeCache();
   final _RangeCache<RechargeRevenue> _revenue = _RangeCache();
   final _RangeCache<CallStatistics> _callStats = _RangeCache();
+  final _RangeCache<CallRevenue> _callRevenue = _RangeCache();
+  final _RangeCache<double> _messageRevenue = _RangeCache();
 
   UserAccountTotals? cachedAccounts(DashboardRange range) =>
       _accounts.peek(range);
@@ -44,6 +50,12 @@ class DashboardRepository {
 
   CallStatistics? cachedCallStatistics(DashboardRange range) =>
       _callStats.peek(range);
+
+  CallRevenue? cachedCallRevenue(DashboardRange range) =>
+      _callRevenue.peek(range);
+
+  double? cachedMessageRevenue(DashboardRange range) =>
+      _messageRevenue.peek(range);
 
   Future<Either<Failure, UserAccountTotals>> fetchAccounts(
     DashboardRange range, {
@@ -78,6 +90,24 @@ class DashboardRepository {
   }) => _callStats.load(
     range,
     () => _calls.fetchStatistics(from: range.$1, until: range.$2),
+    _context(force),
+  );
+
+  Future<Either<Failure, CallRevenue>> fetchCallRevenue(
+    DashboardRange range, {
+    bool force = false,
+  }) => _callRevenue.load(
+    range,
+    () => _calls.fetchRevenue(from: range.$1, until: range.$2),
+    _context(force),
+  );
+
+  Future<Either<Failure, double>> fetchMessageRevenue(
+    DashboardRange range, {
+    bool force = false,
+  }) => _messageRevenue.load(
+    range,
+    () => _messages.fetchRevenue(from: range.$1, until: range.$2),
     _context(force),
   );
 

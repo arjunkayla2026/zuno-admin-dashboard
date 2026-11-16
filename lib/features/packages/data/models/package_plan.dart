@@ -60,6 +60,21 @@ class PackagePlan {
   static int coinsFor(double receivable) =>
       (receivable * coinsPerRupee).round();
 
+  /// The backend records `rechargeAmount - receivableAmount` as GST and
+  /// refuses a package where that is negative.
+  static bool isReceivableValid(double receivable, {required double payable}) =>
+      receivable > 0 && receivable <= payable;
+
+  /// True when the saved receivable amount was typed in rather than worked
+  /// out from the payable amount and the GST setting.
+  bool get hasManualReceivable =>
+      (receivableAmount - receivableFor(rechargeAmount, gst: isGstEnabled))
+          .abs() >=
+      _amountTolerance;
+
+  /// Half a paisa: both amounts are stored rounded to the paisa.
+  static const double _amountTolerance = 0.005;
+
   static int byPrice(PackagePlan a, PackagePlan b) {
     final price = a.rechargeAmount.compareTo(b.rechargeAmount);
     return price != 0 ? price : a.id.compareTo(b.id);

@@ -16,6 +16,7 @@ import 'package:zuno_admin_dashboard/features/auth/data/datasources/auth_remote_
 import 'package:zuno_admin_dashboard/features/auth/data/repositories/auth_repository.dart';
 import 'package:zuno_admin_dashboard/features/auth/presentation/state/admin_session_cubit.dart';
 import 'package:zuno_admin_dashboard/features/auth/presentation/state/auth_cubit.dart';
+import 'package:zuno_admin_dashboard/features/dashboard/data/datasources/message_revenue_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/dashboard/data/repositories/dashboard_repository.dart';
 import 'package:zuno_admin_dashboard/features/dashboard/presentation/state/dashboard_cubit.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/datasources/calls_remote_data_source.dart';
@@ -185,6 +186,7 @@ void configureDependencies() {
         getIt<RechargeRepository>(),
         getIt<UsersRemoteDataSource>(),
         getIt<CallsRepository>(),
+        getIt<MessageRevenueRemoteDataSource>(),
         getIt<DataRevision>(),
       ),
     )
@@ -208,6 +210,9 @@ void configureDependencies() {
     )
     ..registerFactory<PaymentCubit>(
       () => PaymentCubit(getIt<PaymentRepository>()),
+    )
+    ..registerLazySingleton<MessageRevenueRemoteDataSource>(
+      () => MessageRevenueRemoteDataSource(FirebaseFirestore.instance),
     )
     ..registerLazySingleton<CallsRemoteDataSource>(
       () => CallsRemoteDataSource(FirebaseFirestore.instance),

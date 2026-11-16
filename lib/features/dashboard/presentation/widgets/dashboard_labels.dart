@@ -2,7 +2,6 @@ import 'package:zuno_admin_dashboard/core/enums/date_range_filter.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
-import 'package:zuno_admin_dashboard/features/dashboard/data/mock/dashboard_mock_data.dart';
 import 'package:zuno_admin_dashboard/features/dashboard/data/models/dashboard_stat.dart';
 import 'package:zuno_admin_dashboard/features/dashboard/presentation/state/dashboard_state.dart';
 
@@ -36,9 +35,6 @@ abstract final class DashboardLabels {
     };
   }
 
-  static bool _isToday(DashboardState state) =>
-      state.dateFilter == DateRangeFilter.today;
-
   static String _amount(double? value) => value == null
       ? AppStrings.emptyValue
       : NumberFormatter.rupeesAmount(value);
@@ -48,24 +44,43 @@ abstract final class DashboardLabels {
 
   static List<DashboardStat> revenue(DashboardState state) {
     final revenue = state.loadedRevenue;
-    final accounts = state.loadedAccounts;
-    final callRevenue = _isToday(state)
-        ? DashboardMockData.todayCallRevenue
-        : DashboardMockData.customCallRevenue;
+    final calls = state.loadedCallRevenue;
+    final messages = state.loadedMessageRevenue;
+    final deletedProfit = state.loadedAccounts?.deletedWalletBalance;
 
     return [
       DashboardStat(
         label: AppStrings.topUpRevenue,
         value: _amount(revenue?.paidAmount),
       ),
-      ...callRevenue,
+      DashboardStat(
+        label: AppStrings.hostAudioCallRevenue,
+        value: _amount(calls?.hostAudio),
+      ),
+      DashboardStat(
+        label: AppStrings.hostVideoCallRevenue,
+        value: _amount(calls?.hostVideo),
+      ),
+      DashboardStat(
+        label: AppStrings.adminCallRevenue,
+        value: _amount(calls?.admin),
+      ),
       DashboardStat(
         label: AppStrings.deletedAccountProfit,
-        value: _amount(accounts?.deletedWalletBalance),
+        value: _amount(deletedProfit),
       ),
       DashboardStat(
         label: AppStrings.totalAdminRevenue,
-        value: _amount(revenue?.netAmount),
+        value: calls == null || messages == null || deletedProfit == null
+            ? AppStrings.emptyValue
+            : _amount(
+                NumberFormatter.roundAmount(
+                  calls.adminAudio +
+                      calls.adminVideo +
+                      messages +
+                      deletedProfit,
+                ),
+              ),
       ),
     ];
   }

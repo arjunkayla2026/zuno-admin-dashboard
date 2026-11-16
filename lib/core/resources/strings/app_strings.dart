@@ -515,6 +515,12 @@ abstract final class AppStrings {
   static const String gstToggleTitle = 'GST (18%)';
   static const String gstToggleHelper =
       'Enter either amount and the other one is calculated for you';
+  static const String manualReceivableTitle = 'Enter receivable manually';
+  static const String manualReceivableHelper =
+      'Type the receivable amount yourself instead of calculating it from '
+      'the payable amount';
+  static const String receivableAbovePayable =
+      'Must not be more than the payable amount.';
   static const String offerHelper =
       'Optional. The offer tag is shown on the pack.';
   static const String preview = 'Preview';

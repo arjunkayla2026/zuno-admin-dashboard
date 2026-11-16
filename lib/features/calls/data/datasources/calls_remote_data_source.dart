@@ -7,6 +7,7 @@ import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_logger.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/models/call_log.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/models/call_participant.dart';
+import 'package:zuno_admin_dashboard/features/calls/data/models/call_revenue.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/models/call_statistics.dart';
 
 class CallsRemoteDataSource {
@@ -134,6 +135,36 @@ class CallsRemoteDataSource {
       rejected: rejected.count ?? 0,
       missed: missed.count ?? 0,
       talkSeconds: await talkSeconds,
+    );
+  });
+
+  /// Sums the host and admin share of every call created in the range. The
+  /// per-call amounts are written when the call is settled; unsettled calls
+  /// carry no earnings and add nothing.
+  Future<Either<Failure, CallRevenue>> fetchRevenue({
+    DateTime? from,
+    DateTime? until,
+  }) => DataAction.read('calls.fetchRevenue', () async {
+    const hostField = CallLog.hostEarningsField;
+    const adminField = CallLog.adminEarningsField;
+    Future<AggregateQuerySnapshot> earningsOf(CallLogType type) => _filtered(
+      from: from,
+      until: until,
+      callType: type.value,
+    ).aggregate(aggregate.sum(hostField), aggregate.sum(adminField)).get();
+
+    final [audio, video] = await Future.wait([
+      earningsOf(CallLogType.audio),
+      earningsOf(CallLogType.video),
+    ]);
+    // Kept unrounded so the admin total is rounded once, not per call type.
+    double amount(AggregateQuerySnapshot snapshot, String field) =>
+        (snapshot.getSum(field) ?? 0).toDouble();
+    return CallRevenue(
+      hostAudio: amount(audio, hostField),
+      hostVideo: amount(video, hostField),
+      adminAudio: amount(audio, adminField),
+      adminVideo: amount(video, adminField),
     );
   });
 
