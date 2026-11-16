@@ -38,6 +38,7 @@ class RechargeTable extends StatelessWidget {
     final cell = AppTextStyles.bodySmall.copyWith(color: textColor);
     final strong = cell.copyWith(fontWeight: FontWeight.w700);
     final mono = AppTextStyles.monoSmall.copyWith(color: textColor);
+    final identifier = AppTextStyles.identifier.copyWith(color: textColor);
     const palette = AppColors.avatarPalette;
 
     return AppDataTable(
@@ -60,12 +61,13 @@ class RechargeTable extends StatelessWidget {
                     textStyle: AppTextStyles.captionSmall.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
+                    imageUrl: transaction.imageUrl,
                   ),
                   const SizedBox(width: _avatarGap),
                   Expanded(child: Text(transaction.userName, style: strong)),
                 ],
               ),
-              Text(transaction.phone, style: mono),
+              Text(transaction.phone, style: identifier),
               Text(
                 RechargeLabels.amountFor(transaction, RechargeKind.recharge),
                 style: strong,

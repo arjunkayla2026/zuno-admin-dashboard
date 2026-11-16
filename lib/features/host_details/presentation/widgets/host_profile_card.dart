@@ -61,6 +61,7 @@ class HostProfileCard extends StatelessWidget {
                 size: _avatarSize,
                 borderRadius: BorderRadius.circular(_avatarRadius),
                 textStyle: AppTextStyles.headlineMedium,
+                imageUrl: host.profileImageUrl,
               ),
               const SizedBox(width: _avatarGap),
               Expanded(
@@ -100,7 +101,7 @@ class HostProfileCard extends StatelessWidget {
                 label: AppStrings.hostId,
                 value: host.userID,
                 minWidth: 82,
-                mono: true,
+                identifier: true,
               ),
               AppMetaField(
                 label: AppStrings.accountCreatedDate,
@@ -111,7 +112,7 @@ class HostProfileCard extends StatelessWidget {
                 label: AppStrings.phoneNumber,
                 value: host.phone,
                 minWidth: 130,
-                mono: true,
+                identifier: true,
               ),
               AppMetaField(
                 label: AppStrings.status,

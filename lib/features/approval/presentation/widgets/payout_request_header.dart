@@ -27,6 +27,7 @@ class PayoutRequestHeader extends StatelessWidget {
           initials: payout.initials,
           color: palette[payout.avatarIndex % palette.length],
           size: _avatarSize,
+          imageUrl: payout.profileImageUrl,
         ),
         const SizedBox(width: _avatarGap),
         Expanded(
@@ -41,7 +42,7 @@ class PayoutRequestHeader extends StatelessWidget {
               ),
               Text(
                 payout.userID,
-                style: AppTextStyles.monoSmall.copyWith(
+                style: AppTextStyles.identifierSmall.copyWith(
                   color: context.appColors.textSecondary,
                 ),
               ),

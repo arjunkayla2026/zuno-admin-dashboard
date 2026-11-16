@@ -229,6 +229,7 @@ class ApprovalRepository {
       documents: documents,
       approvedAt: record.hostApprovedAt,
       approvedBy: record.hostApprovedBy,
+      profileImageUrl: record.profileImageUrl,
     );
   }
 

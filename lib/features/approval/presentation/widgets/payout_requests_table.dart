@@ -37,6 +37,7 @@ class PayoutRequestsTable extends StatelessWidget {
     final cell = AppTextStyles.bodySmall.copyWith(color: textColor);
     final strong = cell.copyWith(fontWeight: FontWeight.w700);
     final mono = AppTextStyles.mono.copyWith(color: textColor);
+    final identifier = AppTextStyles.identifier.copyWith(color: textColor);
     const palette = AppColors.avatarPalette;
 
     return AppDataTable(
@@ -55,12 +56,13 @@ class PayoutRequestsTable extends StatelessWidget {
                   AppInitialsAvatar(
                     initials: payout.initials,
                     color: palette[payout.avatarIndex % palette.length],
+                    imageUrl: payout.profileImageUrl,
                   ),
                   const SizedBox(width: _avatarGap),
                   Expanded(child: Text(payout.hostName, style: strong)),
                 ],
               ),
-              Text(payout.userID, style: mono),
+              Text(payout.userID, style: identifier),
               Text(payout.accountHolderName, style: cell),
               Text(payout.branchName, style: cell),
               Text(payout.accountNumber, style: cell),

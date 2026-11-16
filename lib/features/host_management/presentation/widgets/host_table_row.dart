@@ -31,7 +31,7 @@ class HostTableRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final textColor = context.colorScheme.onSurface;
     final cell = AppTextStyles.tableCell.copyWith(color: textColor);
-    final mono = AppTextStyles.mono.copyWith(color: textColor);
+    final identifier = AppTextStyles.identifier.copyWith(color: textColor);
     const avatarColors = AppColors.avatarPalette;
 
     return Material(
@@ -57,6 +57,7 @@ class HostTableRow extends StatelessWidget {
                 AppInitialsAvatar(
                   initials: host.initials,
                   color: avatarColors[host.avatarIndex % avatarColors.length],
+                  imageUrl: host.profileImageUrl,
                 ),
                 const SizedBox(width: _avatarGap),
                 Expanded(
@@ -83,8 +84,8 @@ class HostTableRow extends StatelessWidget {
                 ),
               ],
             ),
-            hostId: Text(host.userID, style: mono),
-            phone: Text(host.phone, style: mono),
+            hostId: Text(host.userID, style: identifier),
+            phone: Text(host.phone, style: identifier),
             status: Align(
               alignment: Alignment.centerLeft,
               child: HostStatusBadges(host: host),

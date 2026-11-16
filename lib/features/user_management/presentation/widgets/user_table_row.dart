@@ -38,7 +38,7 @@ class UserTableRow extends StatelessWidget {
     final textColor = context.colorScheme.onSurface;
     final mutedColor = context.appColors.textSecondary;
     final cell = AppTextStyles.tableCell.copyWith(color: textColor);
-    final mono = AppTextStyles.mono.copyWith(color: textColor);
+    final identifier = AppTextStyles.identifier.copyWith(color: textColor);
     final avatarColors = AppColors.avatarPalette;
 
     return Material(
@@ -63,6 +63,7 @@ class UserTableRow extends StatelessWidget {
                 AppInitialsAvatar(
                   initials: user.initials,
                   color: avatarColors[user.avatarIndex % avatarColors.length],
+                  imageUrl: user.imageUrl,
                 ),
                 const SizedBox(width: _avatarGap),
                 Expanded(
@@ -90,8 +91,8 @@ class UserTableRow extends StatelessWidget {
                 ),
               ],
             ),
-            userId: Text(user.userID, style: mono),
-            phone: Text(user.phone, style: mono),
+            userId: Text(user.userID, style: identifier),
+            phone: Text(user.phone, style: identifier),
             recharges: Text(
               user.recharges?.toString() ?? AppStrings.emptyValue,
               style: cell,

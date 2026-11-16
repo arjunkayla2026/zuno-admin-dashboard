@@ -21,6 +21,8 @@ class PayoutRequest {
     this.status = PayoutRequestStatus.pending,
     this.approvedAt,
     this.approvedBy,
+    this.profileImageUrl,
+    this.host,
     String? userID,
   }) : userID = userID ?? hostId;
 
@@ -43,6 +45,13 @@ class PayoutRequest {
   final PayoutRequestStatus status;
   final DateTime? approvedAt;
   final String? approvedBy;
+
+  /// The host's profile picture (`avatharImage`).
+  final String? profileImageUrl;
+
+  /// The host's full record for View Host; null when their `users`
+  /// document could not be found.
+  final AdminHost? host;
 
   String get initials => NameFormatter.initials(hostName);
 
@@ -71,6 +80,8 @@ class PayoutRequest {
       status: status ?? this.status,
       approvedAt: approvedAt,
       approvedBy: approvedBy,
+      profileImageUrl: profileImageUrl,
+      host: host,
     );
   }
 }

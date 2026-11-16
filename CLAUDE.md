@@ -209,6 +209,7 @@ Avoid duplicate implementations.
 - Do not create duplicate widgets when an existing shared widget can be reused.
 - Common UI components must be reusable across dashboard modules whenever appropriate.
 - Do not put feature-specific UI components inside `core/widgets/`.
+- Wherever a user or host avatar sits beside their name, show their profile picture (the `users` document's `avatharImage`, read through `UserRecord.profileImageUrl`), falling back to initials. When the user record is already loaded, pass the URL to `AppInitialsAvatar.imageUrl` (or `AppAvatarNameCell.imageUrl` / `AppProfileHeader.imageUrl`); when only the ID is known, use `AppUserPhotoAvatar` (or `AppAvatarNameCell.photoUserId`), which batches lookups through `ProfilePhotoLookup` and caches them for the session. Admin accounts have no picture and keep initials.
 
 ### Utilities
 
@@ -315,6 +316,7 @@ Rules:
 
 - Use `AppColors` for colors.
 - Use `AppTextStyles` for typography.
+- Show every user or host ID and phone number in `AppTextStyles.identifier` (tables, detail panels, profile fields; `identifier: true` on `AppDetailItem` / `AppMetaField`) or `AppTextStyles.identifierSmall` (the line under a person's name). Other technical values (order, payment, call and withdrawal IDs, account numbers, IFSC) stay in `mono` / `monoSmall`. The bundled DM Sans has no tabular figures, so `identifier`'s `tabularFigures` feature takes effect only after the font files are updated.
 - Use `AppTheme` for application theme configuration.
 - Use `ThemeUtils` for theme-related utilities, including dark-mode handling.
 - Use `AppUtils` for layout helpers and common decorations.

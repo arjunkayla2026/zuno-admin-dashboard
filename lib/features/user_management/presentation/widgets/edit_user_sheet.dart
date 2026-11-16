@@ -83,6 +83,7 @@ class _EditUserSheetState extends State<EditUserSheet> {
             avatarIndex: user.avatarIndex,
             name: user.name,
             subtitle: user.userID,
+            imageUrl: user.imageUrl,
           ),
           const SizedBox(height: _profileGap),
           AppLabeledTextField(

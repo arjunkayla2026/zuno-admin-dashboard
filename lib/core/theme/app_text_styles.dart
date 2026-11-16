@@ -49,6 +49,26 @@ abstract final class AppTextStyles {
     letterSpacing: -0.2,
   );
 
+  /// User and host IDs and phone numbers in tables, detail panels and profile
+  /// fields. Tabular figures line digits up in columns with a DM Sans build
+  /// that has them; the bundled one falls back to its regular digits.
+  static const TextStyle identifier = TextStyle(
+    fontFamily: dmSans,
+    fontSize: 13.5,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0.2,
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
+
+  /// User and host IDs and phone numbers on the line under a person's name.
+  static const TextStyle identifierSmall = TextStyle(
+    fontFamily: dmSans,
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    letterSpacing: 0.2,
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
+
   static const TextStyle emphasisArial = TextStyle(
     fontFamily: arial,
     fontSize: 20.89,

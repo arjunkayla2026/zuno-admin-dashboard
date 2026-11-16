@@ -23,6 +23,7 @@ class AdminUser {
       avatarIndex: record.avatarIndex,
       userID: record.userIDLabel,
       updatedAt: record.updatedAt,
+      imageUrl: record.profileImageUrl,
     );
   }
 
@@ -40,6 +41,7 @@ class AdminUser {
     this.adminCredit = 0,
     this.adminDebit = 0,
     this.updatedAt,
+    this.imageUrl,
   });
 
   final String createdDate;
@@ -57,6 +59,9 @@ class AdminUser {
 
   /// The user document's `updatedAt`, shown as Last Online.
   final DateTime? updatedAt;
+
+  /// The profile picture (`avatharImage`) the user picked in the app.
+  final String? imageUrl;
 
   static UserStatus _statusOf(UserRecord record) {
     if (record.isDeleted) {
@@ -102,6 +107,7 @@ class AdminUser {
       status: status ?? this.status,
       avatarIndex: avatarIndex,
       updatedAt: updatedAt,
+      imageUrl: imageUrl,
     );
   }
 }

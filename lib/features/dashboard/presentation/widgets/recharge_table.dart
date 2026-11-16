@@ -129,6 +129,7 @@ class RechargeTable extends StatelessWidget {
                     AppInitialsAvatar(
                       initials: recharge.initials,
                       color: _avatarColor(index),
+                      imageUrl: recharge.imageUrl,
                     ),
                     const SizedBox(width: _avatarGap),
                     Expanded(
@@ -143,7 +144,7 @@ class RechargeTable extends StatelessWidget {
                 ),
                 id: Text(
                   _userId(recharge),
-                  style: AppTextStyles.mono.copyWith(color: textColor),
+                  style: AppTextStyles.identifier.copyWith(color: textColor),
                 ),
                 amount: Text(
                   NumberFormatter.rupeesAmount(recharge.amount),

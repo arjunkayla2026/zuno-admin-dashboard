@@ -45,6 +45,7 @@ class HostRequest {
     this.documents = const [],
     this.approvedAt,
     this.approvedBy,
+    this.profileImageUrl,
     String? userID,
   }) : userID = userID ?? requestId;
 
@@ -64,6 +65,9 @@ class HostRequest {
   final List<HostDocument> documents;
   final DateTime? approvedAt;
   final String? approvedBy;
+
+  /// The host's profile picture (`avatharImage`).
+  final String? profileImageUrl;
 
   String get initials => NameFormatter.initials(realName);
 
@@ -122,6 +126,7 @@ class HostRequest {
       documents: documents ?? this.documents,
       approvedAt: approvedAt,
       approvedBy: approvedBy,
+      profileImageUrl: profileImageUrl,
     );
   }
 }

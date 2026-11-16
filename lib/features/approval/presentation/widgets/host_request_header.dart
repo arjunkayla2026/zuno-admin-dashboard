@@ -30,6 +30,7 @@ class HostRequestHeader extends StatelessWidget {
           color: palette[request.avatarIndex % palette.length],
           size: _avatarSize,
           borderRadius: BorderRadius.circular(_avatarRadius),
+          imageUrl: request.profileImageUrl,
         ),
         const SizedBox(width: _avatarGap),
         Expanded(

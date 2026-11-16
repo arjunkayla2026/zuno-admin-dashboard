@@ -159,6 +159,7 @@ class _EditHostSheetState extends State<EditHostSheet> {
             avatarIndex: host.avatarIndex,
             name: host.name,
             subtitle: host.userID,
+            imageUrl: host.profileImageUrl,
           ),
           const SizedBox(height: _profileGap),
           AppFieldRow(

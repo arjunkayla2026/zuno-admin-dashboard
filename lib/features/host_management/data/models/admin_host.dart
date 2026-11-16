@@ -23,6 +23,7 @@ class AdminHost {
     this.languages = const {},
     this.aadhaarImageUrl,
     this.selfieImageUrl,
+    this.profileImageUrl,
     this.totalRevenue = 0,
     this.availableBalance = 0,
     this.isOnline = false,
@@ -49,6 +50,9 @@ class AdminHost {
   final Set<HostLanguage> languages;
   final String? aadhaarImageUrl;
   final String? selfieImageUrl;
+
+  /// The host's profile picture (`avatharImage`).
+  final String? profileImageUrl;
   final double totalRevenue;
   final double availableBalance;
   final bool isOnline;
@@ -95,6 +99,7 @@ class AdminHost {
       languages: languages ?? this.languages,
       aadhaarImageUrl: aadhaarImageUrl,
       selfieImageUrl: selfieImageUrl,
+      profileImageUrl: profileImageUrl,
       totalRevenue: totalRevenue,
       availableBalance: availableBalance,
       isOnline: isOnline,

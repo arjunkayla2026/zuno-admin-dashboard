@@ -57,6 +57,7 @@ class UserProfileCard extends StatelessWidget {
             size: _avatarSize,
             borderRadius: BorderRadius.circular(_avatarRadius),
             textStyle: AppTextStyles.headlineMedium,
+            imageUrl: user.imageUrl,
           ),
           const SizedBox(width: _avatarGap),
           Expanded(
@@ -84,7 +85,7 @@ class UserProfileCard extends StatelessWidget {
                       label: AppStrings.userId,
                       value: user.userID,
                       minWidth: 84,
-                      mono: true,
+                      identifier: true,
                     ),
                     AppMetaField(
                       label: AppStrings.accountCreatedDate,
@@ -95,7 +96,7 @@ class UserProfileCard extends StatelessWidget {
                       label: AppStrings.phoneNumber,
                       value: user.phone,
                       minWidth: 146,
-                      mono: true,
+                      identifier: true,
                     ),
                     AppMetaField(
                       label: AppStrings.lastOnline,

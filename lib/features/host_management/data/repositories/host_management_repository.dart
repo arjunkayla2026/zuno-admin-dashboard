@@ -32,7 +32,7 @@ class HostManagementRepository {
         ? UserRecord.deletedByAdmin
         : null;
     Iterable<AdminHost> select(List<UserRecord> records) => records
-        .map(_toAdminHost)
+        .map(toAdminHost)
         .where((host) => status == null || host.status == status);
 
     if (term != null) {
@@ -106,7 +106,9 @@ class HostManagementRepository {
   Future<Either<Failure, Unit>> delete(AdminHost host) =>
       _dataSource.markDeletedByAdmin(host.hostId);
 
-  AdminHost _toAdminHost(UserRecord record) {
+  /// Builds the host shown in Host Management and host details from their
+  /// `users` document.
+  static AdminHost toAdminHost(UserRecord record) {
     final details = record.hostDetails;
     final name = record.hostUserName ?? AppStrings.emptyValue;
 
@@ -130,6 +132,7 @@ class HostManagementRepository {
       languages: _languages(details['languages']),
       aadhaarImageUrl: _documentUrl(details['aadharFrontPreview']),
       selfieImageUrl: _documentUrl(details['selfiPreview']),
+      profileImageUrl: record.profileImageUrl,
       totalRevenue: _amountOf(details['totalCallEarnings']),
       availableBalance: _amountOf(details['availableBalance']),
       isOnline: _onlineStatuses.contains(details['onlineStatus']),
@@ -147,17 +150,17 @@ class HostManagementRepository {
     return record.isActive ? HostStatus.active : HostStatus.inactive;
   }
 
-  T? _optionNamed<T extends Enum>(List<T> options, Object? value) =>
+  static T? _optionNamed<T extends Enum>(List<T> options, Object? value) =>
       value is String ? options.asNameMap()[value.toLowerCase()] : null;
 
-  Set<HostLanguage> _languages(Object? value) {
+  static Set<HostLanguage> _languages(Object? value) {
     if (value is! List) return const {};
     return {for (final item in value) ?_optionNamed(HostLanguage.values, item)};
   }
 
   static const Set<String> _onlineStatuses = {'online', 'busy'};
-  double _amountOf(Object? value) => value is num ? value.toDouble() : 0;
+  static double _amountOf(Object? value) => value is num ? value.toDouble() : 0;
 
-  String? _documentUrl(Object? value) =>
+  static String? _documentUrl(Object? value) =>
       value is Map ? UserRecord.readText(value['url']) : null;
 }

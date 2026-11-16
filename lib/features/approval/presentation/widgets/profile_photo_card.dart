@@ -85,7 +85,7 @@ class ProfilePhotoCard extends StatelessWidget {
                 const SizedBox(height: _idGap),
                 Text(
                   photo.userID,
-                  style: AppTextStyles.monoSmall.copyWith(color: muted),
+                  style: AppTextStyles.identifierSmall.copyWith(color: muted),
                 ),
                 const SizedBox(height: _lineGap),
                 Text(

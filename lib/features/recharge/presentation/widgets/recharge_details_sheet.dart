@@ -55,6 +55,7 @@ class RechargeDetailsSheet extends StatelessWidget {
           initials: transaction.initials,
           color: palette[transaction.avatarIndex % palette.length],
           size: _avatarSize,
+          imageUrl: transaction.imageUrl,
         ),
         const SizedBox(width: _avatarGap),
         Expanded(
@@ -69,7 +70,7 @@ class RechargeDetailsSheet extends StatelessWidget {
               ),
               Text(
                 transaction.userId,
-                style: AppTextStyles.monoSmall.copyWith(
+                style: AppTextStyles.identifierSmall.copyWith(
                   color: context.appColors.textSecondary,
                 ),
               ),
@@ -110,7 +111,7 @@ class RechargeDetailsSheet extends StatelessWidget {
               AppDetailItem(
                 AppStrings.phoneNumber,
                 value: transaction.phone,
-                mono: true,
+                identifier: true,
               ),
               AppDetailItem(
                 AppStrings.rechargeAmount,

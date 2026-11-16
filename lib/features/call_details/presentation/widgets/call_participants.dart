@@ -6,7 +6,7 @@ import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/name_formatter.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
-import 'package:zuno_admin_dashboard/core/widgets/app_initials_avatar.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_user_photo_avatar.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/models/call_log.dart';
 
 class CallParticipants extends StatelessWidget {
@@ -25,6 +25,7 @@ class CallParticipants extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         _Participant(
+          userId: call.customerId,
           name: call.userName,
           role: AppStrings.userRole,
           id: call.userDisplayId,
@@ -36,6 +37,7 @@ class CallParticipants extends StatelessWidget {
           color: context.appColors.textSecondary,
         ),
         _Participant(
+          userId: call.hostId,
           name: call.hostName,
           role: AppStrings.hostRole,
           id: call.hostDisplayId,
@@ -48,6 +50,7 @@ class CallParticipants extends StatelessWidget {
 
 class _Participant extends StatelessWidget {
   const _Participant({
+    required this.userId,
     required this.name,
     required this.role,
     required this.id,
@@ -57,6 +60,7 @@ class _Participant extends StatelessWidget {
   static const double _avatarSize = 30;
   static const double _avatarGap = 8;
 
+  final String userId;
   final String name;
   final String role;
   final String id;
@@ -69,7 +73,8 @@ class _Participant extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        AppInitialsAvatar(
+        AppUserPhotoAvatar(
+          userId: userId,
           initials: NameFormatter.initials(name),
           color: palette[avatarIndex % palette.length],
           size: _avatarSize,
@@ -87,7 +92,7 @@ class _Participant extends StatelessWidget {
             ),
             Text(
               AppStrings.participantRole(role, id),
-              style: AppTextStyles.captionSmall.copyWith(
+              style: AppTextStyles.identifierSmall.copyWith(
                 color: context.appColors.textSecondary,
               ),
             ),

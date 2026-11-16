@@ -133,6 +133,8 @@ class PayoutRepository {
       avatarIndex: user.avatarIndex,
       approvedAt: account.adminApprovedAt,
       approvedBy: account.adminApprovedBy,
+      profileImageUrl: user.profileImageUrl,
+      host: found == null ? null : HostManagementRepository.toAdminHost(found),
     );
   }
 }

@@ -27,6 +27,11 @@ class HostCallHistoryTable extends StatelessWidget {
     AppTableColumn(AppStrings.userSpendCoinsAmount, 165, alignEnd: true),
     AppTableColumn(AppStrings.totalUserSpendAmount, 168, alignEnd: true),
     AppTableColumn(AppStrings.hostRevenue, 100, alignEnd: true),
+    AppTableColumn(AppStrings.totalHostRevenue, 140, alignEnd: true),
+    AppTableColumn(AppStrings.adminRevenue, 116, alignEnd: true),
+    AppTableColumn(AppStrings.totalAdminRevenue, 150, alignEnd: true),
+    AppTableColumn('', 24),
+    AppTableColumn(AppStrings.callId, 196),
   ];
 
   final List<CallLog> calls;
@@ -41,6 +46,7 @@ class HostCallHistoryTable extends StatelessWidget {
     final cell = AppTextStyles.bodySmall.copyWith(color: textColor);
     final strong = cell.copyWith(fontWeight: FontWeight.w700);
     final mono = AppTextStyles.monoSmall.copyWith(color: textColor);
+    final identifier = AppTextStyles.identifier.copyWith(color: textColor);
 
     return AppDataTable(
       columns: _columns,
@@ -52,7 +58,7 @@ class HostCallHistoryTable extends StatelessWidget {
             return [
               Text(DateFormatter.short(call.initiatedAt), style: cell),
               Text(call.userName, style: strong),
-              Text(call.userDisplayId, style: mono),
+              Text(call.userDisplayId, style: identifier),
               AppStatusBadge(
                 label: CallLogLabels.type(call.type),
                 status: AppStatus.isNew,
@@ -74,9 +80,27 @@ class HostCallHistoryTable extends StatelessWidget {
                 style: strong,
               ),
               Text(
+                AppStrings.perMinute(
+                  NumberFormatter.rupeesAmount(call.hostRatePerMinute),
+                ),
+                style: strong,
+              ),
+              Text(
                 NumberFormatter.rupeesAmount(call.hostEarnings),
                 style: strong,
               ),
+              Text(
+                AppStrings.perMinute(
+                  NumberFormatter.rupeesAmount(call.adminRatePerMinute),
+                ),
+                style: strong,
+              ),
+              Text(
+                NumberFormatter.rupeesAmount(call.adminRevenue),
+                style: strong,
+              ),
+              const SizedBox.shrink(),
+              Text(call.callId, style: mono),
             ];
           }(),
       ],
