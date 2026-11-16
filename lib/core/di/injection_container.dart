@@ -246,6 +246,7 @@ void configureDependencies() {
     ..registerFactoryParam<UserDetailsCubit, UserDetailsArguments, void>(
       (arguments, _) => UserDetailsCubit(
         getIt<RechargeRepository>(),
+        getIt<UserManagementRepository>(),
         user: arguments.user,
         onUserChanged: arguments.onUserChanged,
       ),

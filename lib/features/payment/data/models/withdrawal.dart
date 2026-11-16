@@ -183,6 +183,11 @@ class Withdrawal {
   static const String openStatus = 'open';
   static const String pendingStatus = 'pending';
   static const String successStatus = 'success';
+  static const List<String> listedStatuses = [
+    openStatus,
+    pendingStatus,
+    successStatus,
+  ];
 
   static String withdrawablePath(String field) => '$withdrawableField.$field';
 

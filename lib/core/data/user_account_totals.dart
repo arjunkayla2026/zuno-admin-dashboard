@@ -4,7 +4,7 @@ class UserAccountTotals {
     required this.activeHosts,
     required this.deletedUsers,
     required this.deletedHosts,
-    required this.deletedWalletBalance,
+    required this.deletedAccountProfit,
     required this.bonusUsers,
     required this.bonusAmount,
   });
@@ -13,7 +13,7 @@ class UserAccountTotals {
   final int activeHosts;
   final int deletedUsers;
   final int deletedHosts;
-  final double deletedWalletBalance;
+  final double deletedAccountProfit;
   final int bonusUsers;
   final double bonusAmount;
 
@@ -23,7 +23,7 @@ class UserAccountTotals {
         activeHosts: activeHosts,
         deletedUsers: deletedUsers,
         deletedHosts: deletedHosts,
-        deletedWalletBalance: deletedWalletBalance,
+        deletedAccountProfit: deletedAccountProfit,
         bonusUsers: users,
         bonusAmount: amount,
       );

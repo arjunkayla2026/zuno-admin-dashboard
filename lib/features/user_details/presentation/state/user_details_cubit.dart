@@ -8,15 +8,18 @@ import 'package:zuno_admin_dashboard/features/packages/data/models/package_plan.
 import 'package:zuno_admin_dashboard/features/recharge/data/repositories/recharge_repository.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_details_state.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
+import 'package:zuno_admin_dashboard/features/user_management/data/repositories/user_management_repository.dart';
 
 class UserDetailsCubit extends Cubit<UserDetailsState> {
   UserDetailsCubit(
-    this._repository, {
+    this._repository,
+    this._users, {
     required AdminUser user,
     this._onUserChanged,
   }) : super(UserDetailsState(user: user));
 
   final RechargeRepository _repository;
+  final UserManagementRepository _users;
   final ValueChanged<AdminUser>? _onUserChanged;
 
   Future<void> loadRechargeSummary() async {
@@ -29,6 +32,20 @@ class UserDetailsCubit extends Cubit<UserDetailsState> {
           totalRecharge: summary.totalRecharge,
           availableCoins: summary.receivedCoins,
           summaryStatus: LoadStatus.loaded,
+        ),
+      ),
+    );
+  }
+
+  Future<void> loadDeletedAccountProfit() async {
+    final result = await _users.fetchDeletedAccountProfit(state.user);
+    if (isClosed) return;
+    result.match(
+      (_) => emit(state.copyWith(profitStatus: LoadStatus.failure)),
+      (profit) => emit(
+        state.copyWith(
+          deletedAccountProfit: profit,
+          profitStatus: LoadStatus.loaded,
         ),
       ),
     );

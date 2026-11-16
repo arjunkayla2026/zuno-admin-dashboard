@@ -113,4 +113,9 @@ class UserManagementRepository {
 
   Future<Either<Failure, Unit>> delete(AdminUser user) =>
       _dataSource.markDeletedByAdmin(user.id);
+
+  Future<Either<Failure, double>> fetchDeletedAccountProfit(AdminUser user) =>
+      user.hasActions
+      ? Future.value(right(0))
+      : _dataSource.fetchDeletedAccountProfit(user.id);
 }
