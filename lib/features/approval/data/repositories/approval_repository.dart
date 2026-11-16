@@ -4,14 +4,16 @@ import 'package:zuno_admin_dashboard/core/data/user_record.dart';
 import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:zuno_admin_dashboard/features/approval/data/datasources/avatar_storage_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/host_request.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/profile_photo_request.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/models/host_profile_options.dart';
 
 class ApprovalRepository {
-  const ApprovalRepository(this._dataSource);
+  const ApprovalRepository(this._dataSource, {this._avatars});
 
   final UsersRemoteDataSource _dataSource;
+  final AvatarStorageRemoteDataSource? _avatars;
 
   static String _fieldOf(HostDocumentType type) => switch (type) {
     HostDocumentType.aadhaarFront => UserRecord.aadhaarFrontField,
@@ -55,10 +57,49 @@ class ApprovalRepository {
   Future<Either<Failure, Unit>> decideRequest(
     HostRequest request,
     HostRequestStatus decision,
-  ) => _dataSource.decideHostRequest(
-    request.requestId,
-    approved: decision == HostRequestStatus.approved,
-  );
+  ) async {
+    final approved = decision == HostRequestStatus.approved;
+    final result = await _dataSource.decideHostRequest(
+      request.requestId,
+      approved: approved,
+    );
+    if (approved && result.isRight()) {
+      await _assignDefaultAvatar(request.requestId);
+    }
+    return result;
+  }
+
+  Future<void> _assignDefaultAvatar(String userId) async {
+    final avatars = _avatars;
+    if (avatars == null) return;
+
+    final records = await _dataSource.fetchByIds([userId]);
+    final record = records.getOrElse((_) => const []).firstOrNull;
+    if (record == null || record.hasCustomAvatar) return;
+
+    final gender = _optionNamed(
+      HostGender.values,
+      record.hostDetails[UserRecord.genderField],
+    );
+    final folder = switch (gender) {
+      HostGender.male => UserRecord.maleAvatarFolder,
+      HostGender.female => UserRecord.femaleAvatarFolder,
+      HostGender.other || null => null,
+    };
+    if (folder == null) return;
+
+    final picked = await avatars.pickRandomAvatarUrl(
+      folder,
+      avoidUrl: record.avatarImageUrl,
+    );
+    if (picked case Right(value: final avatarUrl)) {
+      await _dataSource.assignDefaultAvatar(
+        userId,
+        avatarUrl: avatarUrl,
+        previousUrl: record.avatarImageUrl,
+      );
+    }
+  }
 
   Future<Either<Failure, RecordPage<ProfilePhotoRequest>>>
   fetchProfilePhotoRequests(RecordPageQuery query) async {
@@ -141,7 +182,7 @@ class ApprovalRepository {
           UserRecord.readText(details['district']) ??
           UserRecord.readText(details['state']) ??
           AppStrings.emptyValue,
-      gender: _optionNamed(HostGender.values, details['gender']),
+      gender: _optionNamed(HostGender.values, details[UserRecord.genderField]),
       languages: _languages(details['languages']),
       maskedAadhaar: AppStrings.emptyValue,
       avatarIndex: record.avatarIndex,

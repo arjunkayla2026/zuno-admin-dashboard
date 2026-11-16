@@ -5,6 +5,8 @@ import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/datasources/calls_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/models/call_log.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/models/call_participant.dart';
+import 'package:zuno_admin_dashboard/features/calls/data/models/call_revenue.dart';
+import 'package:zuno_admin_dashboard/features/calls/data/models/call_statistics.dart';
 
 class CallsRepository {
   const CallsRepository(this._calls, this._users);
@@ -48,6 +50,16 @@ class CallsRepository {
     callType: callType,
     participant: participant,
   );
+
+  Future<Either<Failure, CallStatistics>> fetchStatistics({
+    DateTime? from,
+    DateTime? until,
+  }) => _calls.fetchStatistics(from: from, until: until);
+
+  Future<Either<Failure, CallRevenue>> fetchRevenue({
+    DateTime? from,
+    DateTime? until,
+  }) => _calls.fetchRevenue(from: from, until: until);
 
   Future<Either<Failure, List<CallLog>>> fetchCallsWithUsers({
     DateTime? from,

@@ -33,9 +33,7 @@ class DashboardContent extends StatelessWidget {
           rangeLabel: rangeLabel,
           stats: DashboardLabels.revenue(state),
           columns: 3,
-          errorMessage: state.revenueStatus == LoadStatus.failure
-              ? state.revenueError
-              : null,
+          errorMessage: state.revenueSectionError,
           onRetry: cubit.retryRevenue,
         );
         final users = StatSection(
@@ -85,6 +83,10 @@ class DashboardContent extends StatelessWidget {
                 stats: DashboardLabels.calls(state),
                 columns: 5,
                 tileMinHeight: _callTileHeight,
+                errorMessage: state.callsStatus == LoadStatus.failure
+                    ? state.callsError
+                    : null,
+                onRetry: cubit.retryCallStats,
               ),
               const SizedBox(height: _tableGap),
               RecentRechargeCard(

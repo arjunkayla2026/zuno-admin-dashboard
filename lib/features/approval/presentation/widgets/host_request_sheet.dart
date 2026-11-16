@@ -240,7 +240,7 @@ class _HostRequestSheetState extends State<HostRequestSheet> {
               ),
             ),
           ),
-          if (_request.canDecide)
+          if (_request.canReject)
             Wrap(
               spacing: _footerGap,
               runSpacing: AppUtils.spacingSm,
@@ -250,13 +250,14 @@ class _HostRequestSheetState extends State<HostRequestSheet> {
                   destructive: true,
                   onPressed: _reviewing ? null : _reject,
                 ),
-                AppPrimaryButton(
-                  label: AppStrings.approve,
-                  icon: Icons.check_rounded,
-                  compact: true,
-                  positive: true,
-                  onPressed: _reviewing ? null : _approve,
-                ),
+                if (_request.canApprove)
+                  AppPrimaryButton(
+                    label: AppStrings.approve,
+                    icon: Icons.check_rounded,
+                    compact: true,
+                    positive: true,
+                    onPressed: _reviewing ? null : _approve,
+                  ),
               ],
             ),
         ],

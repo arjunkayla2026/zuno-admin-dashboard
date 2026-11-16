@@ -69,10 +69,18 @@ class HostRequest {
 
   bool get isPending => status == HostRequestStatus.pending;
 
-  bool get canDecide =>
+  bool get canApprove =>
       isPending &&
       documents.isNotEmpty &&
       documents.every((doc) => doc.status == HostRequestStatus.approved);
+
+  bool get canReject =>
+      canApprove ||
+      (isPending &&
+          documents.any(
+            (doc) =>
+                doc.status == HostRequestStatus.rejected || !doc.isAvailable,
+          ));
 
   HostRequest withDocumentStatus(
     HostDocumentType type,

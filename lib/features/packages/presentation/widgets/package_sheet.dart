@@ -40,6 +40,7 @@ class _PackageSheetState extends State<PackageSheet> {
   final _amountFormatter = DecimalInputFormatter();
   late bool _gst = widget.plan?.isGstEnabled ?? true;
   late bool _active = widget.plan?.isActive ?? true;
+  late bool _manualReceivable = widget.plan?.hasManualReceivable ?? false;
   late final _payableController = TextEditingController(
     text: _initial(widget.plan?.rechargeAmount),
   );
@@ -87,6 +88,19 @@ class _PackageSheetState extends State<PackageSheet> {
   String? _error(TextEditingController controller) =>
       _submitted && _parse(controller) <= 0 ? AppStrings.enterValue : null;
 
+  String? get _receivableError {
+    final empty = _error(_receivableController);
+    if (empty != null || !_submitted) return empty;
+    final payable = _parse(_payableController);
+    return payable > 0 &&
+            !PackagePlan.isReceivableValid(
+              _parse(_receivableController),
+              payable: payable,
+            )
+        ? AppStrings.receivableAbovePayable
+        : null;
+  }
+
   String? get _offerPercentageError =>
       _submitted &&
           _parse(_offerPercentageController) > PackagePlan.maxOfferPercentage
@@ -94,6 +108,10 @@ class _PackageSheetState extends State<PackageSheet> {
       : null;
 
   void _onPayableChanged(String value) {
+    if (_manualReceivable) {
+      setState(() {});
+      return;
+    }
     final payable = NumberFormatter.tryParseAmount(value);
     setState(() {
       _receivableController.text = payable == null
@@ -105,6 +123,11 @@ class _PackageSheetState extends State<PackageSheet> {
   }
 
   void _onReceivableChanged(String value) {
+    if (_manualReceivable) {
+      // Only the coins shown below depend on it.
+      setState(() {});
+      return;
+    }
     final receivable = NumberFormatter.tryParseAmount(value);
     setState(() {
       _payableController.text = receivable == null
@@ -118,6 +141,15 @@ class _PackageSheetState extends State<PackageSheet> {
   void _onGstChanged(bool enabled) {
     setState(() => _gst = enabled);
     _onPayableChanged(_payableController.text);
+  }
+
+  /// Turning manual entry off links the amounts again by recalculating the
+  /// receivable amount from the payable amount.
+  void _onManualReceivableChanged(bool manual) {
+    setState(() => _manualReceivable = manual);
+    if (!manual && _payableController.text.isNotEmpty) {
+      _onPayableChanged(_payableController.text);
+    }
   }
 
   void _refreshPreview() {
@@ -135,7 +167,7 @@ class _PackageSheetState extends State<PackageSheet> {
     final receivable = _parse(_receivableController);
     final offerPercentage = _parse(_offerPercentageController);
     if (payable <= 0 ||
-        receivable <= 0 ||
+        !PackagePlan.isReceivableValid(receivable, payable: payable) ||
         offerPercentage > PackagePlan.maxOfferPercentage) {
       setState(() => _submitted = true);
       return;
@@ -173,6 +205,7 @@ class _PackageSheetState extends State<PackageSheet> {
     String label,
     TextEditingController controller, {
     required ValueChanged<String> onChanged,
+    String? errorText,
   }) {
     return AppLabeledTextField(
       label: label,
@@ -181,7 +214,7 @@ class _PackageSheetState extends State<PackageSheet> {
       keyboardType: _decimalKeyboard,
       inputFormatters: [_amountFormatter],
       onChanged: onChanged,
-      errorText: _error(controller),
+      errorText: errorText ?? _error(controller),
       dense: true,
     );
   }
@@ -236,6 +269,13 @@ class _PackageSheetState extends State<PackageSheet> {
             ),
             const SizedBox(height: _fieldGap),
           ],
+          PackageSwitchTile(
+            title: AppStrings.manualReceivableTitle,
+            helper: AppStrings.manualReceivableHelper,
+            value: _manualReceivable,
+            onChanged: _onManualReceivableChanged,
+          ),
+          const SizedBox(height: _fieldGap),
           AppFieldRow(
             first: _amountField(
               AppStrings.payableAmountField,
@@ -246,6 +286,7 @@ class _PackageSheetState extends State<PackageSheet> {
               AppStrings.receivableAmountField,
               _receivableController,
               onChanged: _onReceivableChanged,
+              errorText: _receivableError,
             ),
           ),
           const SizedBox(height: _fieldGap),

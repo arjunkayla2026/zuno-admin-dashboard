@@ -27,6 +27,13 @@ enum CallLogStatus {
 
   static const String _acceptedValue = 'accepted';
 
+  /// Raw status values of calls the host picked up.
+  static const List<String> answeredValues = [
+    'completed',
+    'ongoing',
+    _acceptedValue,
+  ];
+
   final String value;
 
   static CallLogStatus fromValue(Object? value) {
@@ -94,6 +101,9 @@ class CallLog {
       return value is num ? value.toDouble() : fallback;
     }
 
+    double readAmount(String field, String legacyField) =>
+        readDouble(field, readDouble(legacyField, 0));
+
     final duration = data[durationSecondsField];
     return CallLog(
       callId: id,
@@ -117,8 +127,8 @@ class CallLog {
       endReason: UserRecord.readText(data[endReasonField]),
       spendCoins: readInt(coinsChargedField, 0),
       spendRupees: readDouble(amountChargedField, 0),
-      hostEarnings: readDouble(hostEarningField, 0),
-      adminRevenue: readDouble(platformEarningField, 0),
+      hostEarnings: readAmount(hostEarningsField, legacyHostEarningField),
+      adminRevenue: readAmount(adminEarningsField, legacyAdminEarningField),
       coinsPerSecond: readInt(coinsPerSecondField, _defaultCoinsPerSecond),
       coinsPerRupee: readInt(coinsPerRupeeField, _defaultCoinsPerRupee),
       hostRatePerMinute: readDouble(
@@ -146,8 +156,13 @@ class CallLog {
   static const String endReasonField = 'endReason';
   static const String coinsChargedField = 'coinsCharged';
   static const String amountChargedField = 'amountCharged';
-  static const String hostEarningField = 'hostEarning';
-  static const String platformEarningField = 'platformEarning';
+  static const String hostEarningsField = 'hostEarnings';
+  static const String adminEarningsField = 'adminEarnings';
+
+  /// Field names written before the calls backend renamed them; older call
+  /// documents that were never migrated still carry only these.
+  static const String legacyHostEarningField = 'hostEarning';
+  static const String legacyAdminEarningField = 'platformEarning';
   static const String coinsPerSecondField = 'coinsPerSecond';
   static const String coinsPerRupeeField = 'coinsPerRupee';
   static const String hostRupeesPerMinuteField = 'hostRupeesPerMinute';
