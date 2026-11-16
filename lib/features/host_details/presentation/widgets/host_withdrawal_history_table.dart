@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:zuno_admin_dashboard/core/enums/app_status.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
@@ -8,12 +7,14 @@ import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_data_table.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_status_badge.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
+import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_labels.dart';
 
 class HostWithdrawalHistoryTable extends StatelessWidget {
   const HostWithdrawalHistoryTable({super.key, required this.withdrawals});
 
   static const List<AppTableColumn> _columns = [
     AppTableColumn(AppStrings.withdrawDate, 108),
+    AppTableColumn(AppStrings.payoutPeriod, 190),
     AppTableColumn(AppStrings.callCount, 70, alignEnd: true),
     AppTableColumn(AppStrings.callDuration, 92, alignEnd: true),
     AppTableColumn(AppStrings.amountEarned, 108, alignEnd: true),
@@ -30,12 +31,6 @@ class HostWithdrawalHistoryTable extends StatelessWidget {
 
   final List<Withdrawal> withdrawals;
 
-  static (String, AppStatus) _status(WithdrawalStatus status) =>
-      switch (status) {
-        WithdrawalStatus.pending => (AppStrings.pending, AppStatus.pending),
-        WithdrawalStatus.success => (AppStrings.success, AppStatus.active),
-      };
-
   @override
   Widget build(BuildContext context) {
     final textColor = context.colorScheme.onSurface;
@@ -48,10 +43,11 @@ class HostWithdrawalHistoryTable extends StatelessWidget {
       rows: [
         for (final withdrawal in withdrawals)
           () {
-            final (statusLabel, status) = _status(withdrawal.status);
+            final (statusLabel, status) = WithdrawalLabels.status(withdrawal);
             final surge = withdrawal.surgeEarnings;
             return [
               Text(DateFormatter.short(withdrawal.settledDate), style: cell),
+              Text(WithdrawalLabels.period(withdrawal), style: cell),
               Text('${withdrawal.callCount}', style: cell),
               Text(AppStrings.minutes(withdrawal.callMinutes), style: cell),
               Text(

@@ -6,6 +6,7 @@ import 'package:zuno_admin_dashboard/core/data/cursor_pager.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
+import 'package:zuno_admin_dashboard/features/payment/data/models/payout_batch_result.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/repositories/payment_repository.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_state.dart';
@@ -27,6 +28,7 @@ class PaymentCubit extends Cubit<PaymentState> {
       ),
   };
   CursorPager<Withdrawal>? _searchPager;
+  List<Withdrawal> _searchMatches = const [];
   Timer? _debounce;
   int _searchRequest = 0;
 
@@ -56,8 +58,8 @@ class PaymentCubit extends Cubit<PaymentState> {
   }
 
   void selectTab(PaymentTab tab) {
-    if (tab == state.tab) return;
-    emit(state.copyWith(tab: tab, page: 1));
+    if (tab == state.tab || state.batchRunning) return;
+    emit(state.copyWith(tab: tab, page: 1, selected: const {}));
     if (!state.minimumLoaded) return;
     if (state.isSearching) {
       unawaited(_runSearch());
@@ -71,9 +73,11 @@ class PaymentCubit extends Cubit<PaymentState> {
     _debounce?.cancel();
     _debounce = Timer(_searchDebounce, () {
       if (isClosed || !state.minimumLoaded) return;
+      emit(state.copyWith(selected: const {}));
       if (state.query.trim().length < _minimumSearchLength) {
         _searchRequest++;
         _searchPager = null;
+        _searchMatches = const [];
         emit(state.copyWith(query: '', clearSearchCount: true));
         _show(state.tab);
       } else {
@@ -86,45 +90,175 @@ class PaymentCubit extends Cubit<PaymentState> {
     (_searchPager ?? _pagers[state.tab]!).goToPage(page);
   }
 
-  Future<Either<Failure, Withdrawal>> markPaid(Withdrawal withdrawal) async {
-    final result = await _repository.completePayout(withdrawal);
-    if (isClosed) return result;
-    result.match((_) {}, (paid) {
-      Withdrawal? replace(Withdrawal item) =>
-          item.id == withdrawal.id ? paid : item;
-      Withdrawal? remove(Withdrawal item) =>
-          item.id == withdrawal.id ? null : item;
+  void toggleSelected(Withdrawal withdrawal) {
+    if (!state.canSelect(withdrawal) || state.batchRunning) return;
+    final selected = Map.of(state.selected);
+    if (selected.remove(withdrawal.id) == null) {
+      selected[withdrawal.id] = withdrawal;
+    }
+    emit(state.copyWith(selected: selected));
+  }
 
-      _stale.add(PaymentTab.success);
+  void setPageSelected(bool isSelected) {
+    if (state.batchRunning) return;
+    final selected = Map.of(state.selected);
+    for (final withdrawal in state.selectableRows) {
+      if (isSelected) {
+        selected[withdrawal.id] = withdrawal;
+      } else {
+        selected.remove(withdrawal.id);
+      }
+    }
+    emit(state.copyWith(selected: selected));
+  }
+
+  void clearSelection() {
+    if (state.batchRunning) return;
+    emit(state.copyWith(selected: const {}));
+  }
+
+  Future<Failure?> selectAllMatching() async {
+    if (state.batchRunning || state.selectingAll) return null;
+    final tab = state.tab;
+    if (state.isSearching) {
+      _selectFrom(_searchMatches);
+      return null;
+    }
+    emit(state.copyWith(selectingAll: true));
+    final result = await _repository.fetchAll(
+      tab.status,
+      minimum: state.minimumPayout,
+    );
+    if (isClosed) return null;
+    emit(state.copyWith(selectingAll: false));
+    if (state.tab != tab) return null;
+    return result.match((failure) => failure, (all) {
+      _selectFrom(all);
+      return null;
+    });
+  }
+
+  Future<Either<Failure, PayoutBatchResult>> moveSelectedToPending() =>
+      moveToPending(state.selected.values.toList());
+
+  Future<Either<Failure, PayoutBatchResult>> markSelectedPaid() =>
+      markPaid(state.selected.values.toList());
+
+  Future<Either<Failure, PayoutBatchResult>> moveToPending(
+    List<Withdrawal> withdrawals,
+  ) => _runBatch(
+    withdrawals,
+    _repository.moveToPending,
+    onDone: (moved) {
       final summary = state.summary;
-      final paidCount = state.paidCount;
+      final pendingCount = state.pendingCount;
+      _stale.add(PaymentTab.pending);
       emit(
         state.copyWith(
-          summary: summary?.without(withdrawal),
-          paidCount: paidCount == null ? null : paidCount + 1,
+          summary: summary?.withoutAll(moved),
+          pendingCount: pendingCount == null
+              ? null
+              : pendingCount + moved.length,
         ),
       );
-      _pagers[PaymentTab.pending]!.update(remove);
-      _pagers[PaymentTab.withdrawalList]!.update(remove);
-      _searchPager?.update(state.tab == PaymentTab.success ? replace : remove);
+      _removeFrom(PaymentTab.withdrawalList, moved);
+    },
+  );
+
+  Future<Either<Failure, PayoutBatchResult>> markPaid(
+    List<Withdrawal> withdrawals,
+  ) => _runBatch(
+    withdrawals,
+    _repository.completePayouts,
+    onDone: (paid) {
+      final pendingCount = state.pendingCount;
+      final paidCount = state.paidCount;
+      _stale.add(PaymentTab.success);
+      emit(
+        state.copyWith(
+          pendingCount: pendingCount == null
+              ? null
+              : (pendingCount - paid.length).clamp(0, pendingCount),
+          paidCount: paidCount == null ? null : paidCount + paid.length,
+        ),
+      );
+      _removeFrom(PaymentTab.pending, paid);
+    },
+  );
+
+  Future<Either<Failure, PayoutBatchResult>> _runBatch(
+    List<Withdrawal> withdrawals,
+    Future<Either<Failure, PayoutBatchResult>> Function(List<Withdrawal>)
+    send, {
+    required void Function(List<Withdrawal> done) onDone,
+  }) async {
+    if (withdrawals.isEmpty) return right(const PayoutBatchResult());
+    if (state.batchRunning) return right(const PayoutBatchResult());
+    emit(state.copyWith(batchRunning: true));
+    final result = await send(withdrawals);
+    if (isClosed) return result;
+    emit(state.copyWith(batchRunning: false));
+    result.match((_) {}, (batch) {
+      if (!batch.hasSuccess) return;
+      final doneIds = {for (final item in batch.succeeded) item.id};
+      emit(
+        state.copyWith(
+          selected: {
+            for (final entry in state.selected.entries)
+              if (!doneIds.contains(entry.key)) entry.key: entry.value,
+          },
+        ),
+      );
+      onDone(batch.succeeded);
+      unawaited(_loadCounts());
     });
     return result;
+  }
+
+  void _removeFrom(PaymentTab tab, List<Withdrawal> done) {
+    final doneIds = {for (final item in done) item.id};
+    Withdrawal? remove(Withdrawal item) =>
+        doneIds.contains(item.id) ? null : item;
+    _pagers[tab]!.update(remove);
+    if (state.tab == tab && _searchPager != null) {
+      _searchMatches = [
+        for (final item in _searchMatches)
+          if (!doneIds.contains(item.id)) item,
+      ];
+      final searchCount = state.searchCount;
+      emit(
+        state.copyWith(
+          searchCount: searchCount == null
+              ? null
+              : (searchCount - done.length).clamp(0, searchCount),
+        ),
+      );
+      _searchPager?.update(remove);
+    }
+  }
+
+  void _selectFrom(List<Withdrawal> candidates) {
+    final selected = Map.of(state.selected);
+    var added = 0;
+    for (final withdrawal in candidates) {
+      if (added >= PaymentRepository.selectAllLimit) break;
+      if (!state.canSelect(withdrawal)) continue;
+      selected[withdrawal.id] = withdrawal;
+      added++;
+    }
+    emit(state.copyWith(selected: selected));
   }
 
   Future<Either<Failure, RecordPage<Withdrawal>>> _fetch(
     PaymentTab tab,
     Object? cursor,
   ) {
-    final minimum = state.minimumPayout;
     return switch (tab) {
-      PaymentTab.withdrawalList => _repository.fetchListPage(
-        minimum: minimum,
+      PaymentTab.withdrawalList => _repository.fetchOpenPage(
+        minimum: state.minimumPayout,
         cursor: cursor,
       ),
-      PaymentTab.pending => _repository.fetchEligiblePage(
-        minimum: minimum,
-        cursor: cursor,
-      ),
+      PaymentTab.pending => _repository.fetchPendingPage(cursor: cursor),
       PaymentTab.success => _repository.fetchPaidPage(cursor: cursor),
     };
   }
@@ -148,14 +282,16 @@ class PaymentCubit extends Cubit<PaymentState> {
 
   Future<void> _loadCounts() async {
     final minimum = state.minimumPayout;
-    final (summary, paidCount) = await (
+    final (summary, pendingCount, paidCount) = await (
       _repository.fetchSummary(minimum),
+      _repository.countPending(),
       _repository.countPaid(),
     ).wait;
     if (isClosed) return;
     emit(
       state.copyWith(
         summary: summary.toNullable(),
+        pendingCount: pendingCount.toNullable(),
         paidCount: paidCount.toNullable(),
       ),
     );
@@ -168,8 +304,7 @@ class PaymentCubit extends Cubit<PaymentState> {
     final result = await _repository.search(
       state.query,
       minimum: state.minimumPayout,
-      includePending: tab != PaymentTab.success,
-      includePaid: tab == PaymentTab.success,
+      status: tab.status,
     );
     if (isClosed || request != _searchRequest) return;
 
@@ -182,13 +317,14 @@ class PaymentCubit extends Cubit<PaymentState> {
           ),
         );
       case Right(value: final matches):
+        _searchMatches = matches;
         emit(state.copyWith(searchCount: matches.length));
         final pager = CursorPager<Withdrawal>(
           fetch: (cursor) async => right(
             RecordPages.local(
               cursor is LocalPageCursor<Withdrawal>
                   ? cursor.remaining
-                  : matches,
+                  : _searchMatches,
               RecordPageQuery.pageSize,
             ),
           ),

@@ -4,11 +4,17 @@ import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 
 class AppTableColumn {
-  const AppTableColumn(this.label, this.width, {this.alignEnd = false});
+  const AppTableColumn(
+    this.label,
+    this.width, {
+    this.alignEnd = false,
+    this.header,
+  });
 
   final String label;
   final double width;
   final bool alignEnd;
+  final Widget? header;
 }
 
 class AppDataTable extends StatelessWidget {
@@ -95,7 +101,7 @@ class AppDataTable extends StatelessWidget {
                   ),
                   child: _row([
                     for (final column in columns)
-                      Text(column.label, style: headerStyle),
+                      column.header ?? Text(column.label, style: headerStyle),
                   ], extraWidth),
                 ),
                 for (final (index, cells) in rows.indexed)

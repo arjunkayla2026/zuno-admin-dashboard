@@ -6,21 +6,54 @@ import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
+import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_selection_bar.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_table_footer.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_table_load_state.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_underline_tabs.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
+import 'package:zuno_admin_dashboard/features/payment/data/repositories/payment_repository.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_cubit.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_state.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/payment_toolbar.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/pending_withdrawals_table.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/success_withdrawals_table.dart';
+import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_flow.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawals_table.dart';
 
 class PaymentTabsCard extends StatelessWidget {
   const PaymentTabsCard({super.key});
 
   static const double _emptyHeight = 160;
+
+  static Widget? _selectionBar(BuildContext context, PaymentState state) {
+    if (!state.tab.isSelectable || state.selected.isEmpty) return null;
+    final cubit = context.read<PaymentCubit>();
+    final isOpenTab = state.tab == PaymentTab.withdrawalList;
+    final selectAllCount = state.canSelectMore
+        ? state.totalCount?.clamp(0, PaymentRepository.selectAllLimit)
+        : null;
+    return AppSelectionBar(
+      summary: AppStrings.selectionSummary(
+        state.selected.length,
+        NumberFormatter.rupeesAmount(state.selectedTotal),
+      ),
+      actionLabel: isOpenTab
+          ? AppStrings.moveToPending
+          : AppStrings.markAsSuccess,
+      onAction: () => isOpenTab
+          ? moveSelectedToPending(context)
+          : markSelectedPaid(context),
+      onClear: cubit.clearSelection,
+      selectAllLabel: selectAllCount == null
+          ? null
+          : AppStrings.selectAll(selectAllCount),
+      onSelectAll: selectAllCount == null
+          ? null
+          : () => selectAllWithdrawals(context),
+      busy: state.batchRunning || state.selectingAll,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,12 +87,15 @@ class PaymentTabsCard extends StatelessWidget {
               ),
               const Divider(color: AppColors.cardBorder),
               const PaymentToolbar(),
+              ?_selectionBar(context, state),
               switch (state.tab) {
                 PaymentTab.withdrawalList => WithdrawalsTable(
                   withdrawals: rows,
+                  state: state,
                 ),
                 PaymentTab.pending => PendingWithdrawalsTable(
                   withdrawals: rows,
+                  state: state,
                   firstIndex: state.firstIndex,
                 ),
                 PaymentTab.success => SuccessWithdrawalsTable(

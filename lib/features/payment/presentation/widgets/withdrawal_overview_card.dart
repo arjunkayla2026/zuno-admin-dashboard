@@ -44,11 +44,11 @@ class WithdrawalOverviewCard extends StatelessWidget {
                     Text(
                       switch (state.minimumPayout) {
                         final minimum? => AppStrings.withdrawalOverviewNote(
-                          state.pendingCount,
+                          state.readyCount,
                           NumberFormatter.rupeesAmount(minimum),
                         ),
                         null => AppStrings.withdrawalOverviewNoteUnset(
-                          state.pendingCount,
+                          state.readyCount,
                         ),
                       },
                       style: AppTextStyles.tableFootnote.copyWith(
@@ -67,24 +67,24 @@ class WithdrawalOverviewCard extends StatelessWidget {
                   stats: [
                     AppStat(
                       label: AppStrings.hostRevenue,
-                      value: NumberFormatter.rupeesAmount(state.pendingEarned),
+                      value: NumberFormatter.rupeesAmount(state.readyEarned),
                     ),
                     AppStat(
                       label: AppStrings.duration,
-                      value: NumberFormatter.grouped(state.pendingMinutes),
+                      value: NumberFormatter.grouped(state.readyMinutes),
                       unit: AppStrings.minutesUnit,
                     ),
                     AppStat(
                       label: AppStrings.totalHostCredit,
-                      value: NumberFormatter.rupeesAmount(state.pendingCredit),
+                      value: NumberFormatter.rupeesAmount(state.readyCredit),
                     ),
                     AppStat(
                       label: AppStrings.totalHostRevenueStat,
-                      value: NumberFormatter.rupeesAmount(state.pendingTotal),
+                      value: NumberFormatter.rupeesAmount(state.readyTotal),
                     ),
                     AppStat(
                       label: AppStrings.totalWithdraw,
-                      value: NumberFormatter.rupeesAmount(state.pendingTotal),
+                      value: NumberFormatter.rupeesAmount(state.readyTotal),
                     ),
                   ],
                 ),

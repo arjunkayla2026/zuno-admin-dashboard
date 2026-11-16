@@ -7,10 +7,11 @@ import 'package:zuno_admin_dashboard/core/data/payout_settings.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/data/search_keywords.dart';
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
+import 'package:zuno_admin_dashboard/core/data/user_search.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
-import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/bank_account_record.dart';
+import 'package:zuno_admin_dashboard/features/payment/data/models/payout_batch_result.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_summary.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
 
@@ -19,10 +20,13 @@ class PaymentRemoteDataSource {
 
   static const String _settingsCollection = 'settings';
   static const String _appDocument = 'app';
-  static const String _completePayoutFunction = 'completeHostPayout';
+  static const String _moveFunction = 'movePayoutsToPending';
+  static const String _completeFunction = 'completeHostPayouts';
   static const String _internalErrorCode = 'internal';
   static const int _idsPerQuery = 30;
   static const int _paidSearchLimit = 50;
+  static const int _snapshotSearchLimit = 50;
+  static const Duration _batchTimeout = Duration(minutes: 5);
 
   final FirebaseFirestore _firestore;
   final FirebaseFunctions _functions;
@@ -30,12 +34,21 @@ class PaymentRemoteDataSource {
   CollectionReference<Map<String, dynamic>> get _payouts =>
       _firestore.collection(Withdrawal.collection);
 
-  Query<Map<String, dynamic>> _eligible(double? minimum) => _payouts
-      .where(Withdrawal.statusField, isEqualTo: Withdrawal.pendingStatus)
+  static String get _withdrawableTotal =>
+      Withdrawal.withdrawablePath(Withdrawal.totalAmountField);
+
+  Query<Map<String, dynamic>> _open(double? minimum) => _payouts
+      .where(Withdrawal.statusField, isEqualTo: Withdrawal.openStatus)
+      .where(Withdrawal.bankReadyField, isEqualTo: true)
       .where(
-        Withdrawal.totalAmountField,
+        _withdrawableTotal,
         isGreaterThanOrEqualTo: PayoutSettings.eligibleFrom(minimum),
       );
+
+  Query<Map<String, dynamic>> get _pending => _payouts.where(
+    Withdrawal.statusField,
+    isEqualTo: Withdrawal.pendingStatus,
+  );
 
   Query<Map<String, dynamic>> get _paid => _payouts.where(
     Withdrawal.statusField,
@@ -60,37 +73,61 @@ class PaymentRemoteDataSource {
     }
   }
 
-  Future<Either<Failure, RecordPage<Withdrawal>>> fetchEligiblePage({
+  Future<Either<Failure, RecordPage<Withdrawal>>> fetchOpenPage({
     required double? minimum,
     Object? cursor,
-    int pageSize = RecordPageQuery.pageSize,
   }) => RecordPages.fetch(
-    _eligible(minimum),
+    _open(minimum),
     RecordPageQuery(cursor: cursor),
     Withdrawal.fromDocument,
-    sortField: Withdrawal.totalAmountField,
-    pageSize: pageSize,
+    sortField: _withdrawableTotal,
+  );
+
+  Future<Either<Failure, RecordPage<Withdrawal>>> fetchPendingPage({
+    Object? cursor,
+  }) => RecordPages.fetch(
+    _pending,
+    RecordPageQuery(cursor: cursor),
+    Withdrawal.fromDocument,
+    sortField: Withdrawal.updatedAtField,
   );
 
   Future<Either<Failure, RecordPage<Withdrawal>>> fetchPaidPage({
     Object? cursor,
-    int pageSize = RecordPageQuery.pageSize,
   }) => RecordPages.fetch(
     _paid,
     RecordPageQuery(cursor: cursor),
     Withdrawal.fromDocument,
     sortField: Withdrawal.paidAtField,
-    pageSize: pageSize,
   );
 
-  Future<Either<Failure, PayoutSummary>> fetchEligibleSummary(
+  Future<Either<Failure, List<Withdrawal>>> fetchAllOpen(
+    double? minimum, {
+    required int limit,
+  }) => _fetchAll(
+    _open(minimum).orderBy(_withdrawableTotal, descending: true),
+    limit,
+  );
+
+  Future<Either<Failure, List<Withdrawal>>> fetchAllPending({
+    required int limit,
+  }) => _fetchAll(
+    _pending.orderBy(Withdrawal.updatedAtField, descending: true),
+    limit,
+  );
+
+  Future<Either<Failure, PayoutSummary>> fetchOpenSummary(
     double? minimum,
   ) async {
-    const earnedField = Withdrawal.callEarningsField;
-    const secondsField = Withdrawal.callDurationField;
-    const totalField = Withdrawal.totalAmountField;
+    final earnedField = Withdrawal.withdrawablePath(
+      Withdrawal.callEarningsField,
+    );
+    final secondsField = Withdrawal.withdrawablePath(
+      Withdrawal.callDurationField,
+    );
+    final totalField = _withdrawableTotal;
     try {
-      final result = await _eligible(minimum)
+      final result = await _open(minimum)
           .aggregate(
             count(),
             sum(earnedField),
@@ -101,13 +138,9 @@ class PaymentRemoteDataSource {
       return right(
         PayoutSummary(
           hostCount: result.count ?? 0,
-          amountEarned: NumberFormatter.roundAmount(
-            result.getSum(earnedField) ?? 0,
-          ),
+          amountEarned: result.getSum(earnedField) ?? 0,
           callSeconds: (result.getSum(secondsField) ?? 0).round(),
-          totalAmount: NumberFormatter.roundAmount(
-            result.getSum(totalField) ?? 0,
-          ),
+          totalAmount: result.getSum(totalField) ?? 0,
         ),
       );
     } on FirebaseException catch (error) {
@@ -118,22 +151,22 @@ class PaymentRemoteDataSource {
     }
   }
 
-  Future<Either<Failure, int>> countPaid() async {
-    try {
-      final snapshot = await _paid.count().get();
-      return right(snapshot.count ?? 0);
-    } on FirebaseException catch (error) {
-      return left(FirestoreFailures.read(error.code));
-    } catch (_) {
-      return left(const DataFailure(AppStrings.recordsLoadFailed));
-    }
-  }
+  Future<Either<Failure, int>> countPending() => _count(_pending);
+
+  Future<Either<Failure, int>> countPaid() => _count(_paid);
 
   Future<Either<Failure, List<Withdrawal>>> fetchByIds(Iterable<String> ids) =>
       _whereIn(
         ids,
         (batch) => _payouts.where(FieldPath.documentId, whereIn: batch),
       );
+
+  Future<Either<Failure, List<Withdrawal>>> fetchPendingForHosts(
+    Iterable<String> hostIds,
+  ) => _whereIn(
+    hostIds,
+    (batch) => _pending.where(Withdrawal.hostIdField, whereIn: batch),
+  );
 
   Future<Either<Failure, List<Withdrawal>>> fetchPaidForHosts(
     Iterable<String> hostIds,
@@ -145,24 +178,51 @@ class PaymentRemoteDataSource {
         .limit(_paidSearchLimit),
   );
 
-  Future<Either<Failure, List<Withdrawal>>> fetchByWithdrawId(
-    String withdrawId,
+  Future<Either<Failure, List<Withdrawal>>> searchBySnapshot(
+    String term,
   ) async {
+    final upper = term.toUpperCase();
+    final namePrefixes = {
+      term,
+      term.toLowerCase(),
+      '${term[0].toUpperCase()}${term.substring(1)}',
+    };
+    Query<Map<String, dynamic>> startsWith(String field, String prefix) =>
+        _payouts
+            .where(field, isGreaterThanOrEqualTo: prefix)
+            .where(field, isLessThan: '$prefix${UserSearch.prefixEnd}')
+            .limit(_snapshotSearchLimit);
     try {
-      final snapshot = await _payouts
-          .where(Withdrawal.withdrawIdField, isEqualTo: withdrawId)
-          .limit(1)
-          .get();
-      return right([
-        for (final document in snapshot.docs)
-          Withdrawal.fromDocument(document.id, document.data()),
+      final snapshots = await Future.wait([
+        for (final prefix in namePrefixes)
+          startsWith(Withdrawal.hostNameField, prefix).get(),
+        if (!term.contains(' '))
+          startsWith(Withdrawal.hostUserIdField, upper).get(),
       ]);
+      return right(
+        {
+          for (final snapshot in snapshots)
+            for (final document in snapshot.docs)
+              document.id: Withdrawal.fromDocument(
+                document.id,
+                document.data(),
+              ),
+        }.values.toList(),
+      );
     } on FirebaseException catch (error) {
+      debugPrint('Payout search failed [${error.code}]: ${error.message}');
       return left(FirestoreFailures.read(error.code));
     } catch (_) {
       return left(const DataFailure(AppStrings.recordsLoadFailed));
     }
   }
+
+  Future<Either<Failure, List<Withdrawal>>> fetchByWithdrawId(
+    String withdrawId,
+  ) => _fetchAll(
+    _payouts.where(Withdrawal.withdrawIdField, isEqualTo: withdrawId),
+    1,
+  );
 
   Future<Either<Failure, Map<String, PayoutBankAccount>>>
   fetchApprovedBankAccounts(Iterable<String> hostIds) async {
@@ -171,7 +231,7 @@ class PaymentRemoteDataSource {
       final snapshots = await Future.wait([
         for (var start = 0; start < ids.length; start += _idsPerQuery)
           _firestore
-              .collection(SearchKeywords.bankDetailsCollection)
+              .collection(SearchKeywords.bankAccountsCollection)
               .where(
                 FieldPath.documentId,
                 whereIn: ids.sublist(
@@ -195,18 +255,39 @@ class PaymentRemoteDataSource {
     }
   }
 
-  Future<Either<Failure, PayoutReceipt>> completePayout({
-    required String payoutId,
-    required double expectedTotalAmount,
-  }) async {
+  Future<Either<Failure, List<PayoutItemResult>>> movePayoutsToPending(
+    List<Withdrawal> withdrawals,
+  ) => _callBatch(_moveFunction, [
+    for (final withdrawal in withdrawals)
+      {'payoutId': withdrawal.id, 'expectedAmount': withdrawal.totalAmount},
+  ]);
+
+  Future<Either<Failure, List<PayoutItemResult>>> completePayouts(
+    List<Withdrawal> withdrawals,
+  ) => _callBatch(_completeFunction, [
+    for (final withdrawal in withdrawals)
+      {
+        'payoutId': withdrawal.id,
+        'expectedTotalAmount': withdrawal.totalAmount,
+      },
+  ]);
+
+  Future<Either<Failure, List<PayoutItemResult>>> _callBatch(
+    String function,
+    List<Map<String, Object>> items,
+  ) async {
     try {
       final response = await _functions
-          .httpsCallable(_completePayoutFunction)
-          .call<Map<Object?, Object?>>({
-            'payoutId': payoutId,
-            'expectedTotalAmount': expectedTotalAmount,
-          });
-      return right(PayoutReceipt.fromMap(response.data));
+          .httpsCallable(
+            function,
+            options: HttpsCallableOptions(timeout: _batchTimeout),
+          )
+          .call<Map<Object?, Object?>>({'items': items});
+      final results = response.data['results'];
+      return right([
+        if (results is List)
+          for (final result in results) ?PayoutItemResult.fromMap(result),
+      ]);
     } on FirebaseFunctionsException catch (error) {
       final message = error.message;
       return left(
@@ -218,6 +299,35 @@ class PaymentRemoteDataSource {
       );
     } catch (_) {
       return left(const DataFailure(AppStrings.payoutFailed));
+    }
+  }
+
+  Future<Either<Failure, int>> _count(Query<Map<String, dynamic>> query) async {
+    try {
+      final snapshot = await query.count().get();
+      return right(snapshot.count ?? 0);
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.read(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsLoadFailed));
+    }
+  }
+
+  Future<Either<Failure, List<Withdrawal>>> _fetchAll(
+    Query<Map<String, dynamic>> query,
+    int limit,
+  ) async {
+    try {
+      final snapshot = await query.limit(limit).get();
+      return right([
+        for (final document in snapshot.docs)
+          Withdrawal.fromDocument(document.id, document.data()),
+      ]);
+    } on FirebaseException catch (error) {
+      debugPrint('Payout lookup failed [${error.code}]: ${error.message}');
+      return left(FirestoreFailures.read(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsLoadFailed));
     }
   }
 

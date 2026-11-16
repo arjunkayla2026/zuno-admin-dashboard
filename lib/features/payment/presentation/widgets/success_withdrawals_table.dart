@@ -22,6 +22,7 @@ class SuccessWithdrawalsTable extends StatelessWidget {
     AppTableColumn(AppStrings.date, 112),
     AppTableColumn(AppStrings.hostName, 140),
     AppTableColumn(AppStrings.hostId, 96),
+    AppTableColumn(AppStrings.payoutPeriod, 190),
     AppTableColumn(AppStrings.phoneNumber, 148),
     AppTableColumn(AppStrings.totalCallsCount, 124, alignEnd: true),
     AppTableColumn(AppStrings.duration, 104, alignEnd: true),
@@ -32,6 +33,7 @@ class SuccessWithdrawalsTable extends StatelessWidget {
     AppTableColumn(AppStrings.totalReceivableAmount, 180, alignEnd: true),
     AppTableColumn('', 32),
     AppTableColumn(AppStrings.withdrawStatus, 124),
+    AppTableColumn(AppStrings.paidBy, 150),
   ];
 
   final List<Withdrawal> withdrawals;
@@ -60,6 +62,7 @@ class SuccessWithdrawalsTable extends StatelessWidget {
                 name: withdrawal.hostName,
               ),
               Text(withdrawal.hostUserId, style: mono),
+              Text(WithdrawalLabels.period(withdrawal), style: cell),
               Text(withdrawal.phone, style: mono),
               Text(NumberFormatter.grouped(withdrawal.callCount), style: cell),
               Text(
@@ -87,6 +90,12 @@ class SuccessWithdrawalsTable extends StatelessWidget {
               ),
               const SizedBox.shrink(),
               AppStatusBadge(label: statusLabel, status: status),
+              Text(
+                withdrawal.paidByName ??
+                    withdrawal.paidBy ??
+                    AppStrings.emptyValue,
+                style: cell,
+              ),
             ];
           }(),
       ],
