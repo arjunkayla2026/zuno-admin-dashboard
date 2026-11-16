@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fpdart/fpdart.dart';
@@ -14,6 +16,7 @@ class PayoutRemoteDataSource {
 
   static const String _collection = SearchKeywords.bankAccountsCollection;
   static const String _updatedAtField = 'updatedAt';
+  static const int _maxIdsPerQuery = 30;
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
@@ -31,6 +34,41 @@ class PayoutRemoteDataSource {
 
   Future<Either<Failure, int>> countSubmitted(RecordPageQuery query) =>
       RecordPages.count(_submitted, query);
+
+  /// The submitted bank accounts among [ids] (each document ID is the user's
+  /// ID), read in batches of [_maxIdsPerQuery].
+  Future<Either<Failure, List<BankAccountRecord>>> fetchSubmittedByIds(
+    Iterable<String> ids,
+  ) async {
+    final unique = ids.where((id) => id.isNotEmpty).toSet().toList();
+    if (unique.isEmpty) return right(const []);
+    try {
+      final snapshots = await Future.wait([
+        for (var start = 0; start < unique.length; start += _maxIdsPerQuery)
+          _firestore
+              .collection(_collection)
+              .where(
+                FieldPath.documentId,
+                whereIn: unique.sublist(
+                  start,
+                  math.min(start + _maxIdsPerQuery, unique.length),
+                ),
+              )
+              .get(),
+      ]);
+      return right([
+        for (final snapshot in snapshots)
+          for (final document in snapshot.docs)
+            if (document.data()[BankAccountRecord.statusField] ==
+                UserRecord.documentSubmitted)
+              BankAccountRecord.fromDocument(document.id, document.data()),
+      ]);
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.read(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsLoadFailed));
+    }
+  }
 
   Future<Either<Failure, Unit>> decide(
     String id, {

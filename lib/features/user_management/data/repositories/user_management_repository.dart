@@ -79,7 +79,8 @@ class UserManagementRepository {
     }
 
     return _dataSource.updateRecord(user.id, {
-      if (name != user.name) 'name': name,
+      // The user app reads and edits `userName`; `name` is a legacy field.
+      if (name != user.name) 'userName': name,
       ...phoneFields,
     });
   }

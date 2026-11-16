@@ -37,6 +37,7 @@ class BannerGrid extends StatelessWidget {
             children: [
               for (final (index, banner) in banners.indexed)
                 SizedBox(
+                  key: ValueKey(banner.id),
                   width: width,
                   child: BannerCard(
                     number: index + 1,

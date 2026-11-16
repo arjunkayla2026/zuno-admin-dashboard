@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
-import 'package:zuno_admin_dashboard/core/data/search_keywords.dart';
+import 'package:zuno_admin_dashboard/core/data/user_search.dart';
 import 'package:zuno_admin_dashboard/core/enums/date_range_filter.dart';
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/core/utils/date_range_matcher.dart';
@@ -35,6 +35,7 @@ class ApprovalCubit extends Cubit<ApprovalState> {
        );
 
   static const Duration _searchDebounce = Duration(milliseconds: 450);
+  static const int _minSearchLength = 2;
 
   final ApprovalRepository _repository;
   final PayoutRepository _payoutRepository;
@@ -96,7 +97,7 @@ class ApprovalCubit extends Cubit<ApprovalState> {
       customRange: state.customRange,
     );
     return ApprovalFilter(
-      term: SearchKeywords.normalizeTerm(state.query),
+      term: UserSearch.normalizeTerm(state.query, minLength: _minSearchLength),
       from: bounds?.$1,
       until: bounds?.$2,
     );

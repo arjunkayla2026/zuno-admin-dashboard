@@ -203,12 +203,47 @@ class UsersRemoteDataSource {
       onlyDeleted: onlyDeleted,
       deletedBy: deletedBy,
     );
+    final found = await _searchWithin(
+      base,
+      UserSearch.prefixes(term, isHost: role == hostRole),
+    );
+    return found.map((records) {
+      final matches = records.where((record) {
+        final createdAt = record.createdAt;
+        return from == null || (createdAt != null && !createdAt.isBefore(from));
+      }).toList();
+      final oldest = DateTime.fromMillisecondsSinceEpoch(0);
+      return matches..sort(
+        (a, b) => (b.createdAt ?? oldest).compareTo(a.createdAt ?? oldest),
+      );
+    });
+  }
+
+  /// Pending host requests whose host nickname, real name, account nickname,
+  /// user ID or phone number starts with [term]. Unsorted.
+  Future<Either<Failure, List<UserRecord>>> searchHostApplicants(String term) =>
+      _searchWithin(
+        _hostApplicants,
+        UserSearch.prefixesFor(term, UserSearch.approvalNameFields),
+      );
+
+  /// Pending profile photo requests matched like [searchHostApplicants].
+  Future<Either<Failure, List<UserRecord>>> searchProfilePhotoRequests(
+    String term,
+  ) => _searchWithin(
+    _profilePhotoRequests,
+    UserSearch.prefixesFor(term, UserSearch.approvalNameFields),
+  );
+
+  /// Runs one "starts with" range query on [base] per prefix and merges the
+  /// results by document ID.
+  Future<Either<Failure, List<UserRecord>>> _searchWithin(
+    Query<Map<String, dynamic>> base,
+    List<(String field, String prefix)> prefixes,
+  ) async {
     try {
       final snapshots = await Future.wait([
-        for (final (field, prefix) in UserSearch.prefixes(
-          term,
-          isHost: role == hostRole,
-        ))
+        for (final (field, prefix) in prefixes)
           base
               .where(field, isGreaterThanOrEqualTo: prefix)
               .where(field, isLessThan: '$prefix${UserSearch.prefixEnd}')
@@ -216,24 +251,16 @@ class UsersRemoteDataSource {
               .limit(UserSearch.maxResultsPerPrefix)
               .get(),
       ]);
-      final records =
-          <String, UserRecord>{
-            for (final snapshot in snapshots)
-              for (final document in snapshot.docs)
-                document.id: UserRecord.fromDocument(
-                  document.id,
-                  document.data(),
-                ),
-          }.values.where((record) {
-            final createdAt = record.createdAt;
-            return from == null ||
-                (createdAt != null && !createdAt.isBefore(from));
-          }).toList();
-      final oldest = DateTime.fromMillisecondsSinceEpoch(0);
-      records.sort(
-        (a, b) => (b.createdAt ?? oldest).compareTo(a.createdAt ?? oldest),
+      return right(
+        <String, UserRecord>{
+          for (final snapshot in snapshots)
+            for (final document in snapshot.docs)
+              document.id: UserRecord.fromDocument(
+                document.id,
+                document.data(),
+              ),
+        }.values.toList(),
       );
-      return right(records);
     } on FirebaseException catch (error) {
       return left(FirestoreFailures.read(error.code));
     } catch (_) {

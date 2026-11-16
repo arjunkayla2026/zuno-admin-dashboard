@@ -47,7 +47,7 @@ class RechargeState {
     this.status = LoadStatus.loading,
     this.errorMessage,
     this.query = '',
-    this.dateFilter = DateRangeFilter.all,
+    this.dateFilter = DateRangeFilter.today,
     this.customRange,
     this.sourceFilter = RechargeSourceFilter.all,
     this.statusFilter = RechargeStatusFilter.all,

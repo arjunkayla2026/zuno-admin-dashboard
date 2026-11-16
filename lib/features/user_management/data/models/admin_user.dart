@@ -7,7 +7,7 @@ enum UserStatus { active, newUser, blocked, deletedByAdmin, deletedByUser }
 
 class AdminUser {
   factory AdminUser.fromRecord(UserRecord record) {
-    final name = record.name ?? record.userName ?? AppStrings.emptyValue;
+    final name = record.userName ?? record.name ?? AppStrings.emptyValue;
 
     return AdminUser(
       createdDate: record.createdDateLabel,

@@ -11,7 +11,6 @@ abstract final class DashboardLabels {
     DateRangeFilter.yesterday,
     DateRangeFilter.last7Days,
     DateRangeFilter.last30Days,
-    DateRangeFilter.all,
     DateRangeFilter.custom,
   ];
 
@@ -20,7 +19,6 @@ abstract final class DashboardLabels {
     DateRangeFilter.yesterday => AppStrings.yesterday,
     DateRangeFilter.last7Days => AppStrings.last7Days,
     DateRangeFilter.last30Days => AppStrings.last30Days,
-    DateRangeFilter.all => AppStrings.allDates,
     DateRangeFilter.custom => AppStrings.customDateRange,
   };
 
