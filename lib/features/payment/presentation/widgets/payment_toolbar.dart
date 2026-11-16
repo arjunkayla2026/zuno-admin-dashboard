@@ -8,6 +8,7 @@ import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_search_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_cubit.dart';
+import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_state.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_flow.dart';
 
 class PaymentToolbar extends StatelessWidget {
@@ -30,6 +31,11 @@ class PaymentToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final (isPending, exporting) = context.select(
+      (PaymentCubit cubit) =>
+          (cubit.state.tab == PaymentTab.pending, cubit.state.exporting),
+    );
+
     return Padding(
       padding: _padding,
       child: LayoutBuilder(
@@ -49,22 +55,27 @@ class PaymentToolbar extends StatelessWidget {
                 onChanged: context.read<PaymentCubit>().search,
               ),
             ),
-            Wrap(
-              spacing: AppUtils.spacingSm,
-              runSpacing: AppUtils.spacingSm,
-              children: [
-                AppSecondaryButton(
-                  label: AppStrings.exportBeneficiarySheet,
-                  leading: _downloadIcon(context),
-                  onPressed: () => exportBeneficiaries(context),
-                ),
-                AppSecondaryButton(
-                  label: AppStrings.exportWithdrawalSheet,
-                  leading: _downloadIcon(context),
-                  onPressed: () => exportWithdrawals(context),
-                ),
-              ],
-            ),
+            if (isPending)
+              Wrap(
+                spacing: AppUtils.spacingSm,
+                runSpacing: AppUtils.spacingSm,
+                children: [
+                  AppSecondaryButton(
+                    label: AppStrings.exportBeneficiarySheet,
+                    leading: _downloadIcon(context),
+                    onPressed: exporting
+                        ? null
+                        : () => exportBeneficiaries(context),
+                  ),
+                  AppSecondaryButton(
+                    label: AppStrings.exportWithdrawalSheet,
+                    leading: _downloadIcon(context),
+                    onPressed: exporting
+                        ? null
+                        : () => exportWithdrawals(context),
+                  ),
+                ],
+              ),
           ],
         ),
       ),

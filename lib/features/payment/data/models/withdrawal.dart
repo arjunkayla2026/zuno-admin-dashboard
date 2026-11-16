@@ -66,6 +66,7 @@ class Withdrawal {
     required this.hostName,
     required this.phone,
     required this.date,
+    this.phoneNumber,
     this.callCount = 0,
     this.callSeconds = 0,
     this.amountEarned = 0,
@@ -129,6 +130,7 @@ class Withdrawal {
         UserRecord.readText(data['hostCountryCode']),
         UserRecord.readText(data['hostPhoneNumber']),
       ),
+      phoneNumber: UserRecord.readText(data['hostPhoneNumber']),
       date:
           UserRecord.readDate(data[createdAtField]) ??
           DateTime.fromMillisecondsSinceEpoch(0),
@@ -196,6 +198,7 @@ class Withdrawal {
   final String hostUserId;
   final String hostName;
   final String phone;
+  final String? phoneNumber;
   final DateTime date;
   final int callCount;
   final int callSeconds;
@@ -298,6 +301,7 @@ class Withdrawal {
       hostUserId: hostUserId,
       hostName: hostName,
       phone: phone,
+      phoneNumber: phoneNumber,
       date: date,
       callCount: callCount,
       callSeconds: callSeconds,

@@ -34,6 +34,7 @@ class PaymentState {
     this.searchCount,
     this.selected = const {},
     this.selectingAll = false,
+    this.exporting = false,
     this.batchRunning = false,
   });
 
@@ -55,6 +56,7 @@ class PaymentState {
   final int? searchCount;
   final Map<String, Withdrawal> selected;
   final bool selectingAll;
+  final bool exporting;
   final bool batchRunning;
 
   bool get isSearching => query.trim().isNotEmpty;
@@ -133,6 +135,7 @@ class PaymentState {
     bool clearSearchCount = false,
     Map<String, Withdrawal>? selected,
     bool? selectingAll,
+    bool? exporting,
     bool? batchRunning,
   }) {
     return PaymentState(
@@ -152,6 +155,7 @@ class PaymentState {
       searchCount: clearSearchCount ? null : searchCount ?? this.searchCount,
       selected: selected ?? this.selected,
       selectingAll: selectingAll ?? this.selectingAll,
+      exporting: exporting ?? this.exporting,
       batchRunning: batchRunning ?? this.batchRunning,
     );
   }

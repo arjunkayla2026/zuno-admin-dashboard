@@ -9,6 +9,7 @@ import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/datasources/payment_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_batch_result.dart';
+import 'package:zuno_admin_dashboard/features/payment/data/models/payout_sheet_row.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_summary.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
 
@@ -20,6 +21,7 @@ class PaymentRepository {
   static const String _withdrawIdPrefix = 'WD-';
   static const int _maxSearchHosts = 30;
   static const int _batchSize = 50;
+  static const Duration _istOffset = Duration(hours: 5, minutes: 30);
 
   final PaymentRemoteDataSource _dataSource;
   final UsersRemoteDataSource _usersDataSource;
@@ -120,6 +122,80 @@ class PaymentRepository {
         });
         return _readyOnly(await _attachBankAccounts(matches));
     }
+  }
+
+  /// Builds the bank sheet rows for [withdrawals], skipping any without an
+  /// approved bank account. Joins each host's `hostDetails` and the admin
+  /// credit / debit remarks written against the payout.
+  Future<Either<Failure, List<PayoutSheetRow>>> fetchSheetRows(
+    List<Withdrawal> withdrawals,
+  ) async {
+    final ready = withdrawals.where((item) => item.hasBankAccount).toList();
+    if (ready.isEmpty) return right(const []);
+    final (hosts, adjustments) = await (
+      _usersDataSource.fetchByIds(ready.map((item) => item.hostId)),
+      _dataSource.fetchAdjustments(ready.map((item) => item.id)),
+    ).wait;
+    return hosts.flatMap(
+      (records) => adjustments.map((entries) {
+        final hostsById = {for (final record in records) record.id: record};
+        final byPayout = <String, List<PayoutAdjustment>>{};
+        for (final entry in entries) {
+          (byPayout[entry.payoutId] ??= []).add(entry);
+        }
+        return [
+          for (final withdrawal in ready)
+            _sheetRow(
+              withdrawal,
+              hostsById[withdrawal.hostId]?.hostDetails ?? const {},
+              byPayout[withdrawal.id] ?? const [],
+            ),
+        ];
+      }),
+    );
+  }
+
+  static PayoutSheetRow _sheetRow(
+    Withdrawal withdrawal,
+    Map<String, dynamic> details,
+    List<PayoutAdjustment> adjustments,
+  ) {
+    final sorted = [...adjustments]
+      ..sort(
+        (a, b) =>
+            (a.createdAt ?? DateTime(0)).compareTo(b.createdAt ?? DateTime(0)),
+      );
+    final periodEnd = withdrawal.periodEnd;
+    // Credits made on the day a payout was moved to pending were carried to
+    // the next cycle, so only credits up to the period's last day belong here.
+    bool inPeriod(PayoutAdjustment entry) {
+      final createdAt = entry.createdAt;
+      if (periodEnd == null || createdAt == null) return true;
+      final ist = createdAt.toUtc().add(_istOffset);
+      return !DateTime(
+        ist.year,
+        ist.month,
+        ist.day,
+      ).isAfter(DateTime(periodEnd.year, periodEnd.month, periodEnd.day));
+    }
+
+    return PayoutSheetRow(
+      withdrawal: withdrawal,
+      bankAccount: withdrawal.bankAccount!,
+      fullName: UserRecord.readText(details['fullName']),
+      district: UserRecord.readText(details['district']),
+      state: UserRecord.readText(details['state']),
+      remarks: PayoutRemarks(
+        credit: [
+          for (final entry in sorted)
+            if (entry.isCredit && inPeriod(entry)) entry.description,
+        ],
+        debit: [
+          for (final entry in sorted)
+            if (!entry.isCredit) entry.description,
+        ],
+      ),
+    );
   }
 
   Either<Failure, List<Withdrawal>> _readyOnly(

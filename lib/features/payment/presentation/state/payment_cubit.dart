@@ -7,6 +7,7 @@ import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_batch_result.dart';
+import 'package:zuno_admin_dashboard/features/payment/data/models/payout_sheet_row.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/repositories/payment_repository.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_state.dart';
@@ -136,6 +137,30 @@ class PaymentCubit extends Cubit<PaymentState> {
       _selectFrom(all);
       return null;
     });
+  }
+
+  /// Loads the bank sheet rows for the selected pending payouts, or for every
+  /// pending payout when nothing is selected. Returns null when an export is
+  /// already running or the Pending tab is not open.
+  Future<Either<Failure, List<PayoutSheetRow>>?> loadSheetRows() async {
+    if (state.exporting || state.tab != PaymentTab.pending) return null;
+    emit(state.copyWith(exporting: true));
+    final source = state.selected.isNotEmpty
+        ? right<Failure, List<Withdrawal>>(state.selected.values.toList())
+        : await _repository.fetchAll(
+            WithdrawalStatus.pending,
+            minimum: state.minimumPayout,
+          );
+    final rows = switch (source) {
+      Left(value: final failure) => left<Failure, List<PayoutSheetRow>>(
+        failure,
+      ),
+      Right(value: final withdrawals) => await _repository.fetchSheetRows(
+        withdrawals,
+      ),
+    };
+    if (!isClosed) emit(state.copyWith(exporting: false));
+    return rows;
   }
 
   Future<Either<Failure, PayoutBatchResult>> moveSelectedToPending() =>

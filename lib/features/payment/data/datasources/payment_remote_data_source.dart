@@ -11,7 +11,9 @@ import 'package:zuno_admin_dashboard/core/data/user_search.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/bank_account_record.dart';
+import 'package:zuno_admin_dashboard/features/host_details/data/models/wallet_transaction.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_batch_result.dart';
+import 'package:zuno_admin_dashboard/features/payment/data/models/payout_sheet_row.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_summary.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
 
@@ -23,6 +25,7 @@ class PaymentRemoteDataSource {
   static const String _moveFunction = 'movePayoutsToPending';
   static const String _completeFunction = 'completeHostPayouts';
   static const String _internalErrorCode = 'internal';
+  static const String _payoutIdField = 'payoutId';
   static const int _idsPerQuery = 30;
   static const int _paidSearchLimit = 50;
   static const int _snapshotSearchLimit = 50;
@@ -249,6 +252,38 @@ class PaymentRemoteDataSource {
               document.id: ?PayoutBankAccount.fromMap(document.data()),
       });
     } on FirebaseException catch (error) {
+      return left(FirestoreFailures.read(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsLoadFailed));
+    }
+  }
+
+  /// Admin credit and debit ledger entries written against [payoutIds].
+  Future<Either<Failure, List<PayoutAdjustment>>> fetchAdjustments(
+    Iterable<String> payoutIds,
+  ) async {
+    final ids = payoutIds.where((id) => id.isNotEmpty).toSet().toList();
+    try {
+      final snapshots = await Future.wait([
+        for (var start = 0; start < ids.length; start += _idsPerQuery)
+          _firestore
+              .collection(WalletTransaction.collection)
+              .where(
+                _payoutIdField,
+                whereIn: ids.sublist(
+                  start,
+                  (start + _idsPerQuery).clamp(0, ids.length),
+                ),
+              )
+              .get(),
+      ]);
+      return right([
+        for (final snapshot in snapshots)
+          for (final document in snapshot.docs)
+            ?PayoutAdjustment.fromLedger(document.data()),
+      ]);
+    } on FirebaseException catch (error) {
+      debugPrint('Payout remarks failed [${error.code}]: ${error.message}');
       return left(FirestoreFailures.read(error.code));
     } catch (_) {
       return left(const DataFailure(AppStrings.recordsLoadFailed));

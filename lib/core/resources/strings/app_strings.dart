@@ -566,9 +566,9 @@ abstract final class AppStrings {
   static const String withdrawStatus = 'Withdraw Status';
   static const String exportComplete = 'Export complete';
   static const String ready = 'Ready';
-  static const String exportScopeAll = 'all';
-  static const String exportScopePending = 'pending';
-  static const String exportScopeSuccess = 'success';
+  static const String nothingToExport =
+      'There are no pending withdrawals to export.';
+  static const String exportFailed = 'The sheet could not be downloaded.';
   static const String bonus = 'Bonus';
   static const String payoutFailed =
       "The payout couldn't be completed. Try again.";
@@ -666,8 +666,8 @@ abstract final class AppStrings {
   static String withdrawalSheetRows(int count) =>
       'Withdrawal sheet · $count rows';
 
-  static String withdrawalSheetFileName(String scope, String date) =>
-      'withdrawal-sheet-$scope-$date.xlsx';
+  static String withdrawalSheetFileName(String date) =>
+      'withdrawal-sheet-$date.xlsx';
 
   static String beneficiariesExported(int count) =>
       '$count beneficiaries were exported.';
@@ -675,8 +675,8 @@ abstract final class AppStrings {
   static String beneficiarySheetRows(int count) =>
       'Beneficiary sheet · $count rows';
 
-  static String beneficiarySheetFileName(String scope, String date) =>
-      'beneficiary-sheet-$scope-$date.xlsx';
+  static String beneficiarySheetFileName(String date) =>
+      'beneficiary-sheet-$date.xlsx';
 
   static String tdsLabel(int percent) => 'TDS ($percent%)';
 

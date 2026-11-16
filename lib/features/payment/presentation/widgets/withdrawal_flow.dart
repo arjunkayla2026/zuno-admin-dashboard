@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fpdart/fpdart.dart';
@@ -6,12 +7,15 @@ import 'package:zuno_admin_dashboard/core/resources/images/app_images.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
+import 'package:zuno_admin_dashboard/core/utils/file_download.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_confirm_dialog.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_export_file_tile.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_side_sheet.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_success_dialog.dart';
+import 'package:zuno_admin_dashboard/features/payment/data/exporters/payout_sheet_exporter.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_batch_result.dart';
+import 'package:zuno_admin_dashboard/features/payment/data/models/payout_sheet_row.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_cubit.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_state.dart';
@@ -241,46 +245,60 @@ Future<void> _reviewWithdrawal(
   );
 }
 
-String _exportScope(PaymentTab tab) => switch (tab) {
-  PaymentTab.withdrawalList => AppStrings.exportScopeAll,
-  PaymentTab.pending => AppStrings.exportScopePending,
-  PaymentTab.success => AppStrings.exportScopeSuccess,
-};
+Future<void> exportBeneficiaries(BuildContext context) => _exportSheet(
+  context,
+  build: (rows, _) => PayoutSheetExporter.beneficiaries(rows),
+  fileName: AppStrings.beneficiarySheetFileName,
+  message: AppStrings.beneficiariesExported,
+  description: AppStrings.beneficiarySheetRows,
+);
 
-Future<void> exportBeneficiaries(BuildContext context) {
-  final state = context.read<PaymentCubit>().state;
-  final rowCount = state.totalCount ?? state.withdrawals.length;
+Future<void> exportWithdrawals(BuildContext context) => _exportSheet(
+  context,
+  build: PayoutSheetExporter.withdrawals,
+  fileName: AppStrings.withdrawalSheetFileName,
+  message: AppStrings.withdrawalsExported,
+  description: AppStrings.withdrawalSheetRows,
+);
 
-  return showAppSuccessDialog(
-    context: context,
-    title: AppStrings.exportComplete,
-    message: AppStrings.beneficiariesExported(rowCount),
-    details: AppExportFileTile(
-      fileName: AppStrings.beneficiarySheetFileName(
-        _exportScope(state.tab),
-        DateFormatter.short(DateTime.now()).replaceAll(' ', '-'),
-      ),
-      description: AppStrings.beneficiarySheetRows(rowCount),
-    ),
-    actionLabel: AppStrings.done,
-  );
-}
+Future<void> _exportSheet(
+  BuildContext context, {
+  required Uint8List Function(List<PayoutSheetRow> rows, DateTime today) build,
+  required String Function(String date) fileName,
+  required String Function(int count) message,
+  required String Function(int count) description,
+}) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final result = await context.read<PaymentCubit>().loadSheetRows();
+  if (result == null || !context.mounted) return;
 
-Future<void> exportWithdrawals(BuildContext context) {
-  final state = context.read<PaymentCubit>().state;
-  final rowCount = state.totalCount ?? state.withdrawals.length;
-
-  return showAppSuccessDialog(
-    context: context,
-    title: AppStrings.exportComplete,
-    message: AppStrings.withdrawalsExported(rowCount),
-    details: AppExportFileTile(
-      fileName: AppStrings.withdrawalSheetFileName(
-        _exportScope(state.tab),
-        DateFormatter.short(DateTime.now()).replaceAll(' ', '-'),
-      ),
-      description: AppStrings.withdrawalSheetRows(rowCount),
-    ),
-    actionLabel: AppStrings.done,
-  );
+  switch (result) {
+    case Left(value: final failure):
+      messenger.showSnackBar(SnackBar(content: Text(failure.message)));
+    case Right(value: final rows) when rows.isEmpty:
+      messenger.showSnackBar(
+        const SnackBar(content: Text(AppStrings.nothingToExport)),
+      );
+    case Right(value: final rows):
+      final today = DateTime.now();
+      final name = fileName(DateFormatter.short(today).replaceAll(' ', '-'));
+      try {
+        downloadFile(build(rows, today), name, PayoutSheetExporter.mimeType);
+      } catch (_) {
+        messenger.showSnackBar(
+          const SnackBar(content: Text(AppStrings.exportFailed)),
+        );
+        return;
+      }
+      await showAppSuccessDialog(
+        context: context,
+        title: AppStrings.exportComplete,
+        message: message(rows.length),
+        details: AppExportFileTile(
+          fileName: name,
+          description: description(rows.length),
+        ),
+        actionLabel: AppStrings.done,
+      );
+  }
 }
