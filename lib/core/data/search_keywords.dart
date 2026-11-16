@@ -1,7 +1,6 @@
 abstract final class SearchKeywords {
   static const String field = 'searchKeywords';
   static const String bankAccountsCollection = 'bankAccounts';
-  static const String bankDetailsCollection = 'bankDetails';
   static const int minTermLength = 2;
   static const int _maxLength = 24;
   static const Set<String> _searchableFields = {

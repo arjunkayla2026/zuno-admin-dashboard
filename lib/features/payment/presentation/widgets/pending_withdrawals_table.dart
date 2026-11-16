@@ -7,23 +7,28 @@ import 'package:zuno_admin_dashboard/core/widgets/app_avatar_name_cell.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_data_table.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
+import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_state.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_flow.dart';
+import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_labels.dart';
+import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_selection.dart';
 
 class PendingWithdrawalsTable extends StatelessWidget {
   const PendingWithdrawalsTable({
     super.key,
     required this.withdrawals,
+    required this.state,
     this.firstIndex = 0,
   });
 
   static const List<AppTableColumn> _columns = [
-    AppTableColumn(AppStrings.number, 70),
+    AppTableColumn(AppStrings.number, 60),
     AppTableColumn(AppStrings.hostName, 126),
     AppTableColumn(AppStrings.hostId, 80),
+    AppTableColumn(AppStrings.payoutPeriod, 190),
     AppTableColumn(AppStrings.totalCallsCount, 110, alignEnd: true),
     AppTableColumn(AppStrings.callDurationMinutes, 133, alignEnd: true),
     AppTableColumn(AppStrings.amountEarned, 117, alignEnd: true),
-    AppTableColumn(AppStrings.totalAmount, 101, alignEnd: true),
+    AppTableColumn(AppStrings.totalAmount, 110, alignEnd: true),
     AppTableColumn('', 21),
     AppTableColumn(AppStrings.branchName, 170),
     AppTableColumn(AppStrings.accountHolderName, 152),
@@ -33,6 +38,7 @@ class PendingWithdrawalsTable extends StatelessWidget {
   ];
 
   final List<Withdrawal> withdrawals;
+  final PaymentState state;
   final int firstIndex;
 
   @override
@@ -43,11 +49,12 @@ class PendingWithdrawalsTable extends StatelessWidget {
     final mono = AppTextStyles.monoSmall.copyWith(color: textColor);
 
     return AppDataTable(
-      columns: _columns,
+      columns: [WithdrawalSelection.column(context, state), ..._columns],
       onRowTap: (index) => openWithdrawalDetails(context, withdrawals[index]),
       rows: [
         for (final (index, withdrawal) in withdrawals.indexed)
           [
+            WithdrawalSelection.cell(context, state, withdrawal),
             Text('${firstIndex + index + 1}', style: cell),
             AppAvatarNameCell(
               initials: withdrawal.initials,
@@ -55,6 +62,7 @@ class PendingWithdrawalsTable extends StatelessWidget {
               name: withdrawal.hostName,
             ),
             Text(withdrawal.hostUserId, style: mono),
+            Text(WithdrawalLabels.period(withdrawal), style: cell),
             Text(NumberFormatter.grouped(withdrawal.callCount), style: cell),
             Text(NumberFormatter.grouped(withdrawal.callMinutes), style: cell),
             Text(
@@ -73,7 +81,9 @@ class PendingWithdrawalsTable extends StatelessWidget {
             AppPrimaryButton(
               label: AppStrings.withdraw,
               small: true,
-              onPressed: () => openWithdrawalDetails(context, withdrawal),
+              onPressed: state.batchRunning
+                  ? null
+                  : () => openWithdrawalDetails(context, withdrawal),
             ),
           ],
       ],

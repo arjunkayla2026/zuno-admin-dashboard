@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:zuno_admin_dashboard/core/data/payout_settings.dart';
 import 'package:zuno_admin_dashboard/core/enums/wallet_adjustment_type.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
@@ -22,7 +23,7 @@ class WalletAdjustment {
 
 Future<WalletAdjustment?> showWalletAdjustmentDialog({
   required BuildContext context,
-  required int walletBalance,
+  required double walletBalance,
 }) {
   return showAppDialog<WalletAdjustment>(
     context: context,
@@ -33,7 +34,7 @@ Future<WalletAdjustment?> showWalletAdjustmentDialog({
 class AppWalletAdjustmentDialog extends StatefulWidget {
   const AppWalletAdjustmentDialog({super.key, required this.walletBalance});
 
-  final int walletBalance;
+  final double walletBalance;
 
   @override
   State<AppWalletAdjustmentDialog> createState() =>
@@ -56,12 +57,13 @@ class _AppWalletAdjustmentDialogState extends State<AppWalletAdjustmentDialog> {
   int get _amount => int.tryParse(_amountController.text) ?? 0;
 
   bool get _exceedsBalance =>
-      _type == WalletAdjustmentType.debit && _amount > widget.walletBalance;
+      _type == WalletAdjustmentType.debit &&
+      _amount > widget.walletBalance + PayoutSettings.amountTolerance;
 
   String? get _amountError {
     if (_exceedsBalance) {
       return AppStrings.debitExceedsBalance(
-        NumberFormatter.rupees(widget.walletBalance),
+        NumberFormatter.rupeesAmount(widget.walletBalance),
       );
     }
     if (_submitted && _amount <= 0) return AppStrings.enterAmount;

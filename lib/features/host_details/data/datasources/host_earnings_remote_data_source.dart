@@ -7,7 +7,6 @@ import 'package:zuno_admin_dashboard/core/data/search_keywords.dart';
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
-import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/bank_account_record.dart';
 import 'package:zuno_admin_dashboard/features/host_details/data/models/host_earnings_totals.dart';
 import 'package:zuno_admin_dashboard/features/host_details/data/models/wallet_transaction.dart';
@@ -56,33 +55,30 @@ class HostEarningsRemoteDataSource {
 
   Future<Either<Failure, HostEarningsTotals>> fetchTotals(String hostId) async {
     const totalField = Withdrawal.totalAmountField;
+    Future<double> statusTotal(String status) async {
+      final result = await _payoutsOf(hostId)
+          .where(Withdrawal.statusField, isEqualTo: status)
+          .aggregate(sum(totalField))
+          .get();
+      return result.getSum(totalField) ?? 0;
+    }
+
     try {
-      final (all, paid) = await (
-        _payoutsOf(hostId)
-            .aggregate(
-              sum(totalField),
-              sum(_adminCreditField),
-              sum(_adminDebitField),
-            )
-            .get(),
-        _payoutsOf(hostId)
-            .where(Withdrawal.statusField, isEqualTo: Withdrawal.successStatus)
-            .aggregate(sum(totalField))
-            .get(),
+      final (all, paidTotal, pendingTotal, openTotal) = await (
+        _payoutsOf(
+          hostId,
+        ).aggregate(sum(_adminCreditField), sum(_adminDebitField)).get(),
+        statusTotal(Withdrawal.successStatus),
+        statusTotal(Withdrawal.pendingStatus),
+        statusTotal(Withdrawal.openStatus),
       ).wait;
-      final paidTotal = paid.getSum(totalField) ?? 0;
       return right(
         HostEarningsTotals(
-          paidTotal: NumberFormatter.roundAmount(paidTotal),
-          pendingTotal: NumberFormatter.roundAmount(
-            (all.getSum(totalField) ?? 0) - paidTotal,
-          ),
-          adminCredit: NumberFormatter.roundAmount(
-            all.getSum(_adminCreditField) ?? 0,
-          ),
-          adminDebit: NumberFormatter.roundAmount(
-            all.getSum(_adminDebitField) ?? 0,
-          ),
+          paidTotal: paidTotal,
+          pendingTotal: pendingTotal,
+          openTotal: openTotal,
+          adminCredit: all.getSum(_adminCreditField) ?? 0,
+          adminDebit: all.getSum(_adminDebitField) ?? 0,
         ),
       );
     } on FirebaseException catch (error) {
@@ -97,7 +93,7 @@ class HostEarningsRemoteDataSource {
   ) async {
     try {
       final snapshot = await _firestore
-          .collection(SearchKeywords.bankDetailsCollection)
+          .collection(SearchKeywords.bankAccountsCollection)
           .doc(hostId)
           .get();
       final data = snapshot.data();

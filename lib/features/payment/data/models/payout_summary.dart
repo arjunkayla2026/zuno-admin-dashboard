@@ -1,4 +1,3 @@
-import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
 
 class PayoutSummary {
@@ -18,17 +17,18 @@ class PayoutSummary {
 
   int get callMinutes => (callSeconds / _secondsPerMinute).round();
 
-  double get hostCredit =>
-      NumberFormatter.roundAmount(totalAmount - amountEarned);
+  double get hostCredit => totalAmount - amountEarned;
 
-  PayoutSummary without(Withdrawal withdrawal) => PayoutSummary(
-    hostCount: hostCount > 0 ? hostCount - 1 : 0,
-    amountEarned: NumberFormatter.roundAmount(
-      amountEarned - withdrawal.amountEarned,
-    ),
-    callSeconds: callSeconds - withdrawal.callSeconds,
-    totalAmount: NumberFormatter.roundAmount(
-      totalAmount - withdrawal.totalAmount,
-    ),
-  );
+  PayoutSummary withoutAll(Iterable<Withdrawal> withdrawals) {
+    var summary = this;
+    for (final withdrawal in withdrawals) {
+      summary = PayoutSummary(
+        hostCount: summary.hostCount > 0 ? summary.hostCount - 1 : 0,
+        amountEarned: summary.amountEarned - withdrawal.amountEarned,
+        callSeconds: summary.callSeconds - withdrawal.callSeconds,
+        totalAmount: summary.totalAmount - withdrawal.totalAmount,
+      );
+    }
+    return summary;
+  }
 }

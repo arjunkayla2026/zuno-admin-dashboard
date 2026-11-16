@@ -130,7 +130,8 @@ class HostManagementRepository {
       languages: _languages(details['languages']),
       aadhaarImageUrl: _documentUrl(details['aadharFrontPreview']),
       selfieImageUrl: _documentUrl(details['selfiPreview']),
-      totalRevenue: _rupeesFromPaise(details['lifetimeEarningsPaise']),
+      totalRevenue: _amountOf(details['totalCallEarnings']),
+      availableBalance: _amountOf(details['availableBalance']),
       isOnline: _onlineStatuses.contains(details['onlineStatus']),
       lastLoggedIn: record.lastLoggedIn,
     );
@@ -155,10 +156,7 @@ class HostManagementRepository {
   }
 
   static const Set<String> _onlineStatuses = {'online', 'busy'};
-  static const int _paisePerRupee = 100;
-
-  double _rupeesFromPaise(Object? value) =>
-      value is num ? value / _paisePerRupee : 0;
+  double _amountOf(Object? value) => value is num ? value.toDouble() : 0;
 
   String? _documentUrl(Object? value) =>
       value is Map ? UserRecord.readText(value['url']) : null;

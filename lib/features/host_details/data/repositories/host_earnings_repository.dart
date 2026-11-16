@@ -27,7 +27,7 @@ class HostEarningsRepository {
       case Left():
         return page;
       case Right(value: final loaded)
-          when !loaded.items.any((item) => item.isPending):
+          when loaded.items.every((item) => item.isPaid):
         return page;
       case Right(value: final loaded):
         final account = await _dataSource.fetchApprovedBankAccount(hostId);
@@ -35,7 +35,7 @@ class HostEarningsRepository {
           (bankAccount) => loaded.mapItems(
             (items) => [
               for (final item in items)
-                item.isPending ? item.withBankAccount(bankAccount) : item,
+                item.isPaid ? item : item.withBankAccount(bankAccount),
             ],
           ),
         );

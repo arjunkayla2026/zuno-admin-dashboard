@@ -1,9 +1,8 @@
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/name_formatter.dart';
-import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 
-enum WithdrawalStatus { pending, success }
+enum WithdrawalStatus { open, pending, success }
 
 class PayoutBankAccount {
   const PayoutBankAccount({
@@ -67,6 +66,7 @@ class Withdrawal {
     required this.hostName,
     required this.phone,
     required this.date,
+    this.phoneNumber,
     this.callCount = 0,
     this.callSeconds = 0,
     this.amountEarned = 0,
@@ -75,8 +75,14 @@ class Withdrawal {
     this.adminDebitAmount = 0,
     this.bonusAmount = 0,
     this.totalAmount = 0,
-    this.status = WithdrawalStatus.pending,
+    this.status = WithdrawalStatus.open,
+    this.periodStart,
+    this.periodEnd,
+    this.pendingOn,
+    this.pendingByName,
     this.paidOn,
+    this.paidBy,
+    this.paidByName,
     this.appliedTdsPercent,
     this.paidTdsAmount,
     this.paidReceivableAmount,
@@ -84,32 +90,47 @@ class Withdrawal {
   });
 
   factory Withdrawal.fromDocument(String id, Map<String, dynamic> data) {
+    final status = switch (data[statusField]) {
+      successStatus => WithdrawalStatus.success,
+      pendingStatus => WithdrawalStatus.pending,
+      _ => WithdrawalStatus.open,
+    };
+    final isOpen = status == WithdrawalStatus.open;
+    final isPaid = status == WithdrawalStatus.success;
+    final withdrawable = data[withdrawableField];
+    final amounts = isOpen
+        ? (withdrawable is Map ? withdrawable : const {})
+        : data;
+
     int count(String field) {
-      final value = data[field];
+      final value = amounts[field];
       return value is num ? value.round() : 0;
     }
 
     double amount(String field) {
-      final value = data[field];
-      return value is num ? NumberFormatter.roundAmount(value.toDouble()) : 0;
+      final value = amounts[field];
+      return value is num ? value.toDouble() : 0;
     }
 
-    double? paidAmount(String field) =>
-        data[field] is num ? amount(field) : null;
+    double? paidAmount(String field) {
+      final value = data[field];
+      return isPaid && value is num ? value.toDouble() : null;
+    }
 
-    final isPaid = data[statusField] == successStatus;
     final tdsPercent = data[tdsPercentField];
     return Withdrawal(
       id: id,
       withdrawId: UserRecord.readText(data[withdrawIdField]) ?? id,
       hostId: UserRecord.readText(data[hostIdField]) ?? '',
       hostUserId:
-          UserRecord.readText(data['hostUserId']) ?? AppStrings.emptyValue,
-      hostName: UserRecord.readText(data['hostName']) ?? AppStrings.emptyValue,
+          UserRecord.readText(data[hostUserIdField]) ?? AppStrings.emptyValue,
+      hostName:
+          UserRecord.readText(data[hostNameField]) ?? AppStrings.emptyValue,
       phone: UserRecord.formatPhone(
         UserRecord.readText(data['hostCountryCode']),
         UserRecord.readText(data['hostPhoneNumber']),
       ),
+      phoneNumber: UserRecord.readText(data['hostPhoneNumber']),
       date:
           UserRecord.readDate(data[createdAtField]) ??
           DateTime.fromMillisecondsSinceEpoch(0),
@@ -121,13 +142,21 @@ class Withdrawal {
       adminDebitAmount: amount('adminDebitAmount'),
       bonusAmount: amount('bonusAmount'),
       totalAmount: amount(totalAmountField),
-      status: isPaid ? WithdrawalStatus.success : WithdrawalStatus.pending,
+      status: status,
+      periodStart: _dayOf(data['periodStartDay']),
+      periodEnd: _dayOf(
+        isOpen ? data['withdrawableThroughDay'] : data['periodEndDay'],
+      ),
+      pendingOn: UserRecord.readDate(data['pendingAt']),
+      pendingByName: UserRecord.readText(data['pendingByName']),
       paidOn: UserRecord.readDate(data[paidAtField]),
+      paidBy: UserRecord.readText(data['paidBy']),
+      paidByName: UserRecord.readText(data['paidByName']),
       appliedTdsPercent: isPaid && tdsPercent is num
           ? tdsPercent.round()
           : null,
-      paidTdsAmount: isPaid ? paidAmount('tdsAmount') : null,
-      paidReceivableAmount: isPaid ? paidAmount('receivableAmount') : null,
+      paidTdsAmount: paidAmount('tdsAmount'),
+      paidReceivableAmount: paidAmount('receivableAmount'),
       bankAccount: isPaid
           ? PayoutBankAccount.fromMap(data['bankAccount'])
           : null,
@@ -136,18 +165,29 @@ class Withdrawal {
 
   static const String collection = 'hostPayouts';
   static const String hostIdField = 'hostId';
+  static const String hostNameField = 'hostName';
+  static const String hostUserIdField = 'hostUserId';
   static const String statusField = 'status';
   static const String withdrawIdField = 'withdrawId';
+  static const String withdrawableField = 'withdrawable';
+  static const String bankReadyField = 'bankReady';
   static const String callCountField = 'callCount';
   static const String callDurationField = 'callDurationSeconds';
   static const String callEarningsField = 'callEarnings';
   static const String totalAmountField = 'totalAmount';
   static const String createdAtField = 'createdAt';
+  static const String updatedAtField = 'updatedAt';
   static const String paidAtField = 'paidAt';
   static const String tdsPercentField = 'tdsPercent';
   static const String pendingPayoutIdField = 'pendingPayoutId';
+  static const String openStatus = 'open';
   static const String pendingStatus = 'pending';
   static const String successStatus = 'success';
+
+  static String withdrawablePath(String field) => '$withdrawableField.$field';
+
+  static DateTime? _dayOf(Object? value) =>
+      value is String ? DateTime.tryParse(value) : null;
 
   static const int _visibleDigits = 4;
   static const int _secondsPerMinute = 60;
@@ -158,6 +198,7 @@ class Withdrawal {
   final String hostUserId;
   final String hostName;
   final String phone;
+  final String? phoneNumber;
   final DateTime date;
   final int callCount;
   final int callSeconds;
@@ -168,7 +209,13 @@ class Withdrawal {
   final double bonusAmount;
   final double totalAmount;
   final WithdrawalStatus status;
+  final DateTime? periodStart;
+  final DateTime? periodEnd;
+  final DateTime? pendingOn;
+  final String? pendingByName;
   final DateTime? paidOn;
+  final String? paidBy;
+  final String? paidByName;
   final int? appliedTdsPercent;
   final double? paidTdsAmount;
   final double? paidReceivableAmount;
@@ -181,21 +228,22 @@ class Withdrawal {
 
   int get callMinutes => (callSeconds / _secondsPerMinute).round();
 
+  bool get isOpen => status == WithdrawalStatus.open;
+
   bool get isPending => status == WithdrawalStatus.pending;
+
+  bool get isPaid => status == WithdrawalStatus.success;
 
   bool get hasBankAccount => bankAccount != null;
 
-  DateTime get settledDate => paidOn ?? date;
+  DateTime get settledDate => paidOn ?? pendingOn ?? date;
 
-  double get hostCredit =>
-      NumberFormatter.roundAmount(totalAmount - amountEarned);
+  double get hostCredit => totalAmount - amountEarned;
 
-  double tdsAmount(int percent) =>
-      paidTdsAmount ?? NumberFormatter.roundAmount(totalAmount * percent / 100);
+  double tdsAmount(int percent) => paidTdsAmount ?? totalAmount * percent / 100;
 
   double receivableAmount(int percent) =>
-      paidReceivableAmount ??
-      NumberFormatter.roundAmount(totalAmount - tdsAmount(percent));
+      paidReceivableAmount ?? totalAmount - tdsAmount(percent);
 
   String get accountHolderName =>
       bankAccount?.accountHolderName ?? AppStrings.emptyValue;
@@ -211,8 +259,21 @@ class Withdrawal {
       ? accountNumber
       : accountNumber.substring(accountNumber.length - _visibleDigits);
 
+  String get paidByLabel => switch ((paidByName, paidBy)) {
+    (final name?, final uid?) => AppStrings.paidByValue(name, uid),
+    (final name?, null) => name,
+    (null, final uid?) => uid,
+    (null, null) => AppStrings.emptyValue,
+  };
+
   Withdrawal withBankAccount(PayoutBankAccount? account) =>
       _copy(bankAccount: account);
+
+  Withdrawal markedPending(double amount, DateTime pendingOn) => _copy(
+    status: WithdrawalStatus.pending,
+    totalAmount: amount,
+    pendingOn: pendingOn,
+  );
 
   Withdrawal markedPaid(PayoutReceipt receipt, DateTime paidOn) => _copy(
     status: WithdrawalStatus.success,
@@ -226,6 +287,7 @@ class Withdrawal {
   Withdrawal _copy({
     WithdrawalStatus? status,
     double? totalAmount,
+    DateTime? pendingOn,
     DateTime? paidOn,
     int? appliedTdsPercent,
     double? paidTdsAmount,
@@ -239,6 +301,7 @@ class Withdrawal {
       hostUserId: hostUserId,
       hostName: hostName,
       phone: phone,
+      phoneNumber: phoneNumber,
       date: date,
       callCount: callCount,
       callSeconds: callSeconds,
@@ -249,7 +312,13 @@ class Withdrawal {
       bonusAmount: bonusAmount,
       totalAmount: totalAmount ?? this.totalAmount,
       status: status ?? this.status,
+      periodStart: periodStart,
+      periodEnd: periodEnd,
+      pendingOn: pendingOn ?? this.pendingOn,
+      pendingByName: pendingByName,
       paidOn: paidOn ?? this.paidOn,
+      paidBy: paidBy,
+      paidByName: paidByName,
       appliedTdsPercent: appliedTdsPercent ?? this.appliedTdsPercent,
       paidTdsAmount: paidTdsAmount ?? this.paidTdsAmount,
       paidReceivableAmount: paidReceivableAmount ?? this.paidReceivableAmount,

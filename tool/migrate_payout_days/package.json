@@ -1,0 +1,12 @@
+{
+  "name": "zuno-migrate-payout-days",
+  "private": true,
+  "description": "Clears the old pending hostPayouts records and moves host earnings to the rupee fields used by day-cutoff payouts, with the Firebase Admin SDK.",
+  "scripts": {
+    "dry-run": "node migrate.js",
+    "apply": "node migrate.js --apply"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0"
+  }
+}

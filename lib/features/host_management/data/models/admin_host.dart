@@ -24,6 +24,7 @@ class AdminHost {
     this.aadhaarImageUrl,
     this.selfieImageUrl,
     this.totalRevenue = 0,
+    this.availableBalance = 0,
     this.isOnline = false,
     this.lastLoggedIn,
     String? userID,
@@ -49,6 +50,7 @@ class AdminHost {
   final String? aadhaarImageUrl;
   final String? selfieImageUrl;
   final double totalRevenue;
+  final double availableBalance;
   final bool isOnline;
   final DateTime? lastLoggedIn;
 
@@ -94,6 +96,7 @@ class AdminHost {
       aadhaarImageUrl: aadhaarImageUrl,
       selfieImageUrl: selfieImageUrl,
       totalRevenue: totalRevenue,
+      availableBalance: availableBalance,
       isOnline: isOnline,
       lastLoggedIn: lastLoggedIn,
     );

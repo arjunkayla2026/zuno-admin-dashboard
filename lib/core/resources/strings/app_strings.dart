@@ -578,9 +578,9 @@ abstract final class AppStrings {
   static const String withdrawStatus = 'Withdraw Status';
   static const String exportComplete = 'Export complete';
   static const String ready = 'Ready';
-  static const String exportScopeAll = 'all';
-  static const String exportScopePending = 'pending';
-  static const String exportScopeSuccess = 'success';
+  static const String nothingToExport =
+      'There are no pending withdrawals to export.';
+  static const String exportFailed = 'The sheet could not be downloaded.';
   static const String bonus = 'Bonus';
   static const String payoutFailed =
       "The payout couldn't be completed. Try again.";
@@ -596,12 +596,66 @@ abstract final class AppStrings {
   static const String callEarnings = 'Call earnings';
   static const String hostAdjustmentFailed =
       "The wallet couldn't be updated. Try again.";
+  static const String clearSelection = 'Clear';
+  static const String moveToPending = 'Move to Pending';
+  static const String markAsSuccess = 'Mark as Success';
+  static const String openPayout = 'Open';
+  static const String noBankAccount = 'No bank account';
+  static const String payoutPeriod = 'Period';
+  static const String paidBy = 'Paid By';
+  static const String movedBy = 'Moved By';
+  static const String movedToPendingOn = 'Moved to Pending';
+  static const String movedToPendingTitle = 'Moved to Pending';
+  static const String payoutsCompletedTitle = 'Payouts completed';
+  static const String payoutBatchFailuresTitle = "Couldn't be updated";
 
   static String withdrawalOverviewNote(int hosts, String minimum) =>
-      '$hosts hosts waiting · minimum withdrawal $minimum';
+      '$hosts hosts ready · earnings up to yesterday · '
+      'minimum withdrawal $minimum';
 
   static String withdrawalOverviewNoteUnset(int hosts) =>
-      '$hosts hosts waiting · minimum withdrawal not set in Settings';
+      '$hosts hosts ready · earnings up to yesterday · '
+      'minimum withdrawal not set in Settings';
+
+  static String payoutCount(int count) =>
+      count == 1 ? '1 payout' : '$count payouts';
+
+  static String selectAll(int count) => 'Select all $count';
+
+  static String selectionSummary(int count, String amount) =>
+      '$count selected · $amount';
+
+  static String periodValue(String start, String end) =>
+      start == end ? start : '$start – $end';
+
+  static String paidByValue(String name, String uid) => '$name ($uid)';
+
+  static String moveToPendingTitle(int count) =>
+      'Move ${payoutCount(count)} to Pending?';
+
+  static String moveToPendingMessage(int count, String amount) =>
+      'Earnings up to yesterday, $amount in total, move to Pending for '
+      '${payoutCount(count)}. Anything earned today stays for the next payout.';
+
+  static String markPaidTitle(int count) =>
+      'Mark ${payoutCount(count)} as paid?';
+
+  static String markPaidMessage(int count, String amount, String tds) =>
+      '$amount will be paid for ${payoutCount(count)}, less $tds TDS. Make '
+      'sure the bank transfers are done first.';
+
+  static String movedToPendingMessage(int count, String amount) =>
+      '${payoutCount(count)} for $amount moved to Pending.';
+
+  static String payoutsCompletedMessage(int count, String amount) =>
+      '${payoutCount(count)} for $amount were marked as paid. You can find '
+      'them under Success.';
+
+  static String payoutBatchNoneDone(String reason) =>
+      'No payouts were updated. $reason';
+
+  static String payoutFailureLine(String hostName, String withdrawId) =>
+      '$hostName · $withdrawId';
 
   static String dateTimeValue(String date, String time) => '$date, $time';
 
@@ -624,8 +678,8 @@ abstract final class AppStrings {
   static String withdrawalSheetRows(int count) =>
       'Withdrawal sheet · $count rows';
 
-  static String withdrawalSheetFileName(String scope, String date) =>
-      'withdrawal-sheet-$scope-$date.xlsx';
+  static String withdrawalSheetFileName(String date) =>
+      'withdrawal-sheet-$date.xlsx';
 
   static String beneficiariesExported(int count) =>
       '$count beneficiaries were exported.';
@@ -633,8 +687,8 @@ abstract final class AppStrings {
   static String beneficiarySheetRows(int count) =>
       'Beneficiary sheet · $count rows';
 
-  static String beneficiarySheetFileName(String scope, String date) =>
-      'beneficiary-sheet-$scope-$date.xlsx';
+  static String beneficiarySheetFileName(String date) =>
+      'beneficiary-sheet-$date.xlsx';
 
   static String tdsLabel(int percent) => 'TDS ($percent%)';
 

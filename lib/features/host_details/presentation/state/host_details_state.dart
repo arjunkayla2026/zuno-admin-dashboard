@@ -42,7 +42,7 @@ class HostDetailsState {
   final CursorPageView<WalletTransaction> wallet;
   final bool adjusting;
 
-  double get pendingTotal => totals?.pendingTotal ?? 0;
+  double get openTotal => totals?.openTotal ?? 0;
 
   WalletAdjustmentType? get walletType => switch (walletFilter) {
     WalletFilter.all => null,
@@ -71,7 +71,7 @@ class HostDetailsState {
       ),
       AppStat(
         label: AppStrings.availableWalletAmount,
-        value: NumberFormatter.rupees(host.walletBalance),
+        value: NumberFormatter.rupeesAmount(host.availableBalance),
       ),
       AppStat(
         label: AppStrings.totalCreditFromAdmin,
@@ -84,7 +84,9 @@ class HostDetailsState {
       AppStat(
         label: AppStrings.deletedAccountAdminProfit,
         value: host.isDeleted
-            ? amount(totals?.pendingTotal)
+            ? amount(
+                totals == null ? null : totals.openTotal + totals.pendingTotal,
+              )
             : NumberFormatter.rupeesAmount(0),
       ),
     ];

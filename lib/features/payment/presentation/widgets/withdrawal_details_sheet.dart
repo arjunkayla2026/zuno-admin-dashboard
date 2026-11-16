@@ -17,7 +17,8 @@ class WithdrawalDetailsSheet extends StatelessWidget {
   const WithdrawalDetailsSheet({
     super.key,
     required this.withdrawal,
-    required this.onWithdraw,
+    this.onMoveToPending,
+    this.onWithdraw,
   });
 
   static const double _headerGap = 18;
@@ -25,7 +26,8 @@ class WithdrawalDetailsSheet extends StatelessWidget {
   static const double _sectionGap = 22;
 
   final Withdrawal withdrawal;
-  final VoidCallback onWithdraw;
+  final VoidCallback? onMoveToPending;
+  final VoidCallback? onWithdraw;
 
   @override
   Widget build(BuildContext context) {
@@ -46,8 +48,8 @@ class WithdrawalDetailsSheet extends StatelessWidget {
           AppDetailGrid(
             items: [
               AppDetailItem(
-                AppStrings.date,
-                value: DateFormatter.short(withdrawal.date),
+                AppStrings.payoutPeriod,
+                value: WithdrawalLabels.period(withdrawal),
               ),
               AppDetailItem(
                 AppStrings.totalCallsCount,
@@ -90,6 +92,15 @@ class WithdrawalDetailsSheet extends StatelessWidget {
                 AppStrings.withdrawAmount,
                 value: NumberFormatter.rupeesAmount(withdrawal.totalAmount),
               ),
+              if (withdrawal.pendingOn case final pendingOn?)
+                AppDetailItem(
+                  AppStrings.movedToPendingOn,
+                  value: DateFormatter.short(pendingOn),
+                ),
+              if (withdrawal.pendingByName case final movedBy?)
+                AppDetailItem(AppStrings.movedBy, value: movedBy),
+              if (withdrawal.isPaid)
+                AppDetailItem(AppStrings.paidBy, value: withdrawal.paidByLabel),
             ],
           ),
           const SizedBox(height: _sectionGap),
@@ -127,7 +138,13 @@ class WithdrawalDetailsSheet extends StatelessWidget {
             label: AppStrings.close,
             onPressed: () => Navigator.of(context).pop(),
           ),
-          if (withdrawal.isPending)
+          if (onMoveToPending case final onMove?)
+            AppPrimaryButton(
+              label: AppStrings.moveToPending,
+              compact: true,
+              onPressed: onMove,
+            ),
+          if (onWithdraw case final onWithdraw?)
             AppPrimaryButton(
               label: AppStrings.withdraw,
               compact: true,
