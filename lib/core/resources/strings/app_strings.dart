@@ -279,6 +279,7 @@ abstract final class AppStrings {
   static const String withdrawId = 'Withdraw ID';
   static const String pending = 'Pending';
   static const String success = 'Success';
+  static const String forfeited = 'Forfeited';
   static const String creditDebit = 'Credit / Debit';
   static const String walletBalanceTooLow =
       "This debit is more than the user's current wallet balance.";

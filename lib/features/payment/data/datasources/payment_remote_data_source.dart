@@ -42,7 +42,6 @@ class PaymentRemoteDataSource {
 
   Query<Map<String, dynamic>> _open(double? minimum) => _payouts
       .where(Withdrawal.statusField, isEqualTo: Withdrawal.openStatus)
-      .where(Withdrawal.bankReadyField, isEqualTo: true)
       .where(
         _withdrawableTotal,
         isGreaterThanOrEqualTo: PayoutSettings.eligibleFrom(minimum),

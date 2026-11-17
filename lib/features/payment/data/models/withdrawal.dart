@@ -2,7 +2,9 @@ import 'package:zuno_admin_dashboard/core/data/user_record.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/name_formatter.dart';
 
-enum WithdrawalStatus { open, pending, success }
+/// [forfeited] also covers any status the dashboard does not recognise, so an
+/// unexpected payout can never be listed or acted on as open.
+enum WithdrawalStatus { open, pending, success, forfeited }
 
 class PayoutBankAccount {
   const PayoutBankAccount({
@@ -91,9 +93,10 @@ class Withdrawal {
 
   factory Withdrawal.fromDocument(String id, Map<String, dynamic> data) {
     final status = switch (data[statusField]) {
-      successStatus => WithdrawalStatus.success,
+      openStatus => WithdrawalStatus.open,
       pendingStatus => WithdrawalStatus.pending,
-      _ => WithdrawalStatus.open,
+      successStatus => WithdrawalStatus.success,
+      _ => WithdrawalStatus.forfeited,
     };
     final isOpen = status == WithdrawalStatus.open;
     final isPaid = status == WithdrawalStatus.success;
@@ -170,7 +173,6 @@ class Withdrawal {
   static const String statusField = 'status';
   static const String withdrawIdField = 'withdrawId';
   static const String withdrawableField = 'withdrawable';
-  static const String bankReadyField = 'bankReady';
   static const String callCountField = 'callCount';
   static const String callDurationField = 'callDurationSeconds';
   static const String callEarningsField = 'callEarnings';
