@@ -39,9 +39,15 @@ class PaymentRepository {
   Future<Either<Failure, RecordPage<Withdrawal>>> fetchOpenPage({
     required double? minimum,
     Object? cursor,
-  }) async => _withBankAccounts(
-    await _dataSource.fetchOpenPage(minimum: minimum, cursor: cursor),
-  );
+  }) async =>
+      (await _withBankAccounts(
+        await _dataSource.fetchOpenPage(minimum: minimum, cursor: cursor),
+      )).map(
+        (page) => RecordPage(
+          page.items.where((item) => item.hasBankAccount).toList(),
+          nextCursor: page.nextCursor,
+        ),
+      );
 
   Future<Either<Failure, RecordPage<Withdrawal>>> fetchPendingPage({
     Object? cursor,
@@ -64,9 +70,10 @@ class PaymentRepository {
       WithdrawalStatus.pending => await _dataSource.fetchAllPending(
         limit: selectAllLimit,
       ),
-      WithdrawalStatus.success => right<Failure, List<Withdrawal>>(const []),
+      WithdrawalStatus.success ||
+      WithdrawalStatus.forfeited => right<Failure, List<Withdrawal>>(const []),
     };
-    return _attachBankAccounts(found);
+    return _readyOnly(await _attachBankAccounts(found));
   }
 
   Future<Either<Failure, List<Withdrawal>>> search(
@@ -106,6 +113,9 @@ class PaymentRepository {
           ),
           WithdrawalStatus.pending => _dataSource.fetchPendingForHosts(hostIds),
           WithdrawalStatus.success => _dataSource.fetchPaidForHosts(hostIds),
+          WithdrawalStatus.forfeited => Future.value(
+            right<Failure, List<Withdrawal>>(const []),
+          ),
         };
         final found = byHost.flatMap(
           (items) => snapshotMatches.map(

@@ -5,6 +5,7 @@ class HostEarningsTotals {
     this.openTotal = 0,
     this.adminCredit = 0,
     this.adminDebit = 0,
+    this.deletedAccountProfit = 0,
   });
 
   final double paidTotal;
@@ -12,4 +13,5 @@ class HostEarningsTotals {
   final double openTotal;
   final double adminCredit;
   final double adminDebit;
+  final double deletedAccountProfit;
 }

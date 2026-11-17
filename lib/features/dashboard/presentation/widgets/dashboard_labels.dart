@@ -44,7 +44,7 @@ abstract final class DashboardLabels {
     final revenue = state.loadedRevenue;
     final calls = state.loadedCallRevenue;
     final messages = state.loadedMessageRevenue;
-    final deletedProfit = state.loadedAccounts?.deletedWalletBalance;
+    final deletedProfit = state.loadedAccounts?.deletedAccountProfit;
 
     return [
       DashboardStat(

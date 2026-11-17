@@ -13,6 +13,8 @@ class UserDetailsState {
     this.totalRecharge = 0,
     this.availableCoins = 0,
     this.summaryStatus = LoadStatus.loading,
+    this.deletedAccountProfit = 0,
+    this.profitStatus = LoadStatus.loading,
     this.tab = UserDetailsTab.calls,
   });
 
@@ -20,6 +22,8 @@ class UserDetailsState {
   final double totalRecharge;
   final int availableCoins;
   final LoadStatus summaryStatus;
+  final double deletedAccountProfit;
+  final LoadStatus profitStatus;
   final UserDetailsTab tab;
 
   int get walletBalance => NumberFormatter.parse(user.walletBalance);
@@ -58,9 +62,11 @@ class UserDetailsState {
     ),
     AppStat(
       label: AppStrings.deletedAccountAdminProfit,
-      value: NumberFormatter.rupees(
-        UserDetailsMockData.deletedAccountAdminProfit,
-      ),
+      value: user.hasActions
+          ? NumberFormatter.rupees(0)
+          : profitStatus == LoadStatus.loaded
+          ? NumberFormatter.rupeesAmount(deletedAccountProfit)
+          : AppStrings.emptyValue,
     ),
   ];
 
@@ -69,6 +75,8 @@ class UserDetailsState {
     double? totalRecharge,
     int? availableCoins,
     LoadStatus? summaryStatus,
+    double? deletedAccountProfit,
+    LoadStatus? profitStatus,
     UserDetailsTab? tab,
   }) {
     return UserDetailsState(
@@ -76,6 +84,8 @@ class UserDetailsState {
       totalRecharge: totalRecharge ?? this.totalRecharge,
       availableCoins: availableCoins ?? this.availableCoins,
       summaryStatus: summaryStatus ?? this.summaryStatus,
+      deletedAccountProfit: deletedAccountProfit ?? this.deletedAccountProfit,
+      profitStatus: profitStatus ?? this.profitStatus,
       tab: tab ?? this.tab,
     );
   }

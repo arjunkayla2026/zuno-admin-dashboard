@@ -9,6 +9,7 @@ abstract final class WithdrawalLabels {
         WithdrawalStatus.open => (AppStrings.openPayout, AppStatus.inactive),
         WithdrawalStatus.pending => (AppStrings.pending, AppStatus.pending),
         WithdrawalStatus.success => (AppStrings.success, AppStatus.active),
+        WithdrawalStatus.forfeited => (AppStrings.forfeited, AppStatus.blocked),
       };
 
   static (String, AppStatus) bankAccount(Withdrawal withdrawal) =>

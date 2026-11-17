@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:fpdart/fpdart.dart';
+import 'package:zuno_admin_dashboard/core/data/deleted_account_record.dart';
 import 'package:zuno_admin_dashboard/core/data/firestore_failures.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/data/search_keywords.dart';
@@ -29,6 +30,10 @@ class HostEarningsRemoteDataSource {
       .collection(Withdrawal.collection)
       .where(Withdrawal.hostIdField, isEqualTo: hostId);
 
+  Query<Map<String, dynamic>> _listedPayoutsOf(String hostId) =>
+      _payoutsOf(hostId)
+          .where(Withdrawal.statusField, whereIn: Withdrawal.listedStatuses);
+
   String newRequestId() =>
       _firestore.collection(WalletTransaction.collection).doc().id;
 
@@ -36,7 +41,7 @@ class HostEarningsRemoteDataSource {
     String hostId, {
     Object? cursor,
   }) => RecordPages.fetch(
-    _payoutsOf(hostId),
+    _listedPayoutsOf(hostId),
     RecordPageQuery(cursor: cursor),
     Withdrawal.fromDocument,
     sortField: Withdrawal.createdAtField,
@@ -44,7 +49,7 @@ class HostEarningsRemoteDataSource {
 
   Future<Either<Failure, int>> countWithdrawals(String hostId) async {
     try {
-      final snapshot = await _payoutsOf(hostId).count().get();
+      final snapshot = await _listedPayoutsOf(hostId).count().get();
       return right(snapshot.count ?? 0);
     } on FirebaseException catch (error) {
       return left(FirestoreFailures.read(error.code));
@@ -64,13 +69,14 @@ class HostEarningsRemoteDataSource {
     }
 
     try {
-      final (all, paidTotal, pendingTotal, openTotal) = await (
-        _payoutsOf(
-          hostId,
-        ).aggregate(sum(_adminCreditField), sum(_adminDebitField)).get(),
+      final (all, paidTotal, pendingTotal, openTotal, deletion) = await (
+        _payoutsOf(hostId)
+            .aggregate(sum(_adminCreditField), sum(_adminDebitField))
+            .get(),
         statusTotal(Withdrawal.successStatus),
         statusTotal(Withdrawal.pendingStatus),
         statusTotal(Withdrawal.openStatus),
+        _firestore.doc(DeletedAccountRecord.document).get(),
       ).wait;
       return right(
         HostEarningsTotals(
@@ -79,6 +85,9 @@ class HostEarningsRemoteDataSource {
           openTotal: openTotal,
           adminCredit: all.getSum(_adminCreditField) ?? 0,
           adminDebit: all.getSum(_adminDebitField) ?? 0,
+          deletedAccountProfit:
+              DeletedAccountRecord.incomeOf(deletion.data(), hostId) ??
+              openTotal + pendingTotal,
         ),
       );
     } on FirebaseException catch (error) {

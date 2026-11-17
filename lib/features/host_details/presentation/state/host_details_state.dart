@@ -84,9 +84,7 @@ class HostDetailsState {
       AppStat(
         label: AppStrings.deletedAccountAdminProfit,
         value: host.isDeleted
-            ? amount(
-                totals == null ? null : totals.openTotal + totals.pendingTotal,
-              )
+            ? amount(totals?.deletedAccountProfit)
             : NumberFormatter.rupeesAmount(0),
       ),
     ];

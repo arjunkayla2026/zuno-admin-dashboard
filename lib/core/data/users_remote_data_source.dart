@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/approval_audit.dart';
 import 'package:zuno_admin_dashboard/core/data/data_revision.dart';
+import 'package:zuno_admin_dashboard/core/data/deleted_account_record.dart';
 import 'package:zuno_admin_dashboard/core/data/firestore_failures.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/data/search_keywords.dart';
@@ -35,6 +36,18 @@ class UsersRemoteDataSource {
   final FirebaseAuth _auth;
   final DataRevision? _revision;
 
+  DocumentReference<Map<String, dynamic>> get _deletions =>
+      _firestore.doc(DeletedAccountRecord.document);
+
+  static double _deletedProfitOf(
+    AggregateQuerySnapshot wallets,
+    DocumentSnapshot<Map<String, dynamic>> deletions, {
+    DateTime? from,
+    DateTime? until,
+  }) =>
+      (wallets.getSum(UserRecord.walletBalanceField) ?? 0) +
+      DeletedAccountRecord.totalOf(deletions.data(), from: from, until: until);
+
   Future<(int total, int deleted)> _roleCounts(
     String role, {
     String? motherTongue,
@@ -62,6 +75,21 @@ class UsersRemoteDataSource {
         motherTongue: motherTongue,
       );
       return right(total - deleted);
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.read(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsLoadFailed));
+    }
+  }
+
+  Future<Either<Failure, double>> fetchDeletedAccountProfit(String id) async {
+    try {
+      final record = await _deletions.get();
+      final income = DeletedAccountRecord.incomeOf(record.data(), id);
+      if (income != null) return right(income);
+      final user = await _firestore.collection(_collection).doc(id).get();
+      final balance = user.data()?[UserRecord.walletBalanceField];
+      return right(balance is num ? balance.toDouble() : 0);
     } on FirebaseException catch (error) {
       return left(FirestoreFailures.read(error.code));
     } catch (_) {
@@ -124,16 +152,22 @@ class UsersRemoteDataSource {
         users,
         UserRecord.welcomeBonusClaimedAtField,
       ).aggregate(count(), sum(bonusAmountField)).get(),
+      _deletions.get(),
     ]);
     final deletedWallets = results[6] as AggregateQuerySnapshot;
     final welcomeBonuses = results[7] as AggregateQuerySnapshot;
+    final deletions = results[8] as DocumentSnapshot<Map<String, dynamic>>;
     return UserAccountTotals(
       activeUsers: (results[0] as int) - (results[1] as int),
       activeHosts: (results[2] as int) - (results[3] as int),
       deletedUsers: results[4] as int,
       deletedHosts: results[5] as int,
-      deletedWalletBalance:
-          deletedWallets.getSum(UserRecord.walletBalanceField) ?? 0,
+      deletedAccountProfit: _deletedProfitOf(
+        deletedWallets,
+        deletions,
+        from: from,
+        until: until,
+      ),
       bonusUsers: welcomeBonuses.count ?? 0,
       bonusAmount: welcomeBonuses.getSum(bonusAmountField) ?? 0,
     );
@@ -152,18 +186,19 @@ class UsersRemoteDataSource {
           .where(_bonusField, isGreaterThan: 0)
           .aggregate(count(), sum(_bonusField))
           .get(),
+      _deletions.get(),
     ]);
     final (totalUsers, deletedUsers) = results[0] as (int, int);
     final (totalHosts, deletedHosts) = results[1] as (int, int);
     final deletedWallets = results[2] as AggregateQuerySnapshot;
     final bonuses = results[3] as AggregateQuerySnapshot;
+    final deletions = results[4] as DocumentSnapshot<Map<String, dynamic>>;
     return UserAccountTotals(
       activeUsers: totalUsers - deletedUsers,
       activeHosts: totalHosts - deletedHosts,
       deletedUsers: deletedUsers,
       deletedHosts: deletedHosts,
-      deletedWalletBalance:
-          deletedWallets.getSum(UserRecord.walletBalanceField) ?? 0,
+      deletedAccountProfit: _deletedProfitOf(deletedWallets, deletions),
       bonusUsers: bonuses.count ?? 0,
       bonusAmount: bonuses.getSum(_bonusField) ?? 0,
     );
