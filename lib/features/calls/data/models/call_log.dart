@@ -224,7 +224,7 @@ class CallLog {
     customerUserId: customerUserId ?? user?.userID,
     hostUserId: hostUserId,
     userName: userName == AppStrings.emptyValue
-        ? user?.name ?? userName
+        ? user?.userName ?? user?.name ?? userName
         : userName,
     hostName: hostName,
     type: type,

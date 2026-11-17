@@ -3,7 +3,6 @@ import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
-import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_profile_menu.dart';
 
 class AdminTopBar extends StatelessWidget {
@@ -91,15 +90,6 @@ class AdminTopBar extends StatelessWidget {
           ),
           if (notice case final notice?) ...[
             notice,
-            const SizedBox(width: AppUtils.spacingLg),
-          ],
-          if (!isCompact) ...[
-            Text(
-              DateFormatter.long(DateTime.now()),
-              style: AppTextStyles.bodySmall.copyWith(
-                color: context.appColors.textSecondary,
-              ),
-            ),
             const SizedBox(width: AppUtils.spacingLg),
           ],
           AdminProfileMenu(

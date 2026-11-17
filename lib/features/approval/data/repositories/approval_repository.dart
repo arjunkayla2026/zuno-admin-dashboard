@@ -30,6 +30,19 @@ class ApprovalRepository {
   Future<Either<Failure, RecordPage<HostRequest>>> fetchHostRequests(
     RecordPageQuery query,
   ) async {
+    if (query.term case final term?) {
+      if (query.cursor case LocalPageCursor<HostRequest>(:final remaining)) {
+        return right(RecordPages.local(remaining, RecordPageQuery.pageSize));
+      }
+      final found = await _dataSource.searchHostApplicants(term);
+      return found.map(
+        (records) => RecordPages.local([
+          for (final record in _newestInRange(records, query))
+            if (record.hostDetails.isNotEmpty) _toRequest(record),
+        ], RecordPageQuery.pageSize),
+      );
+    }
+
     final result = await _dataSource.fetchHostApplicants(query);
     return result.map(
       (page) => page.mapItems(
@@ -103,6 +116,21 @@ class ApprovalRepository {
 
   Future<Either<Failure, RecordPage<ProfilePhotoRequest>>>
   fetchProfilePhotoRequests(RecordPageQuery query) async {
+    if (query.term case final term?) {
+      if (query.cursor case LocalPageCursor<ProfilePhotoRequest>(
+        :final remaining,
+      )) {
+        return right(RecordPages.local(remaining, RecordPageQuery.pageSize));
+      }
+      final found = await _dataSource.searchProfilePhotoRequests(term);
+      return found.map(
+        (records) => RecordPages.local([
+          for (final record in _newestInRange(records, query))
+            if (record.hasValidSubmittedImage) _toProfilePhoto(record),
+        ], RecordPageQuery.pageSize),
+      );
+    }
+
     final result = await _dataSource.fetchProfilePhotoRequests(query);
     return result.map(
       (page) => page.mapItems(
@@ -132,6 +160,13 @@ class ApprovalRepository {
       reviewedUrl: reviewedUrl,
     );
   }
+
+  /// Search results filtered and ordered like the unsearched lists, which
+  /// query by `updatedAt`, newest first.
+  static List<UserRecord> _newestInRange(
+    List<UserRecord> records,
+    RecordPageQuery query,
+  ) => RecordPages.newestInRange(records, query, (record) => record.updatedAt);
 
   ProfilePhotoRequest _toProfilePhoto(UserRecord record) {
     final details = record.hostDetails;
@@ -194,6 +229,7 @@ class ApprovalRepository {
       documents: documents,
       approvedAt: record.hostApprovedAt,
       approvedBy: record.hostApprovedBy,
+      profileImageUrl: record.profileImageUrl,
     );
   }
 

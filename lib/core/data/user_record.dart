@@ -146,6 +146,11 @@ class UserRecord {
 
   String? get hostApprovedBy => readText(hostDetails[hostApprovedByField]);
 
+  /// The profile picture (`avatharImage`) the app shows, or null when it is
+  /// missing or not a web link.
+  String? get profileImageUrl =>
+      isWebUrl(avatarImageUrl) ? avatarImageUrl : null;
+
   String? get hostUserName =>
       readText(hostDetails['userName']) ?? userName ?? name;
 

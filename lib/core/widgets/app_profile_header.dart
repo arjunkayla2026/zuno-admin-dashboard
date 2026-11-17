@@ -11,6 +11,7 @@ class AppProfileHeader extends StatelessWidget {
     required this.avatarIndex,
     required this.name,
     required this.subtitle,
+    this.imageUrl,
   });
 
   static const double _avatarSize = 56;
@@ -20,7 +21,10 @@ class AppProfileHeader extends StatelessWidget {
   final String initials;
   final int avatarIndex;
   final String name;
+
+  /// The person's User ID, shown in the identifier style.
   final String subtitle;
+  final String? imageUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +36,7 @@ class AppProfileHeader extends StatelessWidget {
           initials: initials,
           color: palette[avatarIndex % palette.length],
           size: _avatarSize,
+          imageUrl: imageUrl,
         ),
         const SizedBox(width: _avatarGap),
         Expanded(
@@ -46,7 +51,7 @@ class AppProfileHeader extends StatelessWidget {
               ),
               Text(
                 subtitle,
-                style: AppTextStyles.captionSmall.copyWith(
+                style: AppTextStyles.identifierSmall.copyWith(
                   color: context.appColors.textSecondary,
                   height: _subtitleHeight,
                 ),

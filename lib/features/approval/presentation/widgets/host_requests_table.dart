@@ -37,7 +37,7 @@ class HostRequestsTable extends StatelessWidget {
     final textColor = context.colorScheme.onSurface;
     final cell = AppTextStyles.bodySmall.copyWith(color: textColor);
     final strong = cell.copyWith(fontWeight: FontWeight.w700);
-    final mono = AppTextStyles.mono.copyWith(color: textColor);
+    final identifier = AppTextStyles.identifier.copyWith(color: textColor);
     const palette = AppColors.avatarPalette;
 
     return AppDataTable(
@@ -56,13 +56,14 @@ class HostRequestsTable extends StatelessWidget {
                   AppInitialsAvatar(
                     initials: request.initials,
                     color: palette[request.avatarIndex % palette.length],
+                    imageUrl: request.profileImageUrl,
                   ),
                   const SizedBox(width: _avatarGap),
                   Expanded(child: Text(request.realName, style: strong)),
                 ],
               ),
               Text(request.nickName, style: cell),
-              Text(request.phone, style: mono),
+              Text(request.phone, style: identifier),
               Text(HostRequestLabels.dateOfBirth(request), style: cell),
               Text(request.city, style: cell),
               Text(HostRequestLabels.gender(request), style: cell),

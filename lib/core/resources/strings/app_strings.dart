@@ -412,8 +412,6 @@ abstract final class AppStrings {
   static const String hostRequests = 'Host Requests';
   static const String payoutReview = 'Payout Review';
   static const String profilePhotoReview = 'Profile Photo Review';
-  static const String filters = 'Filters';
-  static const String allDates = 'All Dates';
   static const String last7Days = 'Last 7 Days';
   static const String last30Days = 'Last 30 Days';
   static const String realName = 'Real Name';

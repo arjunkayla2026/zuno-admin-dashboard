@@ -10,6 +10,7 @@ class AppMetaField extends StatelessWidget {
     this.value,
     this.valueWidget,
     this.mono = false,
+    this.identifier = false,
   }) : assert(value != null || valueWidget != null);
 
   static const double _labelGap = 2;
@@ -19,6 +20,9 @@ class AppMetaField extends StatelessWidget {
   final String? value;
   final Widget? valueWidget;
   final bool mono;
+
+  /// Shows [value] as a user or host ID or phone number.
+  final bool identifier;
 
   @override
   Widget build(BuildContext context) {
@@ -40,9 +44,11 @@ class AppMetaField extends StatelessWidget {
           valueWidget ??
               Text(
                 value!,
-                style: mono
-                    ? AppTextStyles.mono.copyWith(color: textColor)
-                    : AppTextStyles.labelMedium.copyWith(color: textColor),
+                style: switch ((identifier, mono)) {
+                  (true, _) => AppTextStyles.identifier,
+                  (_, true) => AppTextStyles.mono,
+                  _ => AppTextStyles.labelMedium,
+                }.copyWith(color: textColor),
               ),
         ],
       ),

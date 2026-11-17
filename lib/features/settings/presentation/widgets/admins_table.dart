@@ -80,7 +80,7 @@ class AdminsTable extends StatelessWidget {
   Widget build(BuildContext context) {
     final textColor = context.colorScheme.onSurface;
     final cell = AppTextStyles.bodySmall.copyWith(color: textColor);
-    final mono = AppTextStyles.monoSmall.copyWith(color: textColor);
+    final identifier = AppTextStyles.identifier.copyWith(color: textColor);
 
     return AppDataTable(
       columns: _columns,
@@ -93,7 +93,7 @@ class AdminsTable extends StatelessWidget {
               final (label, status) = AdminLabels.role(admin.role);
               return AppStatusBadge(label: label, status: status);
             }(),
-            Text(admin.phone, style: mono),
+            Text(admin.phone, style: identifier),
             _permissions(admin),
             if (canManage)
               AppSecondaryButton(

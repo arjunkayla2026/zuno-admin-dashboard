@@ -254,6 +254,8 @@ class RechargeTransaction {
 
   String get initials => NameFormatter.initials(userName);
 
+  String? get imageUrl => user?.imageUrl;
+
   int get avatarIndex =>
       user?.avatarIndex ??
       userId.codeUnits.fold(0, (total, unit) => total + unit);

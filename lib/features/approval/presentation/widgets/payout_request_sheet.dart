@@ -13,7 +13,6 @@ import 'package:zuno_admin_dashboard/core/widgets/app_side_sheet.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/payout_request.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/widgets/payout_request_header.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/widgets/payout_request_labels.dart';
-import 'package:zuno_admin_dashboard/features/host_management/data/mock/host_mock_data.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/models/admin_host.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/host_details_arguments.dart';
 
@@ -42,13 +41,6 @@ class _PayoutRequestSheetState extends State<PayoutRequestSheet> {
   String? _error;
 
   PayoutRequest get _payout => widget.payout;
-
-  AdminHost? get _host {
-    for (final host in HostMockData.hosts) {
-      if (host.hostId == _payout.hostId) return host;
-    }
-    return null;
-  }
 
   void _viewHost(BuildContext context, AdminHost host) {
     final navigator = Navigator.of(context);
@@ -101,7 +93,7 @@ class _PayoutRequestSheetState extends State<PayoutRequestSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final host = _host;
+    final host = _payout.host;
     final payout = _payout;
 
     return AppSideSheet(
@@ -128,10 +120,14 @@ class _PayoutRequestSheetState extends State<PayoutRequestSheet> {
               AppDetailItem(
                 AppStrings.hostId,
                 value: payout.userID,
-                mono: true,
+                identifier: true,
               ),
               AppDetailItem(AppStrings.realNameField, value: payout.realName),
-              AppDetailItem(AppStrings.mobileNumberField, value: payout.phone),
+              AppDetailItem(
+                AppStrings.mobileNumberField,
+                value: payout.phone,
+                identifier: true,
+              ),
               AppDetailItem(AppStrings.location, value: payout.location),
               AppDetailItem(
                 AppStrings.status,

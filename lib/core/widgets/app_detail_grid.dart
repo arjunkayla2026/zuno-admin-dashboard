@@ -4,13 +4,21 @@ import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_meta_field.dart';
 
 class AppDetailItem {
-  const AppDetailItem(this.label, {this.value, this.child, this.mono = false})
-    : assert(value != null || child != null);
+  const AppDetailItem(
+    this.label, {
+    this.value,
+    this.child,
+    this.mono = false,
+    this.identifier = false,
+  }) : assert(value != null || child != null);
 
   final String label;
   final String? value;
   final Widget? child;
   final bool mono;
+
+  /// Shows [value] as a user or host ID or phone number.
+  final bool identifier;
 }
 
 class AppDetailGrid extends StatelessWidget {
@@ -24,7 +32,9 @@ class AppDetailGrid extends StatelessWidget {
 
   Widget _field(BuildContext context, AppDetailItem item) {
     final textColor = context.colorScheme.onSurface;
-    final style = item.mono
+    final style = item.identifier
+        ? AppTextStyles.identifier.copyWith(color: textColor)
+        : item.mono
         ? AppTextStyles.monoSmall.copyWith(color: textColor)
         : AppTextStyles.labelMedium.copyWith(
             color: textColor,

@@ -6,6 +6,7 @@ import 'package:get_it/get_it.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zuno_admin_dashboard/core/data/admins_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/core/data/data_revision.dart';
+import 'package:zuno_admin_dashboard/core/data/profile_photo_lookup.dart';
 import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/datasources/avatar_storage_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/datasources/payout_remote_data_source.dart';
@@ -113,6 +114,9 @@ void configureDependencies() {
         FirebaseAuth.instance,
         revision: getIt<DataRevision>(),
       ),
+    )
+    ..registerLazySingleton<ProfilePhotoLookup>(
+      () => ProfilePhotoLookup(getIt<UsersRemoteDataSource>()),
     )
     ..registerLazySingleton<UserManagementRepository>(
       () => UserManagementRepository(getIt<UsersRemoteDataSource>()),

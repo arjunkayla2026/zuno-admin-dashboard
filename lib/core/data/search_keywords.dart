@@ -15,20 +15,8 @@ abstract final class SearchKeywords {
     'hostDetails.state',
   };
 
-  static final RegExp _phoneLike = RegExp(r'^[+\d\s()-]+$');
   static final RegExp _whitespace = RegExp(r'\s+');
   static final RegExp _nonDigit = RegExp(r'\D');
-
-  static String? normalizeTerm(String raw) {
-    final trimmed = raw.trim();
-    final normalized = _phoneLike.hasMatch(trimmed)
-        ? trimmed.replaceAll(_nonDigit, '')
-        : _normalizeText(trimmed);
-    if (normalized.length < minTermLength) return null;
-    return normalized.length > _maxLength
-        ? normalized.substring(0, _maxLength)
-        : normalized;
-  }
 
   static List<String> build({
     required Iterable<Object?> texts,

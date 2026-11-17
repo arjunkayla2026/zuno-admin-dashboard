@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
-import 'package:zuno_admin_dashboard/core/widgets/app_initials_avatar.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_user_photo_avatar.dart';
 import 'package:zuno_admin_dashboard/features/reports/data/models/user_report.dart';
 import 'package:zuno_admin_dashboard/features/reports/presentation/widgets/report_labels.dart';
 
@@ -28,7 +28,8 @@ class ReportPartyCell extends StatelessWidget {
 
     return Row(
       children: [
-        AppInitialsAvatar(
+        AppUserPhotoAvatar(
+          userId: party.id,
           initials: party.initials,
           color: palette[party.avatarIndex % palette.length],
           size: _avatarSize,
@@ -72,7 +73,7 @@ class ReportPartyCell extends StatelessWidget {
               const SizedBox(height: _detailsGap),
               Text(
                 party.detailsLabel,
-                style: AppTextStyles.captionSmall.copyWith(
+                style: AppTextStyles.identifierSmall.copyWith(
                   color: colors.textSecondary,
                 ),
               ),

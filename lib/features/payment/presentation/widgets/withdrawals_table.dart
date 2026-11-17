@@ -39,6 +39,7 @@ class WithdrawalsTable extends StatelessWidget {
     final cell = AppTextStyles.bodySmall.copyWith(color: textColor);
     final strong = cell.copyWith(fontWeight: FontWeight.w700);
     final mono = AppTextStyles.monoSmall.copyWith(color: textColor);
+    final identifier = AppTextStyles.identifier.copyWith(color: textColor);
 
     return AppDataTable(
       columns: [WithdrawalSelection.column(context, state), ..._columns],
@@ -52,8 +53,9 @@ class WithdrawalsTable extends StatelessWidget {
               initials: withdrawal.initials,
               avatarIndex: withdrawal.avatarIndex,
               name: withdrawal.hostName,
+              photoUserId: withdrawal.hostId,
             ),
-            Text(withdrawal.hostUserId, style: mono),
+            Text(withdrawal.hostUserId, style: identifier),
             Text(withdrawal.withdrawId, style: mono),
             Text(NumberFormatter.grouped(withdrawal.callCount), style: cell),
             Text(

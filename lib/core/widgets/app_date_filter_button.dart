@@ -22,7 +22,7 @@ class AppDateFilterButton extends StatelessWidget {
   static const double _iconSize = 18;
   static final DateTime _firstDate = DateTime(2020);
   static const List<DateRangeFilter> defaultOptions = [
-    DateRangeFilter.all,
+    DateRangeFilter.today,
     DateRangeFilter.yesterday,
     DateRangeFilter.last7Days,
     DateRangeFilter.last30Days,
@@ -37,7 +37,6 @@ class AppDateFilterButton extends StatelessWidget {
   final List<DateRangeFilter> options;
 
   static String _optionLabel(DateRangeFilter filter) => switch (filter) {
-    DateRangeFilter.all => AppStrings.allDates,
     DateRangeFilter.today => AppStrings.today,
     DateRangeFilter.yesterday => AppStrings.yesterday,
     DateRangeFilter.last7Days => AppStrings.last7Days,
@@ -48,7 +47,6 @@ class AppDateFilterButton extends StatelessWidget {
   String get _buttonLabel {
     final range = customRange;
     return switch (value) {
-      DateRangeFilter.all => AppStrings.filters,
       DateRangeFilter.custom when range != null => AppStrings.dateRangeLabel(
         DateFormatter.short(range.start),
         DateFormatter.short(range.end),

@@ -23,6 +23,8 @@ class PayoutRepository {
   Future<Either<Failure, RecordPage<PayoutRequest>>> fetchPayoutRequests(
     RecordPageQuery query,
   ) async {
+    if (query.term case final term?) return _searchPayoutRequests(term, query);
+
     final accountsResult = await _payouts.fetchSubmitted(query);
     return accountsResult.match(left, (page) async {
       final usersResult = await _users.fetchByIds([
@@ -36,6 +38,38 @@ class PayoutRepository {
               _toPayout(account, usersById[account.id]),
           ],
         );
+      });
+    });
+  }
+
+  /// Finds hosts by nickname, user ID or phone number with the shared host
+  /// search, then their submitted bank accounts, newest `updatedAt` first.
+  Future<Either<Failure, RecordPage<PayoutRequest>>> _searchPayoutRequests(
+    String term,
+    RecordPageQuery query,
+  ) async {
+    if (query.cursor case LocalPageCursor<PayoutRequest>(:final remaining)) {
+      return right(RecordPages.local(remaining, RecordPageQuery.pageSize));
+    }
+    final hostsResult = await _users.searchUsers(
+      UsersRemoteDataSource.hostRole,
+      term,
+    );
+    return hostsResult.match(left, (hosts) async {
+      final accountsResult = await _payouts.fetchSubmittedByIds(
+        hosts.map((host) => host.id),
+      );
+      return accountsResult.map((accounts) {
+        final hostsById = {for (final host in hosts) host.id: host};
+        final matches = RecordPages.newestInRange(
+          accounts,
+          query,
+          (account) => account.updatedAt,
+        );
+        return RecordPages.local([
+          for (final account in matches)
+            _toPayout(account, hostsById[account.id]),
+        ], RecordPageQuery.pageSize);
       });
     });
   }
@@ -99,6 +133,8 @@ class PayoutRepository {
       avatarIndex: user.avatarIndex,
       approvedAt: account.adminApprovedAt,
       approvedBy: account.adminApprovedBy,
+      profileImageUrl: user.profileImageUrl,
+      host: found == null ? null : HostManagementRepository.toAdminHost(found),
     );
   }
 }

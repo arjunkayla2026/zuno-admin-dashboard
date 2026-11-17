@@ -22,7 +22,11 @@ class HostRequestDetailsView extends StatelessWidget {
           items: [
             AppDetailItem(AppStrings.realName, value: request.realName),
             AppDetailItem(AppStrings.nickName, value: request.nickName),
-            AppDetailItem(AppStrings.mobileNumber, value: request.phone),
+            AppDetailItem(
+              AppStrings.mobileNumber,
+              value: request.phone,
+              identifier: true,
+            ),
             AppDetailItem(
               AppStrings.dateOfBirth,
               value: HostRequestLabels.dateOfBirth(request),

@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/firestore_failures.dart';
-import 'package:zuno_admin_dashboard/core/data/search_keywords.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 
@@ -41,6 +40,28 @@ abstract final class RecordPages {
         : null,
   );
 
+  /// Keeps the [items] whose date falls inside the page's `from` / `until`
+  /// bounds and sorts them newest first, the order the unsearched lists use.
+  /// With no bounds, items without a date are kept and sorted last.
+  static List<T> newestInRange<T>(
+    Iterable<T> items,
+    RecordPageQuery page,
+    DateTime? Function(T item) dateOf,
+  ) {
+    final from = page.from;
+    final until = page.until;
+    final bounded = from != null || until != null;
+    final kept = items.where((item) {
+      final date = dateOf(item);
+      if (date == null) return !bounded;
+      return (from == null || !date.isBefore(from)) &&
+          (until == null || date.isBefore(until));
+    }).toList();
+    final oldest = DateTime.fromMillisecondsSinceEpoch(0);
+    return kept
+      ..sort((a, b) => (dateOf(b) ?? oldest).compareTo(dateOf(a) ?? oldest));
+  }
+
   static const String _defaultSortField = 'updatedAt';
 
   static Query<Map<String, dynamic>> _filtered(
@@ -50,9 +71,6 @@ abstract final class RecordPages {
     bool descending = true,
   }) {
     var query = base;
-    if (page.term case final term?) {
-      query = query.where(SearchKeywords.field, arrayContains: term);
-    }
     if (page.from case final from?) {
       query = query.where(
         sortField,

@@ -28,7 +28,7 @@ class ApprovalState {
     this.pendingPayoutCount = 0,
     this.tab = ApprovalTab.hostRequests,
     this.query = '',
-    this.dateFilter = DateRangeFilter.all,
+    this.dateFilter = DateRangeFilter.today,
     this.customRange,
   });
 

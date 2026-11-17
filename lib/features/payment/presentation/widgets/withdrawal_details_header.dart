@@ -3,7 +3,7 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
-import 'package:zuno_admin_dashboard/core/widgets/app_initials_avatar.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_user_photo_avatar.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_status_badge.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_labels.dart';
@@ -23,7 +23,8 @@ class WithdrawalDetailsHeader extends StatelessWidget {
 
     return Row(
       children: [
-        AppInitialsAvatar(
+        AppUserPhotoAvatar(
+          userId: withdrawal.hostId,
           initials: withdrawal.initials,
           color: palette[withdrawal.avatarIndex % palette.length],
           size: _avatarSize,
@@ -44,7 +45,7 @@ class WithdrawalDetailsHeader extends StatelessWidget {
                   withdrawal.hostUserId,
                   withdrawal.phone,
                 ),
-                style: AppTextStyles.monoSmall.copyWith(
+                style: AppTextStyles.identifierSmall.copyWith(
                   color: context.appColors.textSecondary,
                 ),
               ),
