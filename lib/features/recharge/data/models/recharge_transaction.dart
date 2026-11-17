@@ -49,21 +49,38 @@ class AdminRechargeOffer {
   final double amount;
 }
 
+/// Lifetime totals of a user's completed `transactions`, shown on User
+/// Details. They come from the transactions, not from `walletSources`,
+/// because call and chat billing spends the `walletSources` buckets
+/// (`bonus`, `rechargeExtra`, `adminCredit`, `topUp`) down, so those are
+/// what is left of each source rather than what was ever added.
 class UserRechargeSummary {
   const UserRechargeSummary({
     required this.totalRecharge,
     required this.receivedCoins,
+    this.receivableTopUp = 0,
+    this.adminCredit = 0,
+    this.adminDebit = 0,
   });
 
   factory UserRechargeSummary.fromTransactions(
     Iterable<RechargeTransaction> transactions,
   ) {
     var totalRecharge = 0.0;
+    var receivableTopUp = 0.0;
+    var adminCredit = 0.0;
+    var adminDebit = 0.0;
     var receivedCoins = 0;
     for (final transaction in transactions) {
-      if (!transaction.isCompleted) continue;
-      if (transaction.kind == RechargeKind.recharge) {
-        totalRecharge += transaction.amount;
+      if (!transaction.isCompleted || !transaction.isListed) continue;
+      switch (transaction.kind) {
+        case RechargeKind.recharge:
+          totalRecharge += transaction.amount;
+          receivableTopUp += transaction.receivableAmount;
+        case RechargeKind.credit:
+          adminCredit += transaction.amount;
+        case RechargeKind.debit:
+          adminDebit += transaction.amount;
       }
       receivedCoins += transaction.kind == RechargeKind.debit
           ? -transaction.coins
@@ -72,11 +89,21 @@ class UserRechargeSummary {
     return UserRechargeSummary(
       totalRecharge: NumberFormatter.roundAmount(totalRecharge),
       receivedCoins: receivedCoins,
+      receivableTopUp: NumberFormatter.roundAmount(receivableTopUp),
+      adminCredit: NumberFormatter.roundAmount(adminCredit),
+      adminDebit: NumberFormatter.roundAmount(adminDebit),
     );
   }
 
+  /// `rechargeAmount` paid on completed recharges, GST included.
   final double totalRecharge;
   final int receivedCoins;
+
+  /// What those recharges put in the wallet before offers:
+  /// `rechargeAmount - gstAmount` (the Cloud Functions' `receivableAmount`).
+  final double receivableTopUp;
+  final double adminCredit;
+  final double adminDebit;
 }
 
 class AdminRechargeResult {
@@ -105,6 +132,10 @@ class RechargeTransaction {
     required this.amount,
     this.isRechargedByAdmin = false,
     this.receivedTotalAmount = 0,
+    this.gstAmount,
+    this.amountFromOffer = 0,
+    this.isKnownType = true,
+    this.isWelcomeBonus = false,
     this.createdAt,
     this.orderId,
     this.paymentId,
@@ -131,6 +162,13 @@ class RechargeTransaction {
       amount: _readAmount(data[_amountFieldFor(kind)]),
       isRechargedByAdmin: isRechargedByAdmin,
       receivedTotalAmount: _readAmount(data[receivedTotalAmountField]),
+      gstAmount: switch (data[gstAmountField]) {
+        final num gst => gst.toDouble(),
+        _ => null,
+      },
+      amountFromOffer: _readAmount(data[amountFromOfferField]),
+      isKnownType: _kinds.containsKey(data[typeField]),
+      isWelcomeBonus: data[typeField] == welcomeBonusType,
       createdAt: createdAt is Timestamp ? createdAt.toDate() : null,
       orderId: orderId,
       paymentId: UserRecord.readText(data[razorpayPaymentIdField]),
@@ -193,6 +231,10 @@ class RechargeTransaction {
   static const String rechargeType = 'recharge';
   static const String adminCreditType = 'adminCredit';
   static const String adminDebitType = 'adminDebit';
+
+  /// The user app's free welcome bonus. It is not a recharge, so it is
+  /// never listed or counted with recharges.
+  static const String welcomeBonusType = 'welcomeBonus';
   static const String successStatus = 'success';
   static const String failedStatus = 'failed';
   static const String pendingStatus = 'pending';
@@ -225,6 +267,17 @@ class RechargeTransaction {
   final double amount;
   final bool isRechargedByAdmin;
   final double receivedTotalAmount;
+
+  /// Null when the document has no `gstAmount`.
+  final double? gstAmount;
+  final double amountFromOffer;
+
+  /// False when `type` is not `recharge`, `adminCredit` or `adminDebit`;
+  /// [kind] then falls back to [RechargeKind.recharge].
+  final bool isKnownType;
+
+  /// `type` is [welcomeBonusType].
+  final bool isWelcomeBonus;
   final DateTime? createdAt;
   final String? orderId;
   final String? paymentId;
@@ -264,6 +317,24 @@ class RechargeTransaction {
 
   bool get isCompleted => status == RechargeStatus.completed;
 
+  /// Whether the transaction belongs in recharge lists and totals: a real
+  /// recharge or an admin credit / debit, never a `welcomeBonus` or any
+  /// other type of `transactions` document.
+  bool get isListed => isKnownType && !isWelcomeBonus;
+
+  /// Rupees a recharge put in the wallet, without GST and without the offer
+  /// bonus. Older documents without `gstAmount` fall back to
+  /// `receivedTotalAmount - amountFromOffer`, then to the paid amount.
+  double get receivableAmount {
+    if (kind != RechargeKind.recharge) return 0;
+    final gst = gstAmount;
+    if (gst != null) return NumberFormatter.roundAmount(amount - gst);
+    if (receivedTotalAmount > 0) {
+      return NumberFormatter.roundAmount(receivedTotalAmount - amountFromOffer);
+    }
+    return amount;
+  }
+
   int get coins => isCompleted
       ? PackagePlan.coinsFor(
           kind == RechargeKind.debit ? amount : receivedTotalAmount,
@@ -288,6 +359,10 @@ class RechargeTransaction {
     amount: amount,
     isRechargedByAdmin: isRechargedByAdmin,
     receivedTotalAmount: receivedTotalAmount,
+    gstAmount: gstAmount,
+    amountFromOffer: amountFromOffer,
+    isKnownType: isKnownType,
+    isWelcomeBonus: isWelcomeBonus,
     createdAt: createdAt,
     orderId: orderId,
     paymentId: paymentId,

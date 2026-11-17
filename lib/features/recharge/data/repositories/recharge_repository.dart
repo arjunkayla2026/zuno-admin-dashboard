@@ -71,7 +71,10 @@ class RechargeRepository {
         cursor: next,
         pageSize: pageSize,
       ),
-      (batch) => batch.where(search.matchesGateway),
+      (batch) => batch.where(
+        (transaction) =>
+            transaction.isListed && search.matchesGateway(transaction),
+      ),
     );
   }
 
@@ -125,7 +128,9 @@ class RechargeRepository {
     );
     return result.fold(
       (failure) async => left(failure),
-      (page) => _attachUsers(page.items),
+      (page) => _attachUsers(
+        page.items.where((transaction) => transaction.isListed).toList(),
+      ),
     );
   }
 

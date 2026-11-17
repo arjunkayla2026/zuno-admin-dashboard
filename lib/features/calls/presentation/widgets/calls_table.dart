@@ -99,9 +99,7 @@ class CallsTable extends StatelessWidget {
                 style: strong,
               ),
               Text(
-                AppStrings.perMinute(
-                  NumberFormatter.rupeesAmount(call.hostRatePerMinute),
-                ),
+                NumberFormatter.rupeesAmount(call.hostEarnings),
                 style: strong,
               ),
             ];

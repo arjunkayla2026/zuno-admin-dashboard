@@ -31,6 +31,7 @@ class CallHistoryTable extends StatelessWidget {
     AppTableColumn(AppStrings.totalAdminRevenue, 150, alignEnd: true),
     AppTableColumn('', 24),
     AppTableColumn(AppStrings.callId, 196),
+    AppTableColumn(AppStrings.sessionId, 196),
   ];
 
   final List<CallLog> calls;
@@ -98,6 +99,7 @@ class CallHistoryTable extends StatelessWidget {
               ),
               const SizedBox.shrink(),
               Text(call.callId, style: mono),
+              Text(call.sessionId, style: mono),
             ];
           }(),
       ],

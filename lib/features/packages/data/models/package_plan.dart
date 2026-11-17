@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:zuno_admin_dashboard/core/utils/coin_converter.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/features/packages/data/models/package_status.dart';
 
@@ -17,7 +18,7 @@ class PackagePlan {
   });
 
   static const double gstRate = 0.18;
-  static const double coinsPerRupee = 15;
+  static const double coinsPerRupee = CoinConverter.coinsPerRupee;
   static const double maxOfferPercentage = 100;
 
   static const String rechargeAmountField = 'rechargeAmount';

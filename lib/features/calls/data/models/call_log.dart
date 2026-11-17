@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import 'package:cloud_firestore/cloud_firestore.dart' show Timestamp;
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 
@@ -37,9 +40,10 @@ enum CallLogStatus {
   final String value;
 
   static CallLogStatus fromValue(Object? value) {
-    if (value == _acceptedValue) return ongoing;
+    final text = value is String ? value.trim().toLowerCase() : null;
+    if (text == _acceptedValue) return ongoing;
     for (final status in values) {
-      if (status.value == value) return status;
+      if (status.value == text) return status;
     }
     return failed;
   }
@@ -54,11 +58,16 @@ enum CallEndedBy {
 
   final String value;
 
+  /// Reads the stored role. Besides the Cloud Functions values (`customer`,
+  /// `host`, `system`) it accepts the older client spellings and any case.
   static CallEndedBy? fromValue(Object? value) {
-    for (final party in values) {
-      if (party.value == value) return party;
-    }
-    return null;
+    if (value is! String) return null;
+    return switch (value.trim().toLowerCase()) {
+      'customer' || 'user' || 'caller' => user,
+      'host' || 'receiver' => host,
+      'system' => system,
+      _ => null,
+    };
   }
 }
 
@@ -86,60 +95,227 @@ class CallLog {
     this.coinsPerSecond = _defaultCoinsPerSecond,
     this.coinsPerRupee = _defaultCoinsPerRupee,
     this.hostRatePerMinute = _defaultHostRupeesPerMinute,
+    this.storedAdminRatePerMinute,
     this.isLowBalance = false,
     this.userPhone,
+    this._channelId,
   });
 
+  /// Reads a `calls` document. Each value is read from the key the calling
+  /// app's Cloud Functions write today and falls back to the key older
+  /// documents still carry (see the calling app's `docs/CALL_FLOW.md`,
+  /// "Removed duplicate keys"), so documents that were never cleaned up
+  /// still show their times, duration, money and who ended the call.
   factory CallLog.fromDocument(String id, Map<String, dynamic> data) {
-    int readInt(String field, int fallback) {
-      final value = data[field];
-      return value is num ? value.round() : fallback;
+    Object? first(List<String> fields) {
+      for (final field in fields) {
+        final value = data[field];
+        if (value != null) return value;
+      }
+      return null;
     }
 
-    double readDouble(String field, double fallback) {
-      final value = data[field];
-      return value is num ? value.toDouble() : fallback;
+    String? text(List<String> fields) {
+      for (final field in fields) {
+        final value = UserRecord.readText(data[field]);
+        if (value != null) return value;
+      }
+      return null;
     }
 
-    double readAmount(String field, String legacyField) =>
-        readDouble(field, readDouble(legacyField, 0));
+    num? number(List<String> fields) {
+      for (final field in fields) {
+        final value = _readNumber(data[field]);
+        if (value != null) return value;
+      }
+      return null;
+    }
 
-    final duration = data[durationSecondsField];
+    DateTime? date(List<String> fields) {
+      for (final field in fields) {
+        final value = _readDate(data[field]);
+        if (value != null) return value;
+      }
+      return null;
+    }
+
+    final hostEarningPaise = _readNumber(data[legacyHostEarningPaiseField]);
+    final customerId = text([customerIdField]) ?? '';
+    final hostId = text([hostIdField, legacyHostIdField]) ?? '';
+    final customerUserId = text([customerUserIdField]);
+    final hostUserId = text([hostUserIdField]);
+    final status = CallLogStatus.fromValue(
+      first([statusField, legacyStatusField]),
+    );
+    final endReason = text([endReasonField]);
+    final rawEndedBy = first([endedByField, legacyEndedByField]);
+    final duration = number([durationSecondsField, legacyDurationField]);
+
     return CallLog(
       callId: id,
-      customerId: UserRecord.readText(data[customerIdField]) ?? '',
-      hostId: UserRecord.readText(data[hostIdField]) ?? '',
-      customerUserId: UserRecord.readText(data[customerUserIdField]),
-      hostUserId: UserRecord.readText(data[hostUserIdField]),
+      channelId: text([channelIdField]),
+      customerId: customerId,
+      hostId: hostId,
+      customerUserId: customerUserId,
+      hostUserId: hostUserId,
       userName:
-          UserRecord.readText(data[customerNameField]) ?? AppStrings.emptyValue,
+          text([customerNameField, legacyCustomerNameField]) ??
+          AppStrings.emptyValue,
       hostName:
-          UserRecord.readText(data[hostNameField]) ?? AppStrings.emptyValue,
-      type: CallLogType.fromValue(data[callTypeField]),
-      status: CallLogStatus.fromValue(data[statusField]),
+          text([hostNameField, legacyHostNameField]) ?? AppStrings.emptyValue,
+      type: CallLogType.fromValue(first([callTypeField])),
+      status: status,
       initiatedAt:
-          UserRecord.readDate(data[createdAtField]) ??
-          DateTime.fromMillisecondsSinceEpoch(0),
-      startedAt: UserRecord.readDate(data[startedAtField]),
-      endedAt: UserRecord.readDate(data[endedAtField]),
-      recordedDurationSeconds: duration is num ? duration.round() : null,
-      endedBy: CallEndedBy.fromValue(data[endedByField]),
-      endReason: UserRecord.readText(data[endReasonField]),
-      spendCoins: readInt(coinsChargedField, 0),
-      spendRupees: readDouble(amountChargedField, 0),
-      hostEarnings: readAmount(hostEarningsField, legacyHostEarningField),
-      adminRevenue: readAmount(adminEarningsField, legacyAdminEarningField),
-      coinsPerSecond: readInt(coinsPerSecondField, _defaultCoinsPerSecond),
-      coinsPerRupee: readInt(coinsPerRupeeField, _defaultCoinsPerRupee),
-      hostRatePerMinute: readDouble(
-        hostRupeesPerMinuteField,
-        _defaultHostRupeesPerMinute,
+          date([createdAtField]) ?? DateTime.fromMillisecondsSinceEpoch(0),
+      startedAt: date([startedAtField, legacyStartedAtField]),
+      endedAt: date([endedAtField, legacyEndedAtField]),
+      recordedDurationSeconds: duration?.round(),
+      endedBy: _resolveEndedBy(
+        rawEndedBy: rawEndedBy,
+        endedUserId: text([endedUserIdField]),
+        customerIds: [customerId, ?customerUserId],
+        hostIds: [hostId, ?hostUserId],
+        endReason: endReason,
+        status: status,
+        endRequestedBy: data[endRequestedByField],
+        left: data[leftField],
       ),
+      endReason: endReason,
+      spendCoins:
+          number([
+            coinsChargedField,
+            ...legacyCoinsChargedFields,
+          ])?.round() ??
+          0,
+      spendRupees:
+          number([amountChargedField, legacyAmountChargedField])?.toDouble() ??
+          0,
+      hostEarnings:
+          number([
+            hostEarningsField,
+            legacyHostEarningField,
+            legacyHostRupeesField,
+          ])?.toDouble() ??
+          (hostEarningPaise == null ? 0 : hostEarningPaise / _paisePerRupee),
+      adminRevenue:
+          number([
+            adminEarningsField,
+            legacyAdminEarningField,
+            legacyAdminRupeesField,
+          ])?.toDouble() ??
+          0,
+      // Cloud Functions store `coinsPerSecond` with 6 decimals (₹10/min is
+      // 2.5 coins a second), so it must not be rounded.
+      coinsPerSecond:
+          number([coinsPerSecondField])?.toDouble() ?? _defaultCoinsPerSecond,
+      coinsPerRupee:
+          number([coinsPerRupeeField])?.toDouble() ?? _defaultCoinsPerRupee,
+      hostRatePerMinute:
+          number([hostRupeesPerMinuteField])?.toDouble() ??
+          _defaultHostRupeesPerMinute,
+      storedAdminRatePerMinute: number([
+        adminRupeesPerMinuteField,
+      ])?.toDouble(),
       isLowBalance: data[insufficientBalanceField] == true,
     );
   }
 
+  static num? _readNumber(Object? value) => switch (value) {
+    num() when value.isFinite => value,
+    String() => num.tryParse(value.trim()),
+    _ => null,
+  };
+
+  /// Firestore timestamps, plus the epoch numbers (seconds or milliseconds),
+  /// ISO strings and `{seconds, nanoseconds}` maps older writers used.
+  static DateTime? _readDate(Object? value) {
+    switch (value) {
+      case Timestamp():
+        return value.toDate();
+      case DateTime():
+        return value;
+      case num() when value.isFinite && value > 0:
+        final millis = value < _millisThreshold ? value * 1000 : value;
+        return DateTime.fromMillisecondsSinceEpoch(millis.round());
+      case String():
+        final trimmed = value.trim();
+        final epoch = num.tryParse(trimmed);
+        return epoch != null ? _readDate(epoch) : DateTime.tryParse(trimmed);
+      case Map():
+        final seconds = _readNumber(value['seconds'] ?? value['_seconds']);
+        if (seconds == null) return null;
+        final nanos =
+            _readNumber(value['nanoseconds'] ?? value['_nanoseconds']) ?? 0;
+        return DateTime.fromMicrosecondsSinceEpoch(
+          (seconds * 1000000 + nanos / 1000).round(),
+        );
+      default:
+        return null;
+    }
+  }
+
+  /// Who ended the call. `endedBy` is used when it holds a role. When it is
+  /// missing (older or partly written documents), the party is worked out
+  /// the same way the calling app's Cloud Functions decide it: from the
+  /// user ID that ended it, the end reason, the final status, the end
+  /// request and finally whoever left the Agora channel first.
+  static CallEndedBy? _resolveEndedBy({
+    required Object? rawEndedBy,
+    required String? endedUserId,
+    required List<String> customerIds,
+    required List<String> hostIds,
+    required String? endReason,
+    required CallLogStatus status,
+    required Object? endRequestedBy,
+    required Object? left,
+  }) {
+    final stored = CallEndedBy.fromValue(rawEndedBy);
+    if (stored != null) return stored;
+
+    // Some old documents kept the ender's user ID instead of a role.
+    for (final userId in [endedUserId, UserRecord.readText(rawEndedBy)]) {
+      if (userId == null) continue;
+      if (customerIds.contains(userId)) return CallEndedBy.user;
+      if (hostIds.contains(userId)) return CallEndedBy.host;
+    }
+
+    final byReason = switch (endReason) {
+      cancelledByCustomerReason => CallEndedBy.user,
+      rejectedByHostReason => CallEndedBy.host,
+      noAnswerReason ||
+      hostUnreachableReason ||
+      connectionFailedReason ||
+      maxDurationReason => CallEndedBy.system,
+      _ => null,
+    };
+    if (byReason != null) return byReason;
+
+    final byStatus = switch (status) {
+      CallLogStatus.cancelled => CallEndedBy.user,
+      CallLogStatus.rejected => CallEndedBy.host,
+      CallLogStatus.missed || CallLogStatus.failed => CallEndedBy.system,
+      _ => null,
+    };
+    if (byStatus != null) return byStatus;
+
+    final requested = CallEndedBy.fromValue(endRequestedBy);
+    if (requested != null) return requested;
+
+    if (left is Map) {
+      final customerLeft = _readNumber(left[CallEndedBy.user.value]);
+      final hostLeft = _readNumber(left[CallEndedBy.host.value]);
+      if (customerLeft != null && hostLeft != null) {
+        return customerLeft <= hostLeft ? CallEndedBy.user : CallEndedBy.host;
+      }
+    }
+    return null;
+  }
+
   static const String collection = 'calls';
+
+  /// The Agora channel the call ran on; Cloud Functions set it to the call
+  /// ID. Shown as the Session ID.
+  static const String channelIdField = 'channelId';
   static const String customerIdField = 'customerId';
   static const String hostIdField = 'hostId';
   static const String customerUserIdField = 'customerUserId';
@@ -163,9 +339,30 @@ class CallLog {
   /// documents that were never migrated still carry only these.
   static const String legacyHostEarningField = 'hostEarning';
   static const String legacyAdminEarningField = 'platformEarning';
+  static const String legacyHostRupeesField = 'rupeeGotByHost';
+  static const String legacyHostEarningPaiseField = 'hostEarningPaise';
+  static const String legacyAdminRupeesField = 'rupeeGotByAdmin';
+  static const String legacyAmountChargedField = 'rupeeSpentByUser';
+  static const List<String> legacyCoinsChargedFields = ['coinDue', 'coinsDue'];
+  static const String legacyStartedAtField = 'callStart';
+  static const String legacyEndedAtField = 'callEnd';
+  static const String legacyEndedByField = 'callEndedBy';
+  static const String legacyStatusField = 'callStatus';
+  static const String legacyDurationField = 'durationInSeconds';
+  static const String legacyHostIdField = 'receiverId';
+  static const String legacyHostNameField = 'receiverName';
+  static const String legacyCustomerNameField = 'callerName';
+
+  /// User ID of whoever ended the call; null when the system did.
+  static const String endedUserIdField = 'callEndedUserId';
+  static const String endRequestedByField = 'endRequestedBy';
+
+  /// Agora leave times by role (`customer` / `host`), in epoch seconds.
+  static const String leftField = 'left';
   static const String coinsPerSecondField = 'coinsPerSecond';
   static const String coinsPerRupeeField = 'coinsPerRupee';
   static const String hostRupeesPerMinuteField = 'hostRupeesPerMinute';
+  static const String adminRupeesPerMinuteField = 'adminRupeesPerMinute';
   static const String insufficientBalanceField = 'insufficientBalance';
 
   static const String noAnswerReason = 'noAnswer';
@@ -173,9 +370,17 @@ class CallLog {
   static const String connectionFailedReason = 'connectionFailed';
   static const String webhookMissingReason = 'webhookMissing';
   static const String maxDurationReason = 'maxDuration';
+  static const String cancelledByCustomerReason = 'cancelledByCustomer';
+  static const String rejectedByHostReason = 'rejectedByHost';
 
-  static const int _defaultCoinsPerSecond = 2;
-  static const int _defaultCoinsPerRupee = 15;
+  static const int _paisePerRupee = 100;
+
+  /// Epoch values below this are seconds, at or above it milliseconds
+  /// (10^11 seconds is the year 5138; 10^11 milliseconds is 1973).
+  static const int _millisThreshold = 100000000000;
+
+  static const double _defaultCoinsPerSecond = 2;
+  static const double _defaultCoinsPerRupee = 15;
   static const double _defaultHostRupeesPerMinute = 2;
 
   final String callId;
@@ -197,28 +402,50 @@ class CallLog {
   final double spendRupees;
   final double hostEarnings;
   final double adminRevenue;
-  final int coinsPerSecond;
-  final int coinsPerRupee;
+  final double coinsPerSecond;
+  final double coinsPerRupee;
   final double hostRatePerMinute;
+
+  /// `adminRupeesPerMinute` as written when the call was created, surge
+  /// included; null on calls created before that field existed.
+  final double? storedAdminRatePerMinute;
   final bool isLowBalance;
   final String? userPhone;
+  final String? _channelId;
+
+  /// `channelId`, or the call ID when the document has none, the same
+  /// fallback the calling app's `CallModel` uses.
+  String get sessionId => _channelId ?? callId;
 
   String get userDisplayId => customerUserId ?? customerId;
 
   String get hostDisplayId => hostUserId ?? hostId;
 
+  /// Talk time: the billed `durationSeconds` when it is positive, otherwise
+  /// the gap between start and end. Null for calls that never connected
+  /// and for calls still in progress.
   int? get durationSeconds {
+    final recorded = recordedDurationSeconds;
+    if (recorded != null && recorded > 0) return recorded;
     final started = startedAt;
+    final ended = endedAt;
     if (started == null) return null;
-    return recordedDurationSeconds ?? endedAt?.difference(started).inSeconds;
+    if (ended == null) return recorded;
+    final elapsed = ended.difference(started).inSeconds;
+    return elapsed >= 0 ? elapsed : recorded;
   }
 
   double get adminRatePerMinute =>
-      coinsPerSecond * Duration.secondsPerMinute / coinsPerRupee -
-      hostRatePerMinute;
+      storedAdminRatePerMinute ??
+      math.max(
+        coinsPerSecond * Duration.secondsPerMinute / coinsPerRupee -
+            hostRatePerMinute,
+        0,
+      );
 
   CallLog withUser(UserRecord? user) => CallLog(
     callId: callId,
+    channelId: _channelId,
     customerId: customerId,
     hostId: hostId,
     customerUserId: customerUserId ?? user?.userID,
@@ -242,6 +469,7 @@ class CallLog {
     coinsPerSecond: coinsPerSecond,
     coinsPerRupee: coinsPerRupee,
     hostRatePerMinute: hostRatePerMinute,
+    storedAdminRatePerMinute: storedAdminRatePerMinute,
     isLowBalance: isLowBalance,
     userPhone: user?.phoneLabel,
   );

@@ -31,8 +31,11 @@ abstract final class CallLogLabels {
       null => null,
     };
     if (party == null) return AppStrings.emptyValue;
-    if (call.endedBy != CallEndedBy.system) return party;
+    // A plain hang-up (`participantLeft` / `endedByParticipant`) needs no
+    // reason; every other ending says why, since the table has no status.
     final reason = switch (call.endReason) {
+      CallLog.cancelledByCustomerReason => AppStrings.cancelledReason,
+      CallLog.rejectedByHostReason => AppStrings.rejectedReason,
       CallLog.noAnswerReason => AppStrings.noAnswerReason,
       CallLog.hostUnreachableReason => AppStrings.hostUnreachableReason,
       CallLog.connectionFailedReason => AppStrings.connectionFailedReason,

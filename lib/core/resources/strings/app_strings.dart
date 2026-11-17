@@ -382,6 +382,8 @@ abstract final class AppStrings {
   static const String connectionFailedReason = 'connection failed';
   static const String connectionLostReason = 'connection lost';
   static const String timeLimitReason = 'time limit reached';
+  static const String cancelledReason = 'cancelled';
+  static const String rejectedReason = 'rejected';
 
   static String endedByReason(String party, String reason) =>
       '$party – $reason';
