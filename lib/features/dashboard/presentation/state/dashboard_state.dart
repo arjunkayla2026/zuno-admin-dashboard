@@ -31,6 +31,7 @@ class DashboardState {
     this.callsStatus = LoadStatus.loading,
     this.callStats,
     this.callsError,
+    this.refreshing = false,
   });
 
   final DateTime today;
@@ -56,6 +57,7 @@ class DashboardState {
   final LoadStatus callsStatus;
   final CallStatistics? callStats;
   final String? callsError;
+  final bool refreshing;
 
   DashboardRange get range =>
       dateFilter.momentBounds(today: today, customRange: customRange);
@@ -110,6 +112,7 @@ class DashboardState {
     callsStatus: callsStatus,
     callStats: callStats,
     callsError: callsError,
+    refreshing: refreshing,
   );
 
   DashboardState copyWith({
@@ -131,6 +134,7 @@ class DashboardState {
     LoadStatus? callsStatus,
     CallStatistics? callStats,
     String? callsError,
+    bool? refreshing,
   }) {
     return DashboardState(
       today: today,
@@ -154,6 +158,7 @@ class DashboardState {
       callsStatus: callsStatus ?? this.callsStatus,
       callStats: callStats ?? this.callStats,
       callsError: callsError ?? this.callsError,
+      refreshing: refreshing ?? this.refreshing,
     );
   }
 }

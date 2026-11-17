@@ -985,6 +985,9 @@ abstract final class AppStrings {
   static String unblockUserTitle(String name) => 'Unblock $name?';
 
   static const String retry = 'Retry';
+  static const String refresh = 'Refresh';
+  static const String dashboardRefreshFailed =
+      'Some figures could not be refreshed. Showing the last loaded values.';
   static const String recordsLoadFailed =
       'Could not load these records. Try again.';
   static const String recordsNetworkError =

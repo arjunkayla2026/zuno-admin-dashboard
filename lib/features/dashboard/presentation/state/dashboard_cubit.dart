@@ -18,14 +18,34 @@ class DashboardCubit extends Cubit<DashboardState> {
   static DateTime _dayOf(DateTime moment) =>
       DateTime(moment.year, moment.month, moment.day);
 
-  Future<void> load() => Future.wait([
-    _loadRevenue(),
-    _loadCallRevenue(),
-    _loadMessageRevenue(),
-    _loadAccounts(),
-    _loadRecent(),
-    _loadCallStats(),
-  ]);
+  Future<void> load() => _loadAll();
+
+  Future<bool> refresh() async {
+    if (state.refreshing) return true;
+    emit(
+      state
+          .withRange(
+            today: _dayOf(_clock()),
+            dateFilter: state.dateFilter,
+          )
+          .copyWith(refreshing: true),
+    );
+    final succeeded = await _loadAll(force: true);
+    if (!isClosed) emit(state.copyWith(refreshing: false));
+    return succeeded;
+  }
+
+  Future<bool> _loadAll({bool force = false}) async {
+    final results = await Future.wait([
+      _loadRevenue(force: force),
+      _loadCallRevenue(force: force),
+      _loadMessageRevenue(force: force),
+      _loadAccounts(force: force),
+      _loadRecent(force: force),
+      _loadCallStats(force: force),
+    ]);
+    return results.every((succeeded) => succeeded);
+  }
 
   static const Duration _defaultCustomSpan = Duration(days: 13);
 
@@ -87,7 +107,8 @@ class DashboardCubit extends Cubit<DashboardState> {
 
   void retryCallStats() => _loadCallStats();
 
-  Future<void> _loadRevenue() => _loadSection(
+  Future<bool> _loadRevenue({bool force = false}) => _loadSection(
+    force: force,
     cached: _repository.cachedRevenue,
     fetch: _repository.fetchRevenue,
     loading: (state) => state.copyWith(revenueStatus: LoadStatus.loading),
@@ -99,7 +120,8 @@ class DashboardCubit extends Cubit<DashboardState> {
     ),
   );
 
-  Future<void> _loadCallRevenue() => _loadSection(
+  Future<bool> _loadCallRevenue({bool force = false}) => _loadSection(
+    force: force,
     cached: _repository.cachedCallRevenue,
     fetch: _repository.fetchCallRevenue,
     loading: (state) => state.copyWith(callRevenueStatus: LoadStatus.loading),
@@ -113,7 +135,8 @@ class DashboardCubit extends Cubit<DashboardState> {
     ),
   );
 
-  Future<void> _loadMessageRevenue() => _loadSection(
+  Future<bool> _loadMessageRevenue({bool force = false}) => _loadSection(
+    force: force,
     cached: _repository.cachedMessageRevenue,
     fetch: _repository.fetchMessageRevenue,
     loading: (state) =>
@@ -128,7 +151,8 @@ class DashboardCubit extends Cubit<DashboardState> {
     ),
   );
 
-  Future<void> _loadAccounts() => _loadSection(
+  Future<bool> _loadAccounts({bool force = false}) => _loadSection(
+    force: force,
     cached: _repository.cachedAccounts,
     fetch: _repository.fetchAccounts,
     loading: (state) => state.copyWith(accountsStatus: LoadStatus.loading),
@@ -140,7 +164,8 @@ class DashboardCubit extends Cubit<DashboardState> {
     ),
   );
 
-  Future<void> _loadRecent() => _loadSection(
+  Future<bool> _loadRecent({bool force = false}) => _loadSection(
+    force: force,
     cached: _repository.cachedRecentRecharges,
     fetch: _repository.fetchRecentRecharges,
     loading: (state) => state.copyWith(recentStatus: LoadStatus.loading),
@@ -152,7 +177,8 @@ class DashboardCubit extends Cubit<DashboardState> {
         state.copyWith(recentStatus: LoadStatus.failure, recentError: message),
   );
 
-  Future<void> _loadCallStats() => _loadSection(
+  Future<bool> _loadCallStats({bool force = false}) => _loadSection(
+    force: force,
     cached: _repository.cachedCallStatistics,
     fetch: _repository.fetchCallStatistics,
     loading: (state) => state.copyWith(callsStatus: LoadStatus.loading),
@@ -162,9 +188,14 @@ class DashboardCubit extends Cubit<DashboardState> {
         state.copyWith(callsStatus: LoadStatus.failure, callsError: message),
   );
 
-  Future<void> _loadSection<T>({
+  Future<bool> _loadSection<T>({
+    required bool force,
     required T? Function(DashboardRange range) cached,
-    required Future<Either<Failure, T>> Function(DashboardRange range) fetch,
+    required Future<Either<Failure, T>> Function(
+      DashboardRange range, {
+      bool force,
+    })
+    fetch,
     required DashboardState Function(DashboardState state) loading,
     required DashboardState Function(DashboardState state, T value) loaded,
     required DashboardState Function(DashboardState state, String message)
@@ -174,8 +205,8 @@ class DashboardCubit extends Cubit<DashboardState> {
     final cachedValue = cached(range);
     emit(cachedValue == null ? loading(state) : loaded(state, cachedValue));
 
-    final result = await fetch(range);
-    if (isClosed || state.range != range) return;
+    final result = await fetch(range, force: force);
+    if (isClosed || state.range != range) return true;
     switch (result) {
       case Left(value: final failure) when cachedValue == null:
         emit(failed(state, failure.message));
@@ -184,5 +215,6 @@ class DashboardCubit extends Cubit<DashboardState> {
       default:
         break;
     }
+    return result.isRight();
   }
 }
