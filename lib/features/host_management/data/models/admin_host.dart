@@ -22,12 +22,13 @@ class AdminHost {
     this.motherTongue,
     this.languages = const {},
     this.aadhaarImageUrl,
+    this.aadhaarBackImageUrl,
     this.selfieImageUrl,
     this.profileImageUrl,
     this.totalRevenue = 0,
     this.availableBalance = 0,
     this.isOnline = false,
-    this.lastLoggedIn,
+    this.lastOnline,
     String? userID,
   }) : userID = userID ?? hostId;
 
@@ -49,6 +50,7 @@ class AdminHost {
   final HostLanguage? motherTongue;
   final Set<HostLanguage> languages;
   final String? aadhaarImageUrl;
+  final String? aadhaarBackImageUrl;
   final String? selfieImageUrl;
 
   /// The host's profile picture (`avatharImage`).
@@ -56,7 +58,7 @@ class AdminHost {
   final double totalRevenue;
   final double availableBalance;
   final bool isOnline;
-  final DateTime? lastLoggedIn;
+  final DateTime? lastOnline;
 
   String get initials => NameFormatter.initials(name);
 
@@ -98,12 +100,13 @@ class AdminHost {
       motherTongue: motherTongue ?? this.motherTongue,
       languages: languages ?? this.languages,
       aadhaarImageUrl: aadhaarImageUrl,
+      aadhaarBackImageUrl: aadhaarBackImageUrl,
       selfieImageUrl: selfieImageUrl,
       profileImageUrl: profileImageUrl,
       totalRevenue: totalRevenue,
       availableBalance: availableBalance,
       isOnline: isOnline,
-      lastLoggedIn: lastLoggedIn,
+      lastOnline: lastOnline,
     );
   }
 }

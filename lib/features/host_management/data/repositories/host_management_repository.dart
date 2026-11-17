@@ -130,13 +130,14 @@ class HostManagementRepository {
       gender: _optionNamed(HostGender.values, details['gender']),
       motherTongue: _optionNamed(HostLanguage.values, details['motherTongue']),
       languages: _languages(details['languages']),
-      aadhaarImageUrl: _documentUrl(details['aadharFrontPreview']),
-      selfieImageUrl: _documentUrl(details['selfiPreview']),
+      aadhaarImageUrl: _documentUrl(details[UserRecord.aadhaarFrontField]),
+      aadhaarBackImageUrl: _documentUrl(details[UserRecord.aadhaarBackField]),
+      selfieImageUrl: _documentUrl(details[UserRecord.selfieField]),
       profileImageUrl: record.profileImageUrl,
       totalRevenue: _amountOf(details['totalCallEarnings']),
       availableBalance: _amountOf(details['availableBalance']),
-      isOnline: _onlineStatuses.contains(details['onlineStatus']),
-      lastLoggedIn: record.lastLoggedIn,
+      isOnline: isAvailable(details),
+      lastOnline: record.lastOnline,
     );
   }
 
@@ -147,8 +148,18 @@ class HostManagementRepository {
           : HostStatus.deletedByUser;
     }
     if (record.isBlocked) return HostStatus.blocked;
-    return record.isActive ? HostStatus.active : HostStatus.inactive;
+    return isAvailable(record.hostDetails)
+        ? HostStatus.active
+        : HostStatus.inactive;
   }
+
+  /// Active / Inactive follow the switch the host flips in the calling app,
+  /// `hostDetails.onlineStatus`: `online`, or `busy` while the backend has
+  /// them on a call, is Active; `offline` or missing is Inactive. The
+  /// document's `isActive` is not used: it is set at sign-up and never
+  /// changes. Read when the list loads, so a change shows after Refresh.
+  static bool isAvailable(Map<String, dynamic> hostDetails) =>
+      _onlineStatuses.contains(hostDetails[_onlineStatusKey]);
 
   static T? _optionNamed<T extends Enum>(List<T> options, Object? value) =>
       value is String ? options.asNameMap()[value.toLowerCase()] : null;
@@ -158,6 +169,7 @@ class HostManagementRepository {
     return {for (final item in value) ?_optionNamed(HostLanguage.values, item)};
   }
 
+  static const String _onlineStatusKey = 'onlineStatus';
   static const Set<String> _onlineStatuses = {'online', 'busy'};
   static double _amountOf(Object? value) => value is num ? value.toDouble() : 0;
 

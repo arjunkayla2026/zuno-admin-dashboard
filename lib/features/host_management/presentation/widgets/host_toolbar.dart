@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/core/navigation/app_routes.dart';
 import 'package:zuno_admin_dashboard/core/resources/images/app_images.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
@@ -58,6 +59,9 @@ class HostToolbar extends StatelessWidget {
     final showsPricing = context.select(
       (HostManagementCubit cubit) => cubit.state.showsPricing,
     );
+    final loading = context.select(
+      (HostManagementCubit cubit) => cubit.state.status == LoadStatus.loading,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,6 +98,13 @@ class HostToolbar extends StatelessWidget {
               onPressed: () =>
                   Navigator.of(context)
                       .pushNamed(AppRoutes.surgeChargeSessions),
+            ),
+            AppSecondaryButton(
+              label: AppStrings.refresh,
+              leading: const Icon(Icons.refresh_rounded, size: _buttonIconSize),
+              onPressed: loading
+                  ? null
+                  : context.read<HostManagementCubit>().refresh,
             ),
             if (showsPricing) const CallPricingSummary(),
           ],

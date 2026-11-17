@@ -30,27 +30,44 @@ class HostEarningsRemoteDataSource {
       .collection(Withdrawal.collection)
       .where(Withdrawal.hostIdField, isEqualTo: hostId);
 
-  Query<Map<String, dynamic>> _listedPayoutsOf(String hostId) =>
-      _payoutsOf(hostId)
-          .where(Withdrawal.statusField, whereIn: Withdrawal.listedStatuses);
-
   String newRequestId() =>
       _firestore.collection(WalletTransaction.collection).doc().id;
 
+  /// The host's payout records, newest first, without the ones forfeited
+  /// when the account was deleted. The query is only `hostId` ordered by
+  /// `createdAt`, which the deployed `hostId` + `createdAt` index serves;
+  /// adding a `status` filter would need a `hostId` + `status` +
+  /// `createdAt` index that does not exist, and Firestore would refuse the
+  /// query. Forfeited records are dropped here instead (only deleted hosts
+  /// have any), and pages keep loading until they fill.
   Future<Either<Failure, RecordPage<Withdrawal>>> fetchWithdrawalPage(
     String hostId, {
     Object? cursor,
-  }) => RecordPages.fetch(
-    _listedPayoutsOf(hostId),
-    RecordPageQuery(cursor: cursor),
-    Withdrawal.fromDocument,
-    sortField: Withdrawal.createdAtField,
+  }) => RecordPages.untilMatch(
+    cursor,
+    (next) => RecordPages.fetch(
+      _payoutsOf(hostId),
+      RecordPageQuery(cursor: next),
+      Withdrawal.fromDocument,
+      sortField: Withdrawal.createdAtField,
+    ),
+    (batch) => batch.where((payout) => payout.isListed),
   );
 
+  /// One count per listed status, the same `hostId` + `status` equality
+  /// shape as [fetchTotals], so no composite index is needed.
   Future<Either<Failure, int>> countWithdrawals(String hostId) async {
     try {
-      final snapshot = await _listedPayoutsOf(hostId).count().get();
-      return right(snapshot.count ?? 0);
+      final counts = await Future.wait([
+        for (final status in Withdrawal.listedStatuses)
+          _payoutsOf(hostId)
+              .where(Withdrawal.statusField, isEqualTo: status)
+              .count()
+              .get(),
+      ]);
+      return right(
+        counts.fold(0, (total, snapshot) => total + (snapshot.count ?? 0)),
+      );
     } on FirebaseException catch (error) {
       return left(FirestoreFailures.read(error.code));
     } catch (_) {

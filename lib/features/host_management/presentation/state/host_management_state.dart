@@ -1,10 +1,15 @@
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/models/admin_host.dart';
 
+/// Host List filters. Active / Inactive match the status badge (the host's
+/// `hostDetails.onlineStatus`, for hosts not blocked or deleted, see
+/// `HostManagementRepository.isAvailable`) and are filtered in the app; New
+/// matches the New badge (joined in the last 7 days).
 enum HostFilter {
-  today(),
   all(),
+  active(status: HostStatus.active),
   newHosts(onlyNew: true),
+  inactive(status: HostStatus.inactive),
   blocked(status: HostStatus.blocked),
   deletedByAdmin(status: HostStatus.deletedByAdmin),
   deletedByUser(status: HostStatus.deletedByUser);
@@ -23,7 +28,7 @@ class HostManagementState {
     required this.hosts,
     this.status = LoadStatus.loaded,
     this.errorMessage,
-    this.filter = HostFilter.today,
+    this.filter = HostFilter.all,
     this.query = '',
     this.page = 1,
     this.totalPages = 1,
@@ -39,7 +44,8 @@ class HostManagementState {
   final int totalPages;
   final int firstIndex;
 
-  bool get showsPricing => filter == HostFilter.today;
+  /// The admin's call and message rates sit next to the unfiltered list.
+  bool get showsPricing => filter == HostFilter.all;
 
   HostManagementState copyWith({
     List<AdminHost>? hosts,

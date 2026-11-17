@@ -121,7 +121,7 @@ class HostProfileCard extends StatelessWidget {
               ),
               AppMetaField(
                 label: AppStrings.lastOnline,
-                value: switch (host.lastLoggedIn) {
+                value: switch (host.lastOnline) {
                   final date? => AppStrings.dateTimeValue(
                     DateFormatter.short(date),
                     DateFormatter.time(date),

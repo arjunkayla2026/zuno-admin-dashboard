@@ -26,6 +26,7 @@ class UserRecord {
     this.avatarApprovedBy,
     this.welcomeBonusClaimedAt,
     this.lastLoggedIn,
+    this.lastOnline,
   });
 
   factory UserRecord.fromDocument(String id, Map<String, dynamic> data) {
@@ -62,6 +63,7 @@ class UserRecord {
       avatarApprovedBy: readText(data[avatarApprovedByField]),
       welcomeBonusClaimedAt: readDate(data[welcomeBonusClaimedAtField]),
       lastLoggedIn: readDate(data['lastLoggedIn']),
+      lastOnline: readDate(data['lastOnline']),
     );
   }
 
@@ -132,6 +134,7 @@ class UserRecord {
   final String? avatarApprovedBy;
   final DateTime? welcomeBonusClaimedAt;
   final DateTime? lastLoggedIn;
+  final DateTime? lastOnline;
 
   static String? readText(Object? value) {
     if (value is! String) return null;

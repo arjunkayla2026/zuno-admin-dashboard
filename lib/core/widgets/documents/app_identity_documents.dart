@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/documents/app_aadhaar_card_preview.dart';
 import 'package:zuno_admin_dashboard/core/widgets/documents/app_document_image.dart';
 import 'package:zuno_admin_dashboard/core/widgets/documents/app_document_preview_dialog.dart';
+import 'package:zuno_admin_dashboard/core/widgets/documents/app_document_slides.dart';
 import 'package:zuno_admin_dashboard/core/widgets/documents/app_document_tile.dart';
 import 'package:zuno_admin_dashboard/core/widgets/documents/app_selfie_preview.dart';
 
@@ -14,6 +16,8 @@ class AppIdentityDocuments extends StatelessWidget {
     required this.initials,
     required this.avatarIndex,
     this.aadhaarImageUrl,
+    this.aadhaarBackImageUrl,
+    this.showAadhaarBack = false,
     this.selfieImageUrl,
     this.aadhaarLabel = AppStrings.aadhaarCard,
     this.selfieLabel = AppStrings.selfie,
@@ -22,12 +26,18 @@ class AppIdentityDocuments extends StatelessWidget {
   static const double _tileGap = 8;
   static const double _selfieAspectRatio = 1;
   static const double _selfieAvatarSize = 200;
+  static const double _missingIconSize = 28;
 
   final String name;
   final String maskedAadhaar;
   final String initials;
   final int avatarIndex;
   final String? aadhaarImageUrl;
+
+  /// The back of the Aadhaar card, shown only when [showAadhaarBack] is
+  /// true: the Aadhaar preview then slides between front and back.
+  final String? aadhaarBackImageUrl;
+  final bool showAadhaarBack;
   final String? selfieImageUrl;
   final String aadhaarLabel;
   final String selfieLabel;
@@ -49,13 +59,42 @@ class AppIdentityDocuments extends StatelessWidget {
         ),
       );
 
+  Widget _aadhaarBack(BuildContext context) => AppDocumentImage(
+    imageUrl: aadhaarBackImageUrl,
+    fit: BoxFit.contain,
+    placeholder: ColoredBox(
+      color: context.appColors.uploadBackground,
+      child: Center(
+        child: Icon(
+          Icons.image_outlined,
+          size: _missingIconSize,
+          color: context.appColors.uploadBorder,
+        ),
+      ),
+    ),
+  );
+
   void _previewAadhaar(BuildContext context) {
     const size = AppAadhaarCardPreview.cardSize;
+    final front = _aadhaar(fit: BoxFit.contain);
     showAppDocumentPreview(
       context: context,
       title: AppStrings.documentPreviewTitle(AppStrings.aadhaarCard, name),
       aspectRatio: size.width / size.height,
-      preview: _aadhaar(fit: BoxFit.contain),
+      preview: showAadhaarBack
+          ? AppDocumentSlides(
+              slides: [
+                AppDocumentSlide(
+                  label: AppStrings.aadhaarFront,
+                  preview: front,
+                ),
+                AppDocumentSlide(
+                  label: AppStrings.aadhaarBack,
+                  preview: _aadhaarBack(context),
+                ),
+              ],
+            )
+          : front,
     );
   }
 

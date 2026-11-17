@@ -16,7 +16,7 @@ class HostManagementCubit extends Cubit<HostManagementState> {
 
   final HostManagementRepository _repository;
   String? _appliedTerm;
-  HostFilter _appliedFilter = HostFilter.today;
+  HostFilter _appliedFilter = HostFilter.all;
   Timer? _debounce;
 
   late final CursorPager<AdminHost> _pager = CursorPager(
@@ -30,6 +30,15 @@ class HostManagementCubit extends Cubit<HostManagementState> {
   );
 
   Future<void> loadHosts() => _pager.load();
+
+  /// Reloads from the first page with the current filter and search, so
+  /// status changes hosts made in the app since the list loaded show up.
+  Future<void> refresh() {
+    _debounce?.cancel();
+    _appliedTerm = UserSearch.normalizeTerm(state.query);
+    _appliedFilter = state.filter;
+    return _pager.reset();
+  }
 
   void search(String query) {
     emit(state.copyWith(query: query));

@@ -218,6 +218,8 @@ abstract final class AppStrings {
   static const String searchHostsHint = 'Search mobile, name or host ID';
   static const String allHosts = 'All Hosts';
   static const String newHosts = 'New Hosts';
+  static const String activeHosts = 'Active Hosts';
+  static const String inactiveHosts = 'Inactive Hosts';
   static const String blockedHosts = 'Blocked Hosts';
   static const String hostId = 'Host ID';
   static const String inactive = 'Inactive';
@@ -946,6 +948,9 @@ abstract final class AppStrings {
       'Only approved admins can sign in.';
   static const String aadhaarFront = 'Aadhaar Front';
   static const String aadhaarBack = 'Aadhaar Back';
+
+  static String documentSlideLabel(String side, int page, int count) =>
+      '$side · $page/$count';
   static const String documentAlreadyReviewed =
       'This document has already been reviewed.';
   static const String hostRequestNotReady =
