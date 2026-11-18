@@ -511,6 +511,8 @@ abstract final class AppStrings {
   static const String offerPercentage = 'Offer %';
   static const String offerPercentageField = 'Offer Percentage (%)';
   static const String offerPercentageTooHigh = 'Enter 100 or less.';
+  static String offerTagTooLong(int maxLength) =>
+      'Use $maxLength characters or fewer.';
   static const String packageActiveTitle = 'Active';
   static const String packageActiveHelper =
       'Only active packages are shown in the user app';
@@ -720,8 +722,8 @@ abstract final class AppStrings {
       'Only these app versions can use the apps. Add each version exactly as '
       'it appears in the store, for example 1.0.3.';
   static const String appVersion = 'Version';
-  static const String appVersionHint = 'e.g. 1.0.3';
-  static const String enterAppVersion = 'Enter a version like 1.0.3';
+  static const String appVersionHint = 'e.g. 10.0.0';
+  static const String enterAppVersion = 'Enter a version like 10.0.0';
   static const String appVersionExists = 'This version is already added';
   static const String addVersion = 'Add version';
   static const String noAllowedVersions = 'No versions added yet';

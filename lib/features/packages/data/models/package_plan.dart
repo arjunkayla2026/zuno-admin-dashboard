@@ -20,6 +20,7 @@ class PackagePlan {
   static const double gstRate = 0.18;
   static const double coinsPerRupee = CoinConverter.coinsPerRupee;
   static const double maxOfferPercentage = 100;
+  static const int maxOfferTagLength = 15;
 
   static const String rechargeAmountField = 'rechargeAmount';
   static const String receivableAmountField = 'receivableAmount';

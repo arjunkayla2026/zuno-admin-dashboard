@@ -5,6 +5,7 @@ import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
+import 'package:zuno_admin_dashboard/core/utils/version_input_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_labeled_text_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
 
@@ -33,16 +34,17 @@ class _AllowedVersionsCardState extends State<AllowedVersionsCard> {
   static const double _sectionGap = 14;
   static const double _fieldWidth = 240;
   static const EdgeInsets _padding = EdgeInsets.fromLTRB(18, 16, 18, 18);
-  static final RegExp _versionPattern = RegExp(r'^\d+(\.\d+){0,3}$');
-
   final TextEditingController _controller = TextEditingController();
+  final VersionInputFormatter _formatter = VersionInputFormatter();
   bool _submitted = false;
 
   String get _text => _controller.text.trim();
 
   String? get _error {
     if (!_submitted) return null;
-    if (!_versionPattern.hasMatch(_text)) return AppStrings.enterAppVersion;
+    if (!VersionInputFormatter.complete.hasMatch(_text)) {
+      return AppStrings.enterAppVersion;
+    }
     if (widget.versions.contains(_text)) {
       return AppStrings.appVersionExists;
     }
@@ -103,6 +105,10 @@ class _AllowedVersionsCardState extends State<AllowedVersionsCard> {
                   hint: AppStrings.appVersionHint,
                   controller: _controller,
                   readOnly: !widget.enabled,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: [_formatter],
                   textInputAction: TextInputAction.done,
                   onChanged: (_) => setState(() {}),
                   onSubmitted: (_) => canEdit ? _add() : null,
@@ -131,9 +137,7 @@ class _AllowedVersionsCardState extends State<AllowedVersionsCard> {
                   InputChip(
                     label: Text(version, style: AppTextStyles.bodyMedium),
                     deleteButtonTooltipMessage: AppStrings.removeVersion,
-                    onDeleted: canEdit
-                        ? () => widget.onRemove(version)
-                        : null,
+                    onDeleted: canEdit ? () => widget.onRemove(version) : null,
                   ),
               ],
             ),

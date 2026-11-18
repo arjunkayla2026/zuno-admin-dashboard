@@ -25,6 +25,7 @@ class AppLabeledTextField extends StatelessWidget {
     this.maxLines = 1,
     this.minLines,
     this.labelStyle,
+    this.maxLength,
   });
 
   static const double _labelGap = 5;
@@ -52,6 +53,7 @@ class AppLabeledTextField extends StatelessWidget {
   final int? maxLines;
   final int? minLines;
   final TextStyle? labelStyle;
+  final int? maxLength;
 
   @override
   Widget build(BuildContext context) {
@@ -80,6 +82,7 @@ class AppLabeledTextField extends StatelessWidget {
           onTap: onTap,
           maxLines: maxLines,
           minLines: minLines,
+          maxLength: maxLength,
           style: AppTextStyles.fieldValue.copyWith(color: textColor),
           decoration: InputDecoration(
             hintText: hint,
