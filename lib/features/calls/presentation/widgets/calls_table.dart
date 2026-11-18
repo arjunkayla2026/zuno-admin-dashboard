@@ -30,7 +30,13 @@ class CallsTable extends StatelessWidget {
     AppTableColumn(AppStrings.callStatus, 120),
     AppTableColumn(AppStrings.userSpendCoinsAmount, 160, alignEnd: true),
     AppTableColumn(AppStrings.spendInrChat, 112, alignEnd: true),
-    AppTableColumn(AppStrings.hostRevenue, 106, alignEnd: true),
+    AppTableColumn(AppStrings.hostRevenue, 100, alignEnd: true),
+    AppTableColumn(AppStrings.totalHostRevenue, 140, alignEnd: true),
+    AppTableColumn(AppStrings.adminRevenue, 116, alignEnd: true),
+    AppTableColumn(AppStrings.totalAdminRevenue, 150, alignEnd: true),
+    AppTableColumn('', 24),
+    AppTableColumn(AppStrings.callId, 196),
+    AppTableColumn(AppStrings.sessionId, 196),
   ];
 
   static final int columnCount = _columns.length;
@@ -45,6 +51,7 @@ class CallsTable extends StatelessWidget {
     final muted = context.appColors.textSecondary;
     final cell = AppTextStyles.bodySmall.copyWith(color: textColor);
     final strong = cell.copyWith(fontWeight: FontWeight.w700);
+    final mono = AppTextStyles.monoSmall.copyWith(color: textColor);
 
     return AppDataTable(
       columns: _columns,
@@ -103,9 +110,28 @@ class CallsTable extends StatelessWidget {
                 style: strong,
               ),
               Text(
+                AppStrings.perMinute(
+                  NumberFormatter.rupeesAmount(call.hostRatePerMinute),
+                ),
+                style: strong,
+              ),
+              Text(
                 NumberFormatter.rupeesAmount(call.hostEarnings),
                 style: strong,
               ),
+              Text(
+                AppStrings.perMinute(
+                  NumberFormatter.rupeesAmount(call.adminRatePerMinute),
+                ),
+                style: strong,
+              ),
+              Text(
+                NumberFormatter.rupeesAmount(call.adminRevenue),
+                style: strong,
+              ),
+              const SizedBox.shrink(),
+              Text(call.callId, style: mono),
+              Text(call.sessionId, style: mono),
             ];
           }(),
       ],

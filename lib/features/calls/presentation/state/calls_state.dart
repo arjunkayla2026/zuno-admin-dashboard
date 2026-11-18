@@ -101,6 +101,8 @@ class CallsState {
       call.hostDisplayId,
       call.hostId,
       call.userDisplayId,
+      call.callId,
+      call.sessionId,
     ];
     if (texts.any((text) => text.toLowerCase().contains(term))) return true;
 

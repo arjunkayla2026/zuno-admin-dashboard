@@ -20,6 +20,8 @@ class CallsCubit extends Cubit<CallsState> {
   final CallsRepository _repository;
   final Debouncer _searchDebouncer = Debouncer();
   List<CallLog>? _searchPool;
+  String? _exactCallTerm;
+  CallLog? _exactCall;
   int _latestCount = 0;
 
   late final CursorPager<CallLog> _pager = CursorPager(
@@ -95,9 +97,17 @@ class CallsCubit extends Cubit<CallsState> {
   Future<Either<Failure, RecordPage<CallLog>>> _searchPage(
     Object? cursor,
   ) async {
-    final pool = await _loadSearchPool();
+    final (pool, exact) = await (
+      _loadSearchPool(),
+      _findExactCall(state.query.trim()),
+    ).wait;
     return pool.map((calls) {
       final matches = calls.where(state.matchesSearch).toList();
+      if (exact != null &&
+          state.matchesSearch(exact) &&
+          matches.every((call) => call.callId != exact.callId)) {
+        matches.insert(0, exact);
+      }
       if (!isClosed) emit(state.copyWith(matchCount: matches.length));
       final start = cursor as int? ?? 0;
       final end = min(start + CallsRepository.pageSize, matches.length);
@@ -118,6 +128,18 @@ class CallsCubit extends Cubit<CallsState> {
       until: until,
     );
     return result.map((calls) => _searchPool = calls);
+  }
+
+  /// A pasted call ID finds its call even outside the selected date range.
+  /// Looked up once per search term; a failed lookup just leaves the date
+  /// range's matches.
+  Future<CallLog?> _findExactCall(String term) async {
+    if (term == _exactCallTerm) return _exactCall;
+    final result = await _repository.findCallWithUser(term);
+    return result.match((_) => null, (call) {
+      _exactCallTerm = term;
+      return _exactCall = call;
+    });
   }
 
   Future<void> _loadCount() async {
