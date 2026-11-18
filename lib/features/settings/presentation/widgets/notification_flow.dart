@@ -54,21 +54,17 @@ Future<bool> sendNotification(
       messenger.showSnackBar(SnackBar(content: Text(failure.message)));
       return false;
     },
-    (sent) {
-      if (context.mounted) _showSentDialog(context, sent);
+    (_) {
+      if (context.mounted) _showSentDialog(context);
       return true;
     },
   );
 }
 
-Future<void> _showSentDialog(
-  BuildContext context,
-  NotificationSendResult sent,
-) {
+Future<void> _showSentDialog(BuildContext context) {
   return showAppSuccessDialog(
     context: context,
     title: AppStrings.notificationSentTitle,
-    message: AppStrings.notificationSentMessage(sent.topics.join(', ')),
     actionLabel: AppStrings.done,
   );
 }

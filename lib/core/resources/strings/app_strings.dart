@@ -837,9 +837,6 @@ abstract final class AppStrings {
   static const String notificationSendDenied =
       'Your account is not allowed to send notifications.';
 
-  static String notificationSentMessage(String topics) =>
-      'Sent to every device subscribed to $topics.';
-
   static String hostsForLanguages(String languages) => 'Hosts ($languages)';
 
   static const String screenPlacement = 'Screen placement';
