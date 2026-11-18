@@ -253,6 +253,7 @@ abstract final class AppStrings {
   static const String aadhaarCard = 'Aadhaar card';
   static const String aadhaarCardFront = 'Aadhaar card · Front';
   static const String selfie = 'Selfie';
+  static const String profilePhoto = 'Profile Photo';
   static const String totalRevenue = 'Total Revenue';
   static const String totalSuccessfulWithdrawals =
       'Total Successful Withdrawals';

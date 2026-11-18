@@ -64,6 +64,7 @@ class _HostRequestSheetState extends State<HostRequestSheet> {
   late final _dateOfBirthController = TextEditingController();
   DateTime? _dateOfBirth;
   HostGender? _gender;
+  HostLanguage? _motherTongue;
   late Set<HostLanguage> _languages;
 
   List<TextEditingController> get _controllers => [
@@ -88,6 +89,7 @@ class _HostRequestSheetState extends State<HostRequestSheet> {
     _dateOfBirth = _request.dateOfBirth;
     _dateOfBirthController.text = HostRequestLabels.dateOfBirth(_request);
     _gender = _request.gender;
+    _motherTongue = _request.motherTongue;
     _languages = {..._request.languages};
     setState(() => _editing = true);
   }
@@ -106,6 +108,7 @@ class _HostRequestSheetState extends State<HostRequestSheet> {
         city: _cityController.text.trim(),
         dateOfBirth: _dateOfBirth,
         gender: _gender,
+        motherTongue: _motherTongue,
         languages: [
           for (final language in HostLanguage.values)
             if (_languages.contains(language)) language,
@@ -314,10 +317,13 @@ class _HostRequestSheetState extends State<HostRequestSheet> {
               dateOfBirthController: _dateOfBirthController,
               cityController: _cityController,
               gender: _gender,
+              motherTongue: _motherTongue,
               languages: _languages,
               onTextChanged: (_) => setState(() {}),
               onPickDateOfBirth: _pickDateOfBirth,
               onGenderChanged: (gender) => setState(() => _gender = gender),
+              onMotherTongueChanged: (language) =>
+                  setState(() => _motherTongue = language),
               onLanguagesChanged: (languages) =>
                   setState(() => _languages = languages),
             )

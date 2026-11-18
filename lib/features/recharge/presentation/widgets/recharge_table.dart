@@ -24,8 +24,8 @@ class RechargeTable extends StatelessWidget {
     AppTableColumn(AppStrings.adminDebitAmount, 143, alignEnd: true),
     AppTableColumn(AppStrings.receivedCoins, 111, alignEnd: true),
     AppTableColumn('', 20),
-    AppTableColumn(AppStrings.paymentId, 130),
-    AppTableColumn(AppStrings.orderId, 143),
+    AppTableColumn(AppStrings.paymentId, 180),
+    AppTableColumn(AppStrings.orderId, 196),
     AppTableColumn(AppStrings.paymentGateway, 120),
     AppTableColumn(AppStrings.status, 120),
   ];

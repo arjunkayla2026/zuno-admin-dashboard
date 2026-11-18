@@ -43,6 +43,10 @@ class HostRequestDetailsView extends StatelessWidget {
           columns: 1,
           items: [
             AppDetailItem(
+              AppStrings.motherTongueField,
+              value: HostRequestLabels.motherTongue(request),
+            ),
+            AppDetailItem(
               AppStrings.speakLanguages,
               value: HostRequestLabels.languages(request),
             ),
