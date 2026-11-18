@@ -31,7 +31,7 @@ class PackagesRepository {
     final fields = plan.toFields();
     if (plan.isNew) {
       final result = await _dataSource.createPackage(fields);
-      return result.map((id) => plan.copyWith(id: id));
+      return result.map((id) => plan.copyWith(id: id, totalRechargeCount: 0));
     }
     final result = await _dataSource.updatePackage(plan.id, fields);
     return result.map((_) => plan);

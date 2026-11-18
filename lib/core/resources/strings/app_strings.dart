@@ -279,6 +279,7 @@ abstract final class AppStrings {
   static const String accountHolderName = 'Account Holder Name';
   static const String accountNumber = 'Account Number';
   static const String ifscCode = 'IFSC Code';
+  static const String panNumber = 'PAN Number';
   static const String withdrawId = 'Withdraw ID';
   static const String pending = 'Pending';
   static const String success = 'Success';
@@ -364,6 +365,7 @@ abstract final class AppStrings {
   static const String busyCalls = 'Busy Calls';
   static const String notAnsweredCalls = 'Not Answered Calls';
   static const String lowBalanceCalls = 'Low Balance Calls';
+  static const String ongoingCalls = 'Ongoing Calls';
   static const String callsType = 'Calls Type';
   static const String audioCall = 'Audio Call';
   static const String videoCall = 'Video Call';
@@ -387,6 +389,7 @@ abstract final class AppStrings {
   static const String timeLimitReason = 'time limit reached';
   static const String cancelledReason = 'cancelled';
   static const String rejectedReason = 'rejected';
+  static const String lowBalanceReason = 'low balance';
 
   static String endedByReason(String party, String reason) =>
       '$party – $reason';
@@ -508,8 +511,8 @@ abstract final class AppStrings {
   static const String receivableAmount = 'Receivable Amount';
   static const String receivableCoin = 'Receivable Coin';
   static const String totalCoinsWithOffer = 'Total Coins (With Offer)';
-  static const String totalPurchases = 'Total Recharges';
-  static const String offerTag = 'Offer Tag';
+  static const String totalPurchases = 'Package-wise Total Recharge Count';
+  static const String offerTag = 'Tagline';
   static const String offerPercentage = 'Offer %';
   static const String offerPercentageField = 'Offer Percentage (%)';
   static const String offerPercentageTooHigh = 'Enter 100 or less.';

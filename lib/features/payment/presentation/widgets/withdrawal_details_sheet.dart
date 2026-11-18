@@ -135,6 +135,11 @@ class WithdrawalDetailsSheet extends StatelessWidget {
                 value: withdrawal.ifscCode,
                 mono: true,
               ),
+              AppDetailItem(
+                AppStrings.panNumber,
+                value: withdrawal.panNumber,
+                mono: true,
+              ),
             ],
           ),
         ],

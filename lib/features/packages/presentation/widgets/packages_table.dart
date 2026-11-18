@@ -29,7 +29,8 @@ class PackagesTable extends StatelessWidget {
     AppTableColumn('', 28),
     AppTableColumn(AppStrings.offerTag, 162),
     AppTableColumn(AppStrings.offerPercentage, 110),
-    AppTableColumn(AppStrings.totalPurchases, 150, alignEnd: true),
+    AppTableColumn(AppStrings.totalPurchases, 240, alignEnd: true),
+    AppTableColumn('', 40),
     AppTableColumn(AppStrings.status, 120),
     AppTableColumn('', 100, alignEnd: true),
   ];
@@ -71,13 +72,14 @@ class PackagesTable extends StatelessWidget {
                     style: strong,
                   )
                 : Text(AppStrings.emptyValue, style: muted),
-            switch (purchaseCounts[plan.id]) {
+            switch (plan.totalRechargeCount ?? purchaseCounts[plan.id]) {
               final int count => Text(
                 NumberFormatter.grouped(count),
                 style: strong,
               ),
               null => Text(AppStrings.emptyValue, style: muted),
             },
+            const SizedBox.shrink(),
             AppStatusBadge(
               label: plan.isActive ? AppStrings.active : AppStrings.inactive,
               status: plan.isActive ? AppStatus.active : AppStatus.inactive,

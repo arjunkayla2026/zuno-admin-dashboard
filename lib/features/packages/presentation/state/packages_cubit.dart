@@ -91,7 +91,9 @@ class PackagesCubit extends Cubit<PackagesState> {
   Future<void> _loadPurchaseCounts(List<PackagePlan> packages) async {
     final ids = [
       for (final plan in packages)
-        if (_requestedPurchaseCounts.add(plan.id)) plan.id,
+        if (plan.totalRechargeCount == null &&
+            _requestedPurchaseCounts.add(plan.id))
+          plan.id,
     ];
     if (ids.isEmpty) return;
     final result = await _repository.fetchPurchaseCounts(ids);

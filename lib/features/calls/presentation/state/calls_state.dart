@@ -5,6 +5,7 @@ import 'package:zuno_admin_dashboard/features/calls/data/models/call_log.dart';
 
 enum CallStatusFilter {
   incoming,
+  ongoing(status: CallLogStatus.ongoing),
   completed(status: CallLogStatus.completed),
   busy(status: CallLogStatus.busy),
   rejected(status: CallLogStatus.rejected),

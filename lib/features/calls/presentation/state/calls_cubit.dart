@@ -87,7 +87,7 @@ class CallsCubit extends Cubit<CallsState> {
     return _repository.fetchPage(
       from: from,
       until: until,
-      status: state.statusFilter.status?.value,
+      statuses: state.statusFilter.status?.rawValues,
       lowBalanceOnly: state.statusFilter.lowBalanceOnly,
       callType: state.typeFilter.type?.value,
       cursor: cursor,
@@ -149,7 +149,7 @@ class CallsCubit extends Cubit<CallsState> {
     final result = await _repository.count(
       from: from,
       until: until,
-      status: state.statusFilter.status?.value,
+      statuses: state.statusFilter.status?.rawValues,
       lowBalanceOnly: state.statusFilter.lowBalanceOnly,
       callType: state.typeFilter.type?.value,
     );

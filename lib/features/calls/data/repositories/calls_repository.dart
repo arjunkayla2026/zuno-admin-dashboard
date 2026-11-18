@@ -19,7 +19,7 @@ class CallsRepository {
   Future<Either<Failure, RecordPage<CallLog>>> fetchPage({
     DateTime? from,
     DateTime? until,
-    String? status,
+    List<String>? statuses,
     bool lowBalanceOnly = false,
     String? callType,
     CallParticipant? participant,
@@ -27,7 +27,7 @@ class CallsRepository {
   }) => _calls.fetchPage(
     from: from,
     until: until,
-    status: status,
+    statuses: statuses,
     lowBalanceOnly: lowBalanceOnly,
     callType: callType,
     participant: participant,
@@ -38,14 +38,14 @@ class CallsRepository {
   Future<Either<Failure, int>> count({
     DateTime? from,
     DateTime? until,
-    String? status,
+    List<String>? statuses,
     bool lowBalanceOnly = false,
     String? callType,
     CallParticipant? participant,
   }) => _calls.count(
     from: from,
     until: until,
-    status: status,
+    statuses: statuses,
     lowBalanceOnly: lowBalanceOnly,
     callType: callType,
     participant: participant,

@@ -113,6 +113,7 @@ class PackagesRemoteDataSource {
     try {
       final reference = await _packages.add({
         ...fields,
+        PackagePlan.totalRechargeCountField: 0,
         PackagePlan.createdAtField: FieldValue.serverTimestamp(),
         PackagePlan.updatedAtField: FieldValue.serverTimestamp(),
       });

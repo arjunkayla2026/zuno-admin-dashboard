@@ -17,6 +17,7 @@ const ALLOWED_FIELDS = new Set([
   'rechargeAmount',
   'receivableAmount',
   'isGstEnabled',
+  'totalRechargeCount',
 ]);
 
 const apply = process.argv.includes('--apply');

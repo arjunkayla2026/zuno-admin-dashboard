@@ -15,6 +15,7 @@ class PackagePlan {
     this.isGstEnabled = false,
     this.createdAt,
     this.updatedAt,
+    this.totalRechargeCount,
   });
 
   static const double gstRate = 0.18;
@@ -30,6 +31,7 @@ class PackagePlan {
   static const String isGstEnabledField = 'isGstEnabled';
   static const String createdAtField = 'createdAt';
   static const String updatedAtField = 'updatedAt';
+  static const String totalRechargeCountField = 'totalRechargeCount';
 
   final String id;
   final double rechargeAmount;
@@ -41,6 +43,7 @@ class PackagePlan {
   final bool isGstEnabled;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final int? totalRechargeCount;
 
   bool get hasOfferTag => offerTag.trim().isNotEmpty;
 
@@ -116,6 +119,10 @@ class PackagePlan {
       isGstEnabled: data[isGstEnabledField] == true,
       createdAt: _date(data[createdAtField]),
       updatedAt: _date(data[updatedAtField]),
+      totalRechargeCount: switch (data[totalRechargeCountField]) {
+        final num value => value.round(),
+        _ => null,
+      },
     );
   }
 
@@ -135,7 +142,7 @@ class PackagePlan {
     isGstEnabledField: isGstEnabled,
   };
 
-  PackagePlan copyWith({String? id}) {
+  PackagePlan copyWith({String? id, int? totalRechargeCount}) {
     return PackagePlan(
       id: id ?? this.id,
       rechargeAmount: rechargeAmount,
@@ -147,6 +154,7 @@ class PackagePlan {
       isGstEnabled: isGstEnabled,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      totalRechargeCount: totalRechargeCount ?? this.totalRechargeCount,
     );
   }
 }

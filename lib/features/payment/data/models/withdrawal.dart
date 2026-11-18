@@ -13,6 +13,7 @@ class PayoutBankAccount {
     this.branchName,
     this.accountNumber,
     this.ifscCode,
+    this.panNumber,
   });
 
   static PayoutBankAccount? fromMap(Object? value) {
@@ -22,6 +23,7 @@ class PayoutBankAccount {
       branchName: UserRecord.readText(value['branchName']),
       accountNumber: UserRecord.readText(value['accountNo']),
       ifscCode: UserRecord.readText(value['ifscCode']),
+      panNumber: UserRecord.readText(value['panNumber']),
     );
   }
 
@@ -29,6 +31,7 @@ class PayoutBankAccount {
   final String? branchName;
   final String? accountNumber;
   final String? ifscCode;
+  final String? panNumber;
 }
 
 class PayoutReceipt {
@@ -298,6 +301,8 @@ class Withdrawal {
       bankAccount?.accountNumber ?? AppStrings.emptyValue;
 
   String get ifscCode => bankAccount?.ifscCode ?? AppStrings.emptyValue;
+
+  String get panNumber => bankAccount?.panNumber ?? AppStrings.emptyValue;
 
   String get accountLastDigits => accountNumber.length <= _visibleDigits
       ? accountNumber
