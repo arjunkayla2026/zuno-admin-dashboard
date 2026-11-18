@@ -110,6 +110,7 @@ class HostManagementRepository {
   /// `users` document.
   static AdminHost toAdminHost(UserRecord record) {
     final details = record.hostDetails;
+    final earnings = hostEarningsOf(details);
     final name = record.hostUserName ?? AppStrings.emptyValue;
 
     return AdminHost(
@@ -134,10 +135,15 @@ class HostManagementRepository {
       aadhaarBackImageUrl: _documentUrl(details[UserRecord.aadhaarBackField]),
       selfieImageUrl: _documentUrl(details[UserRecord.selfieField]),
       profileImageUrl: record.profileImageUrl,
-      totalRevenue: _amountOf(details['totalCallEarnings']),
-      availableBalance: _amountOf(details['availableBalance']),
+      totalRevenue: _amountOf(
+        earnings[_totalEarningsKey] ?? earnings[_totalCallsEarningsKey],
+      ),
+      availableBalance: _amountOf(earnings[_availableBalanceKey]),
+      totalAdminCredit: _amountOrNull(earnings[_totalAdminCreditKey]),
+      totalAdminDebit: _amountOrNull(earnings[_totalAdminDebitKey]),
       isOnline: isAvailable(details),
       lastOnline: record.lastOnline,
+      approvedAt: record.hostApprovedAt,
     );
   }
 
@@ -170,8 +176,30 @@ class HostManagementRepository {
   }
 
   static const String _onlineStatusKey = 'onlineStatus';
+  static const String _hostEarningsKey = 'hostEarnings';
+  static const String _legacyHostEarningsKey = 'hostEarings';
+  static const String _totalEarningsKey = 'totalEarnings';
+  static const String _totalCallsEarningsKey = 'totalCallsEarnings';
+  static const String _availableBalanceKey = 'availableBalance';
+  static const String _totalAdminCreditKey = 'totalAdminCredit';
+  static const String _totalAdminDebitKey = 'totalAdminDebit';
+
+  /// The `hostDetails.hostEarnings` map the calling app's settlement keeps
+  /// (`totalEarnings`, `totalCallsEarnings`, `availableBalance`, …), read
+  /// for Total Revenue and the Available Wallet Amount. Older hosts may
+  /// still have it under the misspelled `hostEarings`, which the backend
+  /// moves on the host's next earning call.
+  static Map<Object?, Object?> hostEarningsOf(Map<String, dynamic> details) =>
+      switch ((details[_hostEarningsKey], details[_legacyHostEarningsKey])) {
+        (final Map current, _) => current,
+        (_, final Map legacy) => legacy,
+        _ => const {},
+      };
   static const Set<String> _onlineStatuses = {'online', 'busy'};
   static double _amountOf(Object? value) => value is num ? value.toDouble() : 0;
+
+  static double? _amountOrNull(Object? value) =>
+      value is num ? value.toDouble() : null;
 
   static String? _documentUrl(Object? value) =>
       value is Map ? UserRecord.readText(value['url']) : null;

@@ -27,8 +27,11 @@ class AdminHost {
     this.profileImageUrl,
     this.totalRevenue = 0,
     this.availableBalance = 0,
+    this.totalAdminCredit,
+    this.totalAdminDebit,
     this.isOnline = false,
     this.lastOnline,
+    this.approvedAt,
     String? userID,
   }) : userID = userID ?? hostId;
 
@@ -57,8 +60,22 @@ class AdminHost {
   final String? profileImageUrl;
   final double totalRevenue;
   final double availableBalance;
+
+  /// `hostDetails.hostEarnings.totalAdminCredit` / `totalAdminDebit`: every
+  /// admin credit / debit, kept by the calling app's `adjustHostEarnings`.
+  /// Null on hosts whose map does not have them yet (before the backend
+  /// update and its backfill); Host Details then adds up the ledger.
+  final double? totalAdminCredit;
+  final double? totalAdminDebit;
+
+  bool get hasStoredAdminTotals =>
+      totalAdminCredit != null && totalAdminDebit != null;
   final bool isOnline;
   final DateTime? lastOnline;
+
+  /// `hostDetails.approvedAt`: when an admin approved the host request.
+  /// Null for hosts approved before the date was recorded.
+  final DateTime? approvedAt;
 
   String get initials => NameFormatter.initials(name);
 
@@ -80,6 +97,8 @@ class AdminHost {
     HostGender? gender,
     HostLanguage? motherTongue,
     Set<HostLanguage>? languages,
+    double? totalAdminCredit,
+    double? totalAdminDebit,
   }) {
     return AdminHost(
       createdDate: createdDate,
@@ -105,8 +124,11 @@ class AdminHost {
       profileImageUrl: profileImageUrl,
       totalRevenue: totalRevenue,
       availableBalance: availableBalance,
+      totalAdminCredit: totalAdminCredit ?? this.totalAdminCredit,
+      totalAdminDebit: totalAdminDebit ?? this.totalAdminDebit,
       isOnline: isOnline,
       lastOnline: lastOnline,
+      approvedAt: approvedAt,
     );
   }
 }

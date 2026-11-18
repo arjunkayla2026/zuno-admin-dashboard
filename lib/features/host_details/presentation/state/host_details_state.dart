@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:zuno_admin_dashboard/core/data/cursor_pager.dart';
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/core/enums/wallet_adjustment_type.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_stat_cards.dart';
+import 'package:zuno_admin_dashboard/features/host_details/data/models/admin_adjustment_totals.dart';
 import 'package:zuno_admin_dashboard/features/host_details/data/models/host_earnings_totals.dart';
 import 'package:zuno_admin_dashboard/features/host_details/data/models/wallet_transaction.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/models/admin_host.dart';
@@ -19,6 +22,7 @@ class HostDetailsState {
     this.tab = HostDetailsTab.calls,
     this.walletFilter = WalletFilter.all,
     this.totals,
+    this.ledgerAdjustments,
     this.withdrawalCount,
     this.withdrawals = const CursorPageView(
       items: <Withdrawal>[],
@@ -37,12 +41,30 @@ class HostDetailsState {
   final HostDetailsTab tab;
   final WalletFilter walletFilter;
   final HostEarningsTotals? totals;
+
+  /// Admin credit / debit added up from the host's ledger entries.
+  final AdminAdjustmentTotals? ledgerAdjustments;
   final int? withdrawalCount;
   final CursorPageView<Withdrawal> withdrawals;
   final CursorPageView<WalletTransaction> wallet;
   final bool adjusting;
 
-  double get openTotal => totals?.openTotal ?? 0;
+  /// Total of the host's admin credits from the ledger; until that loads
+  /// (or if it fails) the stored `hostEarnings.totalAdminCredit`, if any.
+  double? get adminCreditTotal =>
+      ledgerAdjustments?.credit ?? host.totalAdminCredit;
+
+  /// Total of the host's admin debits from the ledger; until that loads
+  /// (or if it fails) the stored `hostEarnings.totalAdminDebit`, if any.
+  double? get adminDebitTotal =>
+      ledgerAdjustments?.debit ?? host.totalAdminDebit;
+
+  /// Total Revenue less what has been paid out; null until the payout
+  /// totals load.
+  double? get pendingWithdrawals {
+    final paid = totals?.paidTotal;
+    return paid == null ? null : math.max(host.totalRevenue - paid, 0);
+  }
 
   WalletAdjustmentType? get walletType => switch (walletFilter) {
     WalletFilter.all => null,
@@ -57,6 +79,9 @@ class HostDetailsState {
         : NumberFormatter.rupeesAmount(value);
 
     return [
+      // Total Revenue: `hostDetails.hostEarnings.totalEarnings`.
+      // Successful: `totalAmount` of `success` payouts. Pending: Total
+      // Revenue − Successful, never below zero.
       AppStat(
         label: AppStrings.totalRevenue,
         value: NumberFormatter.rupeesAmount(host.totalRevenue),
@@ -67,19 +92,20 @@ class HostDetailsState {
       ),
       AppStat(
         label: AppStrings.totalPendingWithdrawals,
-        value: amount(totals?.pendingTotal),
+        value: amount(pendingWithdrawals),
       ),
+      // `hostDetails.hostEarnings.availableBalance`.
       AppStat(
         label: AppStrings.availableWalletAmount,
         value: NumberFormatter.rupeesAmount(host.availableBalance),
       ),
       AppStat(
         label: AppStrings.totalCreditFromAdmin,
-        value: amount(totals?.adminCredit),
+        value: amount(adminCreditTotal),
       ),
       AppStat(
         label: AppStrings.totalDebitFromAdmin,
-        value: amount(totals?.adminDebit),
+        value: amount(adminDebitTotal),
       ),
       AppStat(
         label: AppStrings.deletedAccountAdminProfit,
@@ -95,6 +121,9 @@ class HostDetailsState {
     HostDetailsTab? tab,
     WalletFilter? walletFilter,
     HostEarningsTotals? totals,
+    bool clearTotals = false,
+    AdminAdjustmentTotals? ledgerAdjustments,
+    bool clearLedgerAdjustments = false,
     int? withdrawalCount,
     CursorPageView<Withdrawal>? withdrawals,
     CursorPageView<WalletTransaction>? wallet,
@@ -104,7 +133,10 @@ class HostDetailsState {
       host: host ?? this.host,
       tab: tab ?? this.tab,
       walletFilter: walletFilter ?? this.walletFilter,
-      totals: totals ?? this.totals,
+      totals: clearTotals ? null : totals ?? this.totals,
+      ledgerAdjustments: clearLedgerAdjustments
+          ? null
+          : ledgerAdjustments ?? this.ledgerAdjustments,
       withdrawalCount: withdrawalCount ?? this.withdrawalCount,
       withdrawals: withdrawals ?? this.withdrawals,
       wallet: wallet ?? this.wallet,

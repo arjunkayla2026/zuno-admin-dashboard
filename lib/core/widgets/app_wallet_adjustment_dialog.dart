@@ -24,17 +24,27 @@ class WalletAdjustment {
 Future<WalletAdjustment?> showWalletAdjustmentDialog({
   required BuildContext context,
   required double walletBalance,
+  String Function(String limit) debitLimitMessage =
+      AppStrings.debitExceedsBalance,
 }) {
   return showAppDialog<WalletAdjustment>(
     context: context,
-    builder: (_) => AppWalletAdjustmentDialog(walletBalance: walletBalance),
+    builder: (_) => AppWalletAdjustmentDialog(
+      walletBalance: walletBalance,
+      debitLimitMessage: debitLimitMessage,
+    ),
   );
 }
 
 class AppWalletAdjustmentDialog extends StatefulWidget {
-  const AppWalletAdjustmentDialog({super.key, required this.walletBalance});
+  const AppWalletAdjustmentDialog({
+    super.key,
+    required this.walletBalance,
+    this.debitLimitMessage = AppStrings.debitExceedsBalance,
+  });
 
   final double walletBalance;
+  final String Function(String limit) debitLimitMessage;
 
   @override
   State<AppWalletAdjustmentDialog> createState() =>
@@ -62,7 +72,7 @@ class _AppWalletAdjustmentDialogState extends State<AppWalletAdjustmentDialog> {
 
   String? get _amountError {
     if (_exceedsBalance) {
-      return AppStrings.debitExceedsBalance(
+      return widget.debitLimitMessage(
         NumberFormatter.rupeesAmount(widget.walletBalance),
       );
     }

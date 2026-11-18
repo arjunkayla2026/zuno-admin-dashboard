@@ -90,8 +90,11 @@ class HostTableRow extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: HostStatusBadges(host: host),
             ),
+            // The host's earnings wallet
+            // (`hostDetails.hostEarnings.availableBalance`), not the
+            // user-side coin wallet.
             wallet: Text(
-              NumberFormatter.rupees(host.walletBalance),
+              NumberFormatter.rupeesAmount(host.availableBalance),
               style: AppTextStyles.labelMedium.copyWith(
                 color: textColor,
                 fontWeight: FontWeight.w700,

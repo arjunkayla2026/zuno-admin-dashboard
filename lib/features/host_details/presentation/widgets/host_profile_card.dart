@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
+import 'package:zuno_admin_dashboard/core/utils/name_formatter.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
@@ -27,6 +28,14 @@ class HostProfileCard extends StatelessWidget {
   static const EdgeInsets _padding = EdgeInsets.fromLTRB(22, 20, 20, 22);
 
   final AdminHost host;
+
+  static String _dateTime(DateTime? date) => switch (date) {
+    final date? => AppStrings.dateTimeValue(
+      DateFormatter.short(date),
+      DateFormatter.time(date),
+    ),
+    null => AppStrings.emptyValue,
+  };
 
   void _onAction(BuildContext context, AppMenuAction action) {
     final cubit = context.read<HostDetailsCubit>();
@@ -56,7 +65,7 @@ class HostProfileCard extends StatelessWidget {
           Row(
             children: [
               AppInitialsAvatar(
-                initials: host.initials,
+                initials: NameFormatter.initials(host.fullName),
                 color: palette[host.avatarIndex % palette.length],
                 size: _avatarSize,
                 borderRadius: BorderRadius.circular(_avatarRadius),
@@ -65,22 +74,11 @@ class HostProfileCard extends StatelessWidget {
               ),
               const SizedBox(width: _avatarGap),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      host.name,
-                      style: AppTextStyles.headlineSmall.copyWith(
-                        color: textColor,
-                      ),
-                    ),
-                    Text(
-                      host.fullName,
-                      style: AppTextStyles.captionSmall.copyWith(
-                        color: context.appColors.textSecondary,
-                      ),
-                    ),
-                  ],
+                // `hostDetails.fullName`, the host's real name (falls back to
+                // the username when the host never entered one).
+                child: Text(
+                  host.fullName,
+                  style: AppTextStyles.headlineSmall.copyWith(color: textColor),
                 ),
               ),
               if (host.hasActions)
@@ -109,6 +107,11 @@ class HostProfileCard extends StatelessWidget {
                 minWidth: 110,
               ),
               AppMetaField(
+                label: AppStrings.hostApprovedDate,
+                value: _dateTime(host.approvedAt),
+                minWidth: 150,
+              ),
+              AppMetaField(
                 label: AppStrings.phoneNumber,
                 value: host.phone,
                 minWidth: 130,
@@ -121,13 +124,7 @@ class HostProfileCard extends StatelessWidget {
               ),
               AppMetaField(
                 label: AppStrings.lastOnline,
-                value: switch (host.lastOnline) {
-                  final date? => AppStrings.dateTimeValue(
-                    DateFormatter.short(date),
-                    DateFormatter.time(date),
-                  ),
-                  null => AppStrings.emptyValue,
-                },
+                value: _dateTime(host.lastOnline),
                 minWidth: 150,
               ),
             ],

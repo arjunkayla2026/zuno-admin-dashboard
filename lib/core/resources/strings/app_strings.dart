@@ -132,6 +132,7 @@ abstract final class AppStrings {
   static const String active = 'Active';
   static const String accountCreatedDate = 'Account Created Date';
   static const String lastOnline = 'Last Online';
+  static const String hostApprovedDate = 'Host Approved Date';
   static const String totalRecharge = 'Total Recharge';
   static const String availableCoins = 'Available Coins';
   static const String availableCoinsAmount = 'Available Coins Amount';
@@ -376,7 +377,7 @@ abstract final class AppStrings {
       'Search user or host name, user mobile or host ID';
   static const String callNotFound =
       'Open a call from the Calls list to see its details.';
-  static const String ringing = 'Ringing';
+  static const String incoming = 'Incoming';
   static const String ongoing = 'Ongoing';
   static const String systemRole = 'System';
   static const String noAnswerReason = 'no answer';
@@ -506,6 +507,7 @@ abstract final class AppStrings {
   static const String payableAmount = 'Payable Amount';
   static const String receivableAmount = 'Receivable Amount';
   static const String receivableCoin = 'Receivable Coin';
+  static const String totalCoinsWithOffer = 'Total Coins (With Offer)';
   static const String offerTag = 'Offer Tag';
   static const String offerPercentage = 'Offer %';
   static const String offerPercentageField = 'Offer Percentage (%)';
@@ -941,6 +943,9 @@ abstract final class AppStrings {
 
   static String debitExceedsBalance(String balance) =>
       'Debit cannot be more than the wallet balance of $balance.';
+
+  static String debitExceedsAvailableWallet(String amount) =>
+      'Debit cannot be more than the available wallet amount of $amount.';
 
   static const String signInSecurely = 'Sign in securely';
   static const String loginFailed =

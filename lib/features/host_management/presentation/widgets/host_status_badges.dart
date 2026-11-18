@@ -17,7 +17,7 @@ class HostStatusBadges extends StatelessWidget {
     HostStatus.inactive => (AppStrings.inactive, AppStatus.inactive),
     HostStatus.blocked => (AppStrings.blocked, AppStatus.blocked),
     HostStatus.deletedByAdmin => (AppStrings.deletedByAdmin, AppStatus.error),
-    HostStatus.deletedByUser => (AppStrings.deletedByUser, AppStatus.inactive),
+    HostStatus.deletedByUser => (AppStrings.deletedByHost, AppStatus.inactive),
   };
 
   @override

@@ -5,6 +5,7 @@ import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_data_table.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_status_badge.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/models/call_log.dart';
 import 'package:zuno_admin_dashboard/features/calls/presentation/widgets/call_log_labels.dart';
 
@@ -26,6 +27,7 @@ class CallsTable extends StatelessWidget {
     AppTableColumn(AppStrings.callEndTime, 99),
     AppTableColumn(AppStrings.callDuration, 98),
     AppTableColumn(AppStrings.callEndedBy, 160),
+    AppTableColumn(AppStrings.callStatus, 120),
     AppTableColumn(AppStrings.userSpendCoinsAmount, 160, alignEnd: true),
     AppTableColumn(AppStrings.spendInrChat, 112, alignEnd: true),
     AppTableColumn(AppStrings.hostRevenue, 106, alignEnd: true),
@@ -50,6 +52,7 @@ class CallsTable extends StatelessWidget {
       rows: [
         for (final (index, call) in calls.indexed)
           () {
+            final (statusLabel, status) = CallLogLabels.status(call);
             final duration = call.durationSeconds;
             final startedAt = call.startedAt;
             final endedAt = call.endedAt;
@@ -93,6 +96,7 @@ class CallsTable extends StatelessWidget {
                 style: cell,
               ),
               Text(CallLogLabels.endedBy(call), style: cell),
+              AppStatusBadge(label: statusLabel, status: status),
               Text(NumberFormatter.grouped(call.spendCoins), style: cell),
               Text(
                 NumberFormatter.rupeesAmount(call.spendRupees),

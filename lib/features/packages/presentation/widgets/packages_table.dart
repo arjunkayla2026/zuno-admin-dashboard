@@ -21,6 +21,7 @@ class PackagesTable extends StatelessWidget {
     AppTableColumn(AppStrings.payableAmount, 158, alignEnd: true),
     AppTableColumn(AppStrings.receivableAmount, 199, alignEnd: true),
     AppTableColumn(AppStrings.receivableCoin, 170, alignEnd: true),
+    AppTableColumn(AppStrings.totalCoinsWithOffer, 200, alignEnd: true),
     AppTableColumn('', 28),
     AppTableColumn(AppStrings.offerTag, 162),
     AppTableColumn(AppStrings.offerPercentage, 110),
@@ -50,7 +51,8 @@ class PackagesTable extends StatelessWidget {
               NumberFormatter.rupeesAmount(plan.receivableAmount),
               style: cell,
             ),
-            Text(NumberFormatter.grouped(plan.coins), style: strong),
+            Text(NumberFormatter.grouped(plan.coins), style: cell),
+            Text(NumberFormatter.grouped(plan.totalCoins), style: strong),
             const SizedBox.shrink(),
             plan.hasOfferTag
                 ? PackageOfferTag(label: plan.offerTag)

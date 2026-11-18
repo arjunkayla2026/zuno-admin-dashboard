@@ -3,8 +3,11 @@ import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/enums/wallet_adjustment_type.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/features/host_details/data/datasources/host_earnings_remote_data_source.dart';
+import 'package:zuno_admin_dashboard/features/host_details/data/models/admin_adjustment_totals.dart';
 import 'package:zuno_admin_dashboard/features/host_details/data/models/host_earnings_totals.dart';
 import 'package:zuno_admin_dashboard/features/host_details/data/models/wallet_transaction.dart';
+import 'package:zuno_admin_dashboard/features/host_management/data/models/admin_host.dart';
+import 'package:zuno_admin_dashboard/features/host_management/data/repositories/host_management_repository.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
 
 class HostEarningsRepository {
@@ -14,6 +17,21 @@ class HostEarningsRepository {
 
   Future<Either<Failure, HostEarningsTotals>> fetchTotals(String hostId) =>
       _dataSource.fetchTotals(hostId);
+
+  /// Admin credit / debit totals added up from the ledger, for hosts whose
+  /// `hostEarnings` map does not store them yet.
+  Future<Either<Failure, AdminAdjustmentTotals>> fetchLedgerAdjustments(
+    String hostId,
+  ) => _dataSource.fetchLedgerAdjustments(hostId);
+
+  /// The host as stored now, or null when the document is gone.
+  Future<Either<Failure, AdminHost?>> fetchHost(String hostId) async {
+    final result = await _dataSource.fetchHostRecord(hostId);
+    return result.map(
+      (record) =>
+          record == null ? null : HostManagementRepository.toAdminHost(record),
+    );
+  }
 
   Future<Either<Failure, int>> countWithdrawals(String hostId) =>
       _dataSource.countWithdrawals(hostId);
