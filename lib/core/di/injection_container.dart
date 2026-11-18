@@ -69,7 +69,10 @@ void configureDependencies() {
       () => AuthRemoteDataSource(FirebaseAuth.instance),
     )
     ..registerLazySingleton<AdminsRemoteDataSource>(
-      () => AdminsRemoteDataSource(FirebaseFirestore.instance),
+      () => AdminsRemoteDataSource(
+        FirebaseFirestore.instance,
+        FirebaseFunctions.instanceFor(region: _functionsRegion),
+      ),
     )
     ..registerLazySingleton<AuthRepository>(
       () => AuthRepository(

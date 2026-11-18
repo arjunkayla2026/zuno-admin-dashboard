@@ -131,9 +131,7 @@ class _AllowedVersionsCardState extends State<AllowedVersionsCard> {
                   InputChip(
                     label: Text(version, style: AppTextStyles.bodyMedium),
                     deleteButtonTooltipMessage: AppStrings.removeVersion,
-                    onDeleted: canEdit
-                        ? () => widget.onRemove(version)
-                        : null,
+                    onDeleted: canEdit ? () => widget.onRemove(version) : null,
                   ),
               ],
             ),
