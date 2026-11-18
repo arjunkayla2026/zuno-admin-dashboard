@@ -14,12 +14,16 @@ enum RechargeSourceFilter {
 
   final List<String>? types;
 
-  bool includes(RechargeTransaction transaction) => switch (this) {
-    RechargeSourceFilter.all => true,
-    RechargeSourceFilter.adminRecharges => transaction.isAdminRecharge,
-    RechargeSourceFilter.adminCreditDebit => transaction.isAdminAdjustment,
-    RechargeSourceFilter.gatewayPayments => transaction.isGatewayPayment,
-  };
+  /// Welcome bonuses and other non-recharge `transactions` documents are
+  /// never listed, whichever source is selected.
+  bool includes(RechargeTransaction transaction) =>
+      transaction.isListed &&
+      switch (this) {
+        RechargeSourceFilter.all => true,
+        RechargeSourceFilter.adminRecharges => transaction.isAdminRecharge,
+        RechargeSourceFilter.adminCreditDebit => transaction.isAdminAdjustment,
+        RechargeSourceFilter.gatewayPayments => transaction.isGatewayPayment,
+      };
 }
 
 enum RechargeStatusFilter {
@@ -49,7 +53,7 @@ class RechargeState {
     this.query = '',
     this.dateFilter = DateRangeFilter.today,
     this.customRange,
-    this.sourceFilter = RechargeSourceFilter.all,
+    this.sourceFilter = RechargeSourceFilter.adminRecharges,
     this.statusFilter = RechargeStatusFilter.all,
     this.page = 1,
     this.totalPages = 1,

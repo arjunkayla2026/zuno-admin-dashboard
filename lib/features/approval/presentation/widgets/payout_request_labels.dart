@@ -16,6 +16,6 @@ abstract final class PayoutRequestLabels {
     HostStatus.inactive => AppStrings.inactive,
     HostStatus.blocked => AppStrings.blocked,
     HostStatus.deletedByAdmin => AppStrings.deletedByAdmin,
-    HostStatus.deletedByUser => AppStrings.deletedByUser,
+    HostStatus.deletedByUser => AppStrings.deletedByHost,
   };
 }

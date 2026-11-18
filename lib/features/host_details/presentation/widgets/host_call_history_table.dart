@@ -16,7 +16,7 @@ class HostCallHistoryTable extends StatelessWidget {
   static const List<AppTableColumn> _columns = [
     AppTableColumn(AppStrings.date, 101),
     AppTableColumn(AppStrings.userName, 104),
-    AppTableColumn(AppStrings.userId, 86),
+    AppTableColumn(AppStrings.userId, 120),
     AppTableColumn(AppStrings.type, 84),
     AppTableColumn(AppStrings.callInitiatedTime, 125),
     AppTableColumn(AppStrings.callStartTime, 107),

@@ -61,7 +61,7 @@ class _PackageSheetState extends State<PackageSheet> {
   late PackagePreview? _preview = switch (widget.plan) {
     final plan? => (
       price: plan.rechargeAmount,
-      coins: plan.coins,
+      coins: plan.totalCoins,
       offerTag: plan.offerTag,
     ),
     null => null,
@@ -77,6 +77,11 @@ class _PackageSheetState extends State<PackageSheet> {
       NumberFormatter.tryParseAmount(controller.text) ?? 0;
 
   int get _coins => PackagePlan.coinsFor(_parse(_receivableController));
+
+  int get _totalCoins => PackagePlan.coinsWithOffer(
+    _parse(_receivableController),
+    _parse(_offerPercentageController),
+  );
 
   List<TextEditingController> get _controllers => [
     _payableController,
@@ -156,7 +161,7 @@ class _PackageSheetState extends State<PackageSheet> {
     setState(
       () => _preview = (
         price: _parse(_payableController),
-        coins: _coins,
+        coins: _totalCoins,
         offerTag: _offerTagController.text,
       ),
     );
@@ -248,7 +253,7 @@ class _PackageSheetState extends State<PackageSheet> {
           ? AppStrings.packageSheetSubtitle
           : AppStrings.packagePriceAndCoins(
               NumberFormatter.rupeesAmount(plan.rechargeAmount),
-              NumberFormatter.grouped(plan.coins),
+              NumberFormatter.grouped(plan.totalCoins),
             ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -303,6 +308,7 @@ class _PackageSheetState extends State<PackageSheet> {
               controller: _offerPercentageController,
               keyboardType: _decimalKeyboard,
               inputFormatters: [_amountFormatter],
+              onChanged: (_) => setState(() {}),
               errorText: _offerPercentageError,
               dense: true,
             ),
@@ -313,6 +319,11 @@ class _PackageSheetState extends State<PackageSheet> {
             style: AppTextStyles.captionSmall.copyWith(
               color: context.appColors.textSecondary,
             ),
+          ),
+          const SizedBox(height: _fieldGap),
+          AppReadOnlyField(
+            label: AppStrings.totalCoinsWithOffer,
+            value: NumberFormatter.grouped(_totalCoins),
           ),
           const SizedBox(height: _previewTopGap),
           const AppSectionLabel(AppStrings.preview),

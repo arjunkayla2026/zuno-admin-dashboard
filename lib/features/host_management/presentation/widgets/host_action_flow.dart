@@ -74,7 +74,7 @@ Future<void> _confirmUnblock(
   );
   if (!confirmed || !context.mounted) return;
 
-  final status = host.isAccountActive ? HostStatus.active : HostStatus.inactive;
+  final status = host.isOnline ? HostStatus.active : HostStatus.inactive;
   await _persist(
     context,
     (actions) => actions.setBlocked(host, blocked: false),

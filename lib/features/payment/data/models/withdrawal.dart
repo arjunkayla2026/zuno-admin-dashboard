@@ -193,6 +193,10 @@ class Withdrawal {
 
   static String withdrawablePath(String field) => '$withdrawableField.$field';
 
+  /// Shown in a host's withdrawal history: open, pending and paid records,
+  /// not ones forfeited when the account was deleted.
+  bool get isListed => status != WithdrawalStatus.forfeited;
+
   static DateTime? _dayOf(Object? value) =>
       value is String ? DateTime.tryParse(value) : null;
 

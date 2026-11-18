@@ -17,6 +17,7 @@ class AdminUser {
       phone: record.phoneLabel,
       recharges: null,
       walletBalance: NumberFormatter.grouped(record.walletBalance.truncate()),
+      walletAmount: record.walletBalance.toDouble(),
       adminCredit: record.adminCredit.truncate(),
       adminDebit: record.adminDebit.truncate(),
       status: _statusOf(record),
@@ -40,6 +41,7 @@ class AdminUser {
     required this.userID,
     this.adminCredit = 0,
     this.adminDebit = 0,
+    this.walletAmount,
     this.updatedAt,
     this.imageUrl,
   });
@@ -50,7 +52,12 @@ class AdminUser {
   final String id;
   final String phone;
   final int? recharges;
+  /// `walletBalance` rounded down and grouped, for the user list.
   final String walletBalance;
+
+  /// The exact `walletBalance` in rupees (billing leaves up to six
+  /// decimals). Null only for users built without a Firestore record.
+  final double? walletAmount;
   final UserStatus status;
   final int avatarIndex;
   final String userID;
@@ -74,6 +81,10 @@ class AdminUser {
     return UserStatus.active;
   }
 
+  /// Exact wallet balance in rupees; coins are worked out from this.
+  double get walletRupees =>
+      walletAmount ?? NumberFormatter.parse(walletBalance).toDouble();
+
   bool get hasActions =>
       status != UserStatus.deletedByAdmin && status != UserStatus.deletedByUser;
 
@@ -89,7 +100,7 @@ class AdminUser {
     String? initials,
     String? phone,
     UserStatus? status,
-    String? walletBalance,
+    double? walletAmount,
     int? adminCredit,
     int? adminDebit,
   }) {
@@ -101,7 +112,10 @@ class AdminUser {
       userID: userID,
       phone: phone ?? this.phone,
       recharges: recharges,
-      walletBalance: walletBalance ?? this.walletBalance,
+      walletBalance: walletAmount == null
+          ? walletBalance
+          : NumberFormatter.grouped(walletAmount.truncate()),
+      walletAmount: walletAmount ?? this.walletAmount,
       adminCredit: adminCredit ?? this.adminCredit,
       adminDebit: adminDebit ?? this.adminDebit,
       status: status ?? this.status,

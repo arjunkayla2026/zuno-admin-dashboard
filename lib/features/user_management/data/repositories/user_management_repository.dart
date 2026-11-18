@@ -115,6 +115,14 @@ class UserManagementRepository {
   Future<Either<Failure, Unit>> delete(AdminUser user) =>
       _dataSource.markDeletedByAdmin(user.id);
 
+  /// The user's current document, or null when it no longer exists.
+  Future<Either<Failure, AdminUser?>> fetchUser(String id) async {
+    final result = await _dataSource.fetchByIds([id]);
+    return result.map(
+      (records) => records.isEmpty ? null : AdminUser.fromRecord(records.first),
+    );
+  }
+
   Future<Either<Failure, double>> fetchDeletedAccountProfit(AdminUser user) =>
       user.hasActions
       ? Future.value(right(0))

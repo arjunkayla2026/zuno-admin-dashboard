@@ -26,7 +26,8 @@ class HostHistoryTabBar extends StatelessWidget {
     final messenger = ScaffoldMessenger.of(context);
     final adjustment = await showWalletAdjustmentDialog(
       context: context,
-      walletBalance: cubit.state.openTotal,
+      walletBalance: cubit.state.host.availableBalance,
+      debitLimitMessage: AppStrings.debitExceedsAvailableWallet,
     );
     if (adjustment == null) return;
     final error = await cubit.adjustWallet(adjustment);

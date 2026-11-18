@@ -111,6 +111,18 @@ class CallsRemoteDataSource {
     ];
   });
 
+  /// The call whose document ID is exactly [id], whatever its date, or null
+  /// when there is none.
+  Future<Either<Failure, CallLog?>> fetchById(String id) =>
+      DataAction.read('calls.fetchById', () async {
+        final snapshot = await _firestore
+            .collection(CallLog.collection)
+            .doc(id)
+            .get();
+        final data = snapshot.data();
+        return data == null ? null : CallLog.fromDocument(snapshot.id, data);
+      });
+
   Future<Either<Failure, CallStatistics>> fetchStatistics({
     DateTime? from,
     DateTime? until,

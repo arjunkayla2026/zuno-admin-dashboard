@@ -12,7 +12,7 @@ abstract final class CallLogLabels {
   static (String, AppStatus) status(CallLog call) {
     if (call.isLowBalance) return (AppStrings.lowBalance, AppStatus.pending);
     return switch (call.status) {
-      CallLogStatus.ringing => (AppStrings.ringing, AppStatus.pending),
+      CallLogStatus.ringing => (AppStrings.incoming, AppStatus.pending),
       CallLogStatus.ongoing => (AppStrings.ongoing, AppStatus.active),
       CallLogStatus.completed => (AppStrings.completed, AppStatus.active),
       CallLogStatus.busy => (AppStrings.busy, AppStatus.pending),
@@ -31,8 +31,11 @@ abstract final class CallLogLabels {
       null => null,
     };
     if (party == null) return AppStrings.emptyValue;
-    if (call.endedBy != CallEndedBy.system) return party;
+    // A plain hang-up (`participantLeft` / `endedByParticipant`) needs no
+    // reason; every other ending says why.
     final reason = switch (call.endReason) {
+      CallLog.cancelledByCustomerReason => AppStrings.cancelledReason,
+      CallLog.rejectedByHostReason => AppStrings.rejectedReason,
       CallLog.noAnswerReason => AppStrings.noAnswerReason,
       CallLog.hostUnreachableReason => AppStrings.hostUnreachableReason,
       CallLog.connectionFailedReason => AppStrings.connectionFailedReason,

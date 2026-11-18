@@ -132,6 +132,7 @@ abstract final class AppStrings {
   static const String active = 'Active';
   static const String accountCreatedDate = 'Account Created Date';
   static const String lastOnline = 'Last Online';
+  static const String hostApprovedDate = 'Host Approved Date';
   static const String totalRecharge = 'Total Recharge';
   static const String availableCoins = 'Available Coins';
   static const String availableCoinsAmount = 'Available Coins Amount';
@@ -218,6 +219,8 @@ abstract final class AppStrings {
   static const String searchHostsHint = 'Search mobile, name or host ID';
   static const String allHosts = 'All Hosts';
   static const String newHosts = 'New Hosts';
+  static const String activeHosts = 'Active Hosts';
+  static const String inactiveHosts = 'Inactive Hosts';
   static const String blockedHosts = 'Blocked Hosts';
   static const String hostId = 'Host ID';
   static const String inactive = 'Inactive';
@@ -374,7 +377,7 @@ abstract final class AppStrings {
       'Search user or host name, user mobile or host ID';
   static const String callNotFound =
       'Open a call from the Calls list to see its details.';
-  static const String ringing = 'Ringing';
+  static const String incoming = 'Incoming';
   static const String ongoing = 'Ongoing';
   static const String systemRole = 'System';
   static const String noAnswerReason = 'no answer';
@@ -382,6 +385,8 @@ abstract final class AppStrings {
   static const String connectionFailedReason = 'connection failed';
   static const String connectionLostReason = 'connection lost';
   static const String timeLimitReason = 'time limit reached';
+  static const String cancelledReason = 'cancelled';
+  static const String rejectedReason = 'rejected';
 
   static String endedByReason(String party, String reason) =>
       '$party – $reason';
@@ -391,8 +396,6 @@ abstract final class AppStrings {
 
   static String perMinute(String amount) => '$amount/min';
 
-  static String hostWithCallType(String type) => ' · $type';
-
   static const String callDetails = 'Call Details';
   static const String backToCalls = 'Back to calls';
   static const String audioCallTitle = 'Audio call';
@@ -401,8 +404,8 @@ abstract final class AppStrings {
   static const String userSpend = 'User spend';
   static const String revenueSplit = 'Revenue split';
   static const String callId = 'Call ID';
-  static const String sessionId = 'Session ID';
   static const String callTypeField = 'Call type';
+  static const String callType = 'Call Type';
   static const String totalHostRevenue = 'Total Host Revenue';
   static const String userRole = 'User';
   static const String hostRole = 'Host';
@@ -502,6 +505,7 @@ abstract final class AppStrings {
   static const String payableAmount = 'Payable Amount';
   static const String receivableAmount = 'Receivable Amount';
   static const String receivableCoin = 'Receivable Coin';
+  static const String totalCoinsWithOffer = 'Total Coins (With Offer)';
   static const String offerTag = 'Offer Tag';
   static const String offerPercentage = 'Offer %';
   static const String offerPercentageField = 'Offer Percentage (%)';
@@ -831,9 +835,6 @@ abstract final class AppStrings {
   static const String notificationSendDenied =
       'Your account is not allowed to send notifications.';
 
-  static String notificationSentMessage(String topics) =>
-      'Sent to every device subscribed to $topics.';
-
   static String hostsForLanguages(String languages) => 'Hosts ($languages)';
 
   static const String screenPlacement = 'Screen placement';
@@ -936,12 +937,18 @@ abstract final class AppStrings {
   static String debitExceedsBalance(String balance) =>
       'Debit cannot be more than the wallet balance of $balance.';
 
+  static String debitExceedsAvailableWallet(String amount) =>
+      'Debit cannot be more than the available wallet amount of $amount.';
+
   static const String signInSecurely = 'Sign in securely';
   static const String loginFailed =
       'Email or password is incorrect. Check your details and try again. '
       'Only approved admins can sign in.';
   static const String aadhaarFront = 'Aadhaar Front';
   static const String aadhaarBack = 'Aadhaar Back';
+
+  static String documentSlideLabel(String side, int page, int count) =>
+      '$side · $page/$count';
   static const String documentAlreadyReviewed =
       'This document has already been reviewed.';
   static const String hostRequestNotReady =
@@ -984,6 +991,9 @@ abstract final class AppStrings {
   static String unblockUserTitle(String name) => 'Unblock $name?';
 
   static const String retry = 'Retry';
+  static const String refresh = 'Refresh';
+  static const String dashboardRefreshFailed =
+      'Some figures could not be refreshed. Showing the last loaded values.';
   static const String recordsLoadFailed =
       'Could not load these records. Try again.';
   static const String recordsNetworkError =

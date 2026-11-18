@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:zuno_admin_dashboard/core/utils/coin_converter.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/features/packages/data/models/package_status.dart';
 
@@ -17,7 +18,7 @@ class PackagePlan {
   });
 
   static const double gstRate = 0.18;
-  static const double coinsPerRupee = 15;
+  static const double coinsPerRupee = CoinConverter.coinsPerRupee;
   static const double maxOfferPercentage = 100;
 
   static const String rechargeAmountField = 'rechargeAmount';
@@ -59,6 +60,21 @@ class PackagePlan {
 
   static int coinsFor(double receivable) =>
       (receivable * coinsPerRupee).round();
+
+  /// Coins a purchase credits, offer included, rounded step by step like the
+  /// calling app's recharge functions: the offer is a percentage of the
+  /// receivable amount, each rupee amount is rounded to the paisa, and the
+  /// total converts at [coinsPerRupee]. Display only; `coins` stays the base.
+  static int coinsWithOffer(double receivable, double offerPercentage) {
+    final amount = NumberFormatter.roundAmount(receivable);
+    final offer = offerPercentage > 0
+        ? NumberFormatter.roundAmount(amount * offerPercentage / 100)
+        : 0.0;
+    return (NumberFormatter.roundAmount(amount + offer) * coinsPerRupee)
+        .round();
+  }
+
+  int get totalCoins => coinsWithOffer(receivableAmount, offerPercentage);
 
   /// The backend records `rechargeAmount - receivableAmount` as GST and
   /// refuses a package where that is negative.

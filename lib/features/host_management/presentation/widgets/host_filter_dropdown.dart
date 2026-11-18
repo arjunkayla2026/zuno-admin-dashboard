@@ -9,9 +9,10 @@ class HostFilterDropdown extends StatelessWidget {
   const HostFilterDropdown({super.key});
 
   static String _label(HostFilter filter) => switch (filter) {
-    HostFilter.today => AppStrings.today,
     HostFilter.all => AppStrings.allHosts,
+    HostFilter.active => AppStrings.activeHosts,
     HostFilter.newHosts => AppStrings.newHosts,
+    HostFilter.inactive => AppStrings.inactiveHosts,
     HostFilter.blocked => AppStrings.blockedHosts,
     HostFilter.deletedByAdmin => AppStrings.deletedByAdmin,
     HostFilter.deletedByUser => AppStrings.deletedByHost,

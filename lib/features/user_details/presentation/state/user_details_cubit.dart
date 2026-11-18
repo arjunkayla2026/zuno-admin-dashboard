@@ -4,7 +4,6 @@ import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/core/enums/wallet_adjustment_type.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_wallet_adjustment_dialog.dart';
-import 'package:zuno_admin_dashboard/features/packages/data/models/package_plan.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/repositories/recharge_repository.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_details_state.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
@@ -22,15 +21,36 @@ class UserDetailsCubit extends Cubit<UserDetailsState> {
   final UserManagementRepository _users;
   final ValueChanged<AdminUser>? _onUserChanged;
 
+  /// Loads the transaction totals and re-reads the user document, since
+  /// the [AdminUser] the page opened with is a snapshot from the user list
+  /// and the wallet changes with every call, message and recharge.
   Future<void> loadRechargeSummary() async {
-    final result = await _repository.fetchUserSummary(state.user.id);
+    final id = state.user.id;
+    final (summaryResult, userResult) = await (
+      _repository.fetchUserSummary(id),
+      _users.fetchUser(id),
+    ).wait;
     if (isClosed) return;
-    result.match(
+    userResult.match((_) {}, (fresh) {
+      if (fresh == null) return;
+      updateUser(
+        state.user.copyWith(
+          walletAmount: fresh.walletRupees,
+          name: fresh.name,
+          initials: fresh.initials,
+          phone: fresh.phone,
+          status: fresh.status,
+        ),
+      );
+    });
+    summaryResult.match(
       (_) => emit(state.copyWith(summaryStatus: LoadStatus.failure)),
       (summary) => emit(
         state.copyWith(
           totalRecharge: summary.totalRecharge,
-          availableCoins: summary.receivedCoins,
+          receivableTopUp: summary.receivableTopUp,
+          adminCreditTotal: summary.adminCredit,
+          adminDebitTotal: summary.adminDebit,
           summaryStatus: LoadStatus.loaded,
         ),
       ),
@@ -57,28 +77,24 @@ class UserDetailsCubit extends Cubit<UserDetailsState> {
   }
 
   void applyWalletBalance(num walletBalance) {
-    updateUser(
-      state.user.copyWith(
-        walletBalance: NumberFormatter.grouped(walletBalance.truncate()),
-      ),
-    );
+    updateUser(state.user.copyWith(walletAmount: walletBalance.toDouble()));
   }
 
   void adjustWallet(WalletAdjustment adjustment) {
     final isCredit = adjustment.type == WalletAdjustmentType.credit;
     final amount = adjustment.amount;
     final current = state.user;
-    final balance = state.walletBalance + (isCredit ? amount : -amount);
-    final coins = PackagePlan.coinsFor(amount.toDouble());
+    final balance = current.walletRupees + (isCredit ? amount : -amount);
     final user = current.copyWith(
-      walletBalance: NumberFormatter.grouped(balance),
+      walletAmount: NumberFormatter.roundAmount(balance),
       adminCredit: isCredit ? current.adminCredit + amount : null,
       adminDebit: isCredit ? null : current.adminDebit + amount,
     );
     emit(
       state.copyWith(
         user: user,
-        availableCoins: state.availableCoins + (isCredit ? coins : -coins),
+        adminCreditTotal: isCredit ? state.adminCreditTotal + amount : null,
+        adminDebitTotal: isCredit ? null : state.adminDebitTotal + amount,
       ),
     );
     _onUserChanged?.call(user);
