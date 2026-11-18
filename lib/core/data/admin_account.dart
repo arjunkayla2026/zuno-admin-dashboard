@@ -60,6 +60,7 @@ class AdminAccount {
   static const String createdAtField = 'createdAt';
   static const String updatedAtField = 'updatedAt';
   static const int minPasswordLength = 6;
+  static const int phoneLength = 10;
 
   final String id;
   final String name;
@@ -70,6 +71,13 @@ class AdminAccount {
   final DateTime? createdAt;
 
   static String normalizeEmail(String email) => email.trim().toLowerCase();
+
+  static String phoneDigits(String phone) {
+    final digits = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    return digits.length > phoneLength
+        ? digits.substring(digits.length - phoneLength)
+        : digits;
+  }
 
   static String? _text(Object? value) {
     if (value is! String) return null;
@@ -90,7 +98,11 @@ class AdminAccount {
 
   bool get hasAllModules => role == AdminRole.superAdmin;
 
-  bool get canManageAdmins => hasAllModules;
+  bool get canManageAdmins => canAccess(AdminNavItem.settings);
+
+  bool get canChangeAdminPasswords => hasAllModules;
+
+  bool get canGrantSuperAdmin => hasAllModules;
 
   List<AdminNavItem> get accessibleModules =>
       hasAllModules ? AdminNavItem.values : modules;

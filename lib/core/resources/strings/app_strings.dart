@@ -774,6 +774,14 @@ abstract final class AppStrings {
   static const String enterName = 'Enter a name.';
   static const String enterValidEmail = 'Enter a valid email.';
   static const String enterValidPhone = 'Enter a valid phone number.';
+  static const String enterTenDigitPhone = 'Enter a 10-digit phone number.';
+  static const String enterAdminPassword = 'Enter a password.';
+  static const String passwordTooShort = 'Use at least 6 characters.';
+  static const String selectAllModules = 'Select all';
+  static const String superAdminAllModules =
+      'Super admins can open every module.';
+  static const String adminSaveDenied =
+      'You do not have permission to add or edit admins.';
   static const String chooseModule = 'Choose at least one module.';
   static const String adminEmailExists =
       'An admin with this email already exists.';
@@ -781,23 +789,13 @@ abstract final class AppStrings {
       'At least 6 characters. Share it with the admin so they can sign in. '
       'If this email already has a login, its current password is kept.';
   static const String editAdminPasswordHelper =
-      'Optional. Creates a login with this password if the admin does not '
-      'have one yet. Leave blank to keep their current login.';
-  static const String adminLoginExists =
-      'This admin already has a login, and its password cannot be changed '
-      'here. Clear the password field to save the other changes.';
-  static const String passwordTooShort = 'Use at least 6 characters.';
-  static const String adminLoginWeakPassword =
-      'This password was rejected. Choose a stronger one.';
-  static const String adminLoginsDisabled =
-      'Email and password sign-in is turned off for this project.';
-  static const String adminLoginCreateFailed =
-      'Could not create the login for this admin. Try again.';
+      "Optional. Enter a new password to change this admin's password, or "
+      'leave blank to keep the current one.';
   static const String noAdminsTitle = 'No admins yet';
   static const String noAdminsMessage =
       'Add a team member to give them access to the admin panel.';
   static const String superAdminsManageAdmins =
-      'Only super admins can add or edit admins.';
+      'Only admins with Settings access can add or edit admins.';
   static const String noModuleAccessTitle = 'No access to this module';
   static const String noModuleAccessMessage =
       'Your account does not have permission to open this module. Ask a '

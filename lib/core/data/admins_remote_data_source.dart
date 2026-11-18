@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/admin_account.dart';
 import 'package:zuno_admin_dashboard/core/data/firestore_failures.dart';
@@ -8,13 +7,16 @@ import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 
 class AdminsRemoteDataSource {
-  const AdminsRemoteDataSource(this._firestore);
+  const AdminsRemoteDataSource(this._firestore, this._functions);
 
   static const String _collection = 'admin';
-  static const String _loginAppName = 'admin-logins';
-  static const String _emailInUse = 'email-already-in-use';
+  static const String _saveFunction = 'saveAdminAccount';
+  static const String _idKey = 'id';
+  static const String _passwordKey = 'password';
+  static const Duration _timeout = Duration(minutes: 1);
 
   final FirebaseFirestore _firestore;
+  final FirebaseFunctions _functions;
 
   CollectionReference<Map<String, dynamic>> get _admins =>
       _firestore.collection(_collection);
@@ -66,63 +68,39 @@ class AdminsRemoteDataSource {
     return result.map((_) => reference.id);
   }
 
-  Future<Either<Failure, Unit>> updateAdmin(AdminAccount admin) {
-    if (admin.id.isEmpty) {
-      return Future.value(
-        left(const DataFailure(AppStrings.recordsSaveFailed)),
-      );
-    }
-    final fields = admin.toFields()..remove(AdminAccount.emailField);
-    return _write(
-      () => _admins.doc(admin.id).update({
-        ...fields,
-        AdminAccount.updatedAtField: FieldValue.serverTimestamp(),
-      }),
-    );
-  }
-
-  Future<Either<Failure, Unit>> createLogin({
-    required String email,
-    required String password,
-    bool keepExisting = true,
+  Future<Either<Failure, String>> saveAdmin(
+    AdminAccount admin, {
+    String? password,
   }) async {
-    FirebaseAuth? auth;
     try {
-      final app =
-          Firebase.apps.where((app) => app.name == _loginAppName).firstOrNull ??
-          await Firebase.initializeApp(
-            name: _loginAppName,
-            options: _firestore.app.options,
-          );
-      auth = FirebaseAuth.instanceFor(app: app);
-      await auth.setPersistence(Persistence.NONE);
-      await auth.createUserWithEmailAndPassword(
-        email: AdminAccount.normalizeEmail(email),
-        password: password,
-      );
-      return right(unit);
-    } on FirebaseAuthException catch (error) {
-      if (error.code == _emailInUse) {
-        return keepExisting
-            ? right(unit)
-            : left(const DataFailure(AppStrings.adminLoginExists));
-      }
-      return left(_loginFailure(error.code));
+      final result = await _functions
+          .httpsCallable(
+            _saveFunction,
+            options: HttpsCallableOptions(timeout: _timeout),
+          )
+          .call<Map<Object?, Object?>>({
+            ...admin.toFields(),
+            if (admin.id.isNotEmpty) _idKey: admin.id,
+            _passwordKey: ?password,
+          });
+      final id = result.data[_idKey];
+      return id is String && id.isNotEmpty
+          ? right(id)
+          : left(const DataFailure(AppStrings.recordsSaveFailed));
+    } on FirebaseFunctionsException catch (error) {
+      return left(DataFailure(_saveFailure(error)));
     } catch (_) {
-      return left(const DataFailure(AppStrings.adminLoginCreateFailed));
-    } finally {
-      await auth?.signOut().onError((_, _) {});
+      return left(const DataFailure(AppStrings.recordsSaveFailed));
     }
   }
 
-  static DataFailure _loginFailure(String code) => DataFailure(switch (code) {
-    'weak-password' ||
-    'password-does-not-meet-requirements' => AppStrings.adminLoginWeakPassword,
-    'invalid-email' => AppStrings.enterValidEmail,
-    'operation-not-allowed' => AppStrings.adminLoginsDisabled,
-    'network-request-failed' => AppStrings.recordsNetworkError,
-    _ => AppStrings.adminLoginCreateFailed,
-  });
+  static String _saveFailure(FirebaseFunctionsException error) =>
+      switch (error.code) {
+        'unavailable' || 'deadline-exceeded' => AppStrings.recordsNetworkError,
+        'unauthenticated' => AppStrings.adminSaveDenied,
+        'already-exists' => AppStrings.adminEmailExists,
+        _ => error.message ?? AppStrings.recordsSaveFailed,
+      };
 
   Future<Either<Failure, T>> _read<T>(Future<T> Function() action) async {
     try {

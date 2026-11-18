@@ -85,9 +85,7 @@ class AdminShell extends StatelessWidget {
                         : () => Scaffold.of(context).openDrawer(),
                   ),
                 ),
-                Expanded(
-                  child: AdminContentTransition(child: child),
-                ),
+                Expanded(child: AdminContentTransition(child: child)),
               ],
             ),
           ),

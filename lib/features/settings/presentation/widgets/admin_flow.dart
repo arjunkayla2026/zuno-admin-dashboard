@@ -9,10 +9,13 @@ import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/admi
 Future<void> openAdminSheet(BuildContext context, {AdminAccount? admin}) async {
   final cubit = context.read<SettingsCubit>();
   final session = context.read<AdminSessionCubit>();
+  final current = session.state.account;
   final saved = await showAppSideSheet<AdminAccount>(
     context: context,
     builder: (_) => AdminSheet(
       admin: admin,
+      canChangePassword: current?.canChangeAdminPasswords ?? false,
+      canGrantSuperAdmin: current?.canGrantSuperAdmin ?? false,
       onSave: (updated, password) =>
           cubit.saveAdmin(updated, replacing: admin, password: password),
     ),

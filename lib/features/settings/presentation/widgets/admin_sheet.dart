@@ -6,7 +6,6 @@ import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_nav_item.dart';
-import 'package:zuno_admin_dashboard/core/widgets/app_choice_chips.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_error_banner.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_field_row.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_labeled_dropdown_field.dart';
@@ -17,11 +16,20 @@ import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_side_sheet.dart';
 import 'package:zuno_admin_dashboard/core/widgets/password_visibility_toggle.dart';
 import 'package:zuno_admin_dashboard/core/data/admin_account.dart';
+import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/admin_permissions_field.dart';
 
 class AdminSheet extends StatefulWidget {
-  const AdminSheet({super.key, this.admin, required this.onSave});
+  const AdminSheet({
+    super.key,
+    this.admin,
+    required this.onSave,
+    this.canChangePassword = false,
+    this.canGrantSuperAdmin = false,
+  });
 
   final AdminAccount? admin;
+  final bool canChangePassword;
+  final bool canGrantSuperAdmin;
   final Future<String?> Function(AdminAccount admin, String? password) onSave;
 
   @override
@@ -31,8 +39,9 @@ class AdminSheet extends StatefulWidget {
 class _AdminSheetState extends State<AdminSheet> {
   static const double _fieldGap = 14;
   static const double _helperGap = 4;
-  static const double _chipsGap = 10;
-  static const int _minPhoneDigits = 10;
+  static final RegExp _phonePattern = RegExp(
+    '^[0-9]{${AdminAccount.phoneLength}}\$',
+  );
 
   late final _nameController = TextEditingController(
     text: widget.admin?.name ?? '',
@@ -41,12 +50,12 @@ class _AdminSheetState extends State<AdminSheet> {
     text: widget.admin?.email ?? '',
   );
   late final _phoneController = TextEditingController(
-    text: widget.admin?.phone ?? '',
+    text: AdminAccount.phoneDigits(widget.admin?.phone ?? ''),
   );
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   late AdminRole _role = widget.admin?.role ?? AdminRole.supportAdmin;
-  late Set<AdminNavItem> _modules = {...?widget.admin?.modules};
+  late Set<AdminNavItem> _modules = {...?widget.admin?.accessibleModules};
   bool _submitted = false;
   bool _saving = false;
   String? _errorMessage;
@@ -55,17 +64,36 @@ class _AdminSheetState extends State<AdminSheet> {
 
   bool get _emailValid => AppUtils.isValidEmail(_emailController.text);
 
-  bool get _phoneValid =>
-      _phoneController.text.replaceAll(RegExp(r'[^0-9]'), '').length >=
-      _minPhoneDigits;
+  bool get _phoneValid => _phonePattern.hasMatch(_phoneController.text.trim());
 
   bool get _isAdding => widget.admin == null;
 
   String get _password => _passwordController.text;
 
-  bool get _passwordValid =>
-      (!_isAdding && _password.isEmpty) ||
-      _password.length >= AdminAccount.minPasswordLength;
+  bool get _showPassword => _isAdding || widget.canChangePassword;
+
+  bool get _passwordValid {
+    if (!_showPassword) return true;
+    if (_password.isEmpty) return !_isAdding;
+    return _password.length >= AdminAccount.minPasswordLength;
+  }
+
+  String get _passwordError => _password.isEmpty
+      ? AppStrings.enterAdminPassword
+      : AppStrings.passwordTooShort;
+
+  bool get _roleLocked =>
+      !widget.canGrantSuperAdmin && widget.admin?.role == AdminRole.superAdmin;
+
+  List<AdminRole> get _roleOptions => [
+    for (final role in AdminRole.values)
+      if (widget.canGrantSuperAdmin || role != AdminRole.superAdmin) role,
+  ];
+
+  void _selectRole(AdminRole role) => setState(() {
+    _role = role;
+    if (role == AdminRole.superAdmin) _modules = {...AdminNavItem.values};
+  });
 
   bool get _modulesValid =>
       _role == AdminRole.superAdmin || _modules.isNotEmpty;
@@ -100,7 +128,7 @@ class _AdminSheetState extends State<AdminSheet> {
 
     final error = await widget.onSave(
       admin,
-      _password.isEmpty ? null : _password,
+      _showPassword && _password.isNotEmpty ? _password : null,
     );
     if (!mounted) return;
     if (error == null) {
@@ -129,7 +157,7 @@ class _AdminSheetState extends State<AdminSheet> {
       color: AppColors.segmentText,
     );
     final muted = context.appColors.textSecondary;
-    final modulesError = _error(_modulesValid, AppStrings.chooseModule);
+    final isSuperAdmin = _role == AdminRole.superAdmin;
 
     return AppSideSheet(
       title: isEditing ? AppStrings.editAdmin : AppStrings.addAdmin,
@@ -172,72 +200,62 @@ class _AdminSheetState extends State<AdminSheet> {
               controller: _phoneController,
               keyboardType: TextInputType.phone,
               inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[0-9+ ]')),
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(AdminAccount.phoneLength),
               ],
-              errorText: _error(_phoneValid, AppStrings.enterValidPhone),
+              errorText: _error(_phoneValid, AppStrings.enterTenDigitPhone),
               onChanged: (_) => setState(() {}),
             ),
           ),
-          const SizedBox(height: _fieldGap),
-          AppLabeledTextField(
-            label: AppStrings.password,
-            labelStyle: formLabel,
-            hint: '',
-            controller: _passwordController,
-            obscureText: _obscurePassword,
-            autofillHints: const [AutofillHints.newPassword],
-            textInputAction: TextInputAction.next,
-            errorText: _error(_passwordValid, AppStrings.passwordTooShort),
-            onChanged: (_) => setState(() {}),
-            suffix: PasswordVisibilityToggle(
-              obscured: _obscurePassword,
-              onPressed: () =>
-                  setState(() => _obscurePassword = !_obscurePassword),
-            ),
-          ),
-          const SizedBox(height: _helperGap),
-          Text(
-            _isAdding
-                ? AppStrings.adminPasswordHelper
-                : AppStrings.editAdminPasswordHelper,
-            style: AppTextStyles.captionSmall.copyWith(color: muted),
-          ),
-          const SizedBox(height: _fieldGap),
-          AppLabeledDropdownField<AdminRole>(
-            label: AppStrings.role,
-            labelStyle: formLabel,
-            hint: AppStrings.role,
-            value: _role,
-            options: AdminRole.values,
-            labelOf: (role) => role.label,
-            onChanged: (role) {
-              if (role != null) setState(() => _role = role);
-            },
-          ),
-          const SizedBox(height: _fieldGap),
-          Text(AppStrings.permissions, style: formLabel),
-          const SizedBox(height: _helperGap),
-          Text(
-            AppStrings.permissionsHelper,
-            style: AppTextStyles.captionSmall.copyWith(color: muted),
-          ),
-          const SizedBox(height: _chipsGap),
-          AppChoiceChips<AdminNavItem>(
-            options: AdminNavItem.values,
-            selected: _modules,
-            labelOf: (item) => item.label,
-            labelStyle: formLabel,
-            onChanged: (modules) => setState(() => _modules = modules),
-          ),
-          if (modulesError != null) ...[
-            const SizedBox(height: _helperGap),
-            Text(
-              modulesError,
-              style: AppTextStyles.captionSmall.copyWith(
-                color: context.colorScheme.error,
+          if (_showPassword) ...[
+            const SizedBox(height: _fieldGap),
+            AppLabeledTextField(
+              label: AppStrings.password,
+              labelStyle: formLabel,
+              hint: '',
+              controller: _passwordController,
+              obscureText: _obscurePassword,
+              autofillHints: const [AutofillHints.newPassword],
+              textInputAction: TextInputAction.next,
+              errorText: _error(_passwordValid, _passwordError),
+              onChanged: (_) => setState(() {}),
+              suffix: PasswordVisibilityToggle(
+                obscured: _obscurePassword,
+                onPressed: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
               ),
             ),
+            const SizedBox(height: _helperGap),
+            Text(
+              _isAdding
+                  ? AppStrings.adminPasswordHelper
+                  : AppStrings.editAdminPasswordHelper,
+              style: AppTextStyles.captionSmall.copyWith(color: muted),
+            ),
           ],
+          const SizedBox(height: _fieldGap),
+          if (_roleLocked)
+            AppReadOnlyField(label: AppStrings.role, value: _role.label)
+          else
+            AppLabeledDropdownField<AdminRole>(
+              label: AppStrings.role,
+              labelStyle: formLabel,
+              hint: AppStrings.role,
+              value: _role,
+              options: _roleOptions,
+              labelOf: (role) => role.label,
+              onChanged: (role) {
+                if (role != null) _selectRole(role);
+              },
+            ),
+          const SizedBox(height: _fieldGap),
+          AdminPermissionsField(
+            selected: isSuperAdmin ? {...AdminNavItem.values} : _modules,
+            labelStyle: formLabel,
+            enabled: !isSuperAdmin,
+            errorText: _error(_modulesValid, AppStrings.chooseModule),
+            onChanged: (modules) => setState(() => _modules = modules),
+          ),
           if (_errorMessage case final message?) ...[
             const SizedBox(height: _fieldGap),
             AppErrorBanner(message: message),

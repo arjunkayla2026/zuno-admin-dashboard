@@ -88,10 +88,7 @@ class SettingsCubit extends Cubit<SettingsState> {
                   if (item != version) item,
               ];
         emit(
-          state.copyWith(
-            allowedVersionSaving: false,
-            allowedVersions: updated,
-          ),
+          state.copyWith(allowedVersionSaving: false, allowedVersions: updated),
         );
         return null;
       },
