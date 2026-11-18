@@ -23,7 +23,7 @@ class PendingWithdrawalsTable extends StatelessWidget {
   static const List<AppTableColumn> _columns = [
     AppTableColumn(AppStrings.number, 60),
     AppTableColumn(AppStrings.hostName, 126),
-    AppTableColumn(AppStrings.hostId, 80),
+    AppTableColumn(AppStrings.hostId, 120),
     AppTableColumn(AppStrings.payoutPeriod, 190),
     AppTableColumn(AppStrings.totalCallsCount, 110, alignEnd: true),
     AppTableColumn(AppStrings.callDurationMinutes, 133, alignEnd: true),

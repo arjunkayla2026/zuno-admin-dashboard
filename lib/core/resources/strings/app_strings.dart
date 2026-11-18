@@ -396,8 +396,6 @@ abstract final class AppStrings {
 
   static String perMinute(String amount) => '$amount/min';
 
-  static String hostWithCallType(String type) => ' · $type';
-
   static const String callDetails = 'Call Details';
   static const String backToCalls = 'Back to calls';
   static const String audioCallTitle = 'Audio call';
@@ -406,8 +404,8 @@ abstract final class AppStrings {
   static const String userSpend = 'User spend';
   static const String revenueSplit = 'Revenue split';
   static const String callId = 'Call ID';
-  static const String sessionId = 'Session ID';
   static const String callTypeField = 'Call type';
+  static const String callType = 'Call Type';
   static const String totalHostRevenue = 'Total Host Revenue';
   static const String userRole = 'User';
   static const String hostRole = 'Host';
