@@ -18,12 +18,14 @@ class PaymentPage extends StatelessWidget {
     PaymentTab.withdrawalList => AdminSubNavItem.withdrawalList,
     PaymentTab.pending => AdminSubNavItem.pendingWithdrawals,
     PaymentTab.success => AdminSubNavItem.successfulWithdrawals,
+    PaymentTab.failed => AdminSubNavItem.failedWithdrawals,
   };
 
   static PaymentTab? _tabFor(AdminSubNavItem item) => switch (item) {
     AdminSubNavItem.withdrawalList => PaymentTab.withdrawalList,
     AdminSubNavItem.pendingWithdrawals => PaymentTab.pending,
     AdminSubNavItem.successfulWithdrawals => PaymentTab.success,
+    AdminSubNavItem.failedWithdrawals => PaymentTab.failed,
     _ => null,
   };
 

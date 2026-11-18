@@ -14,6 +14,7 @@ class PackagesState {
     this.firstIndex = 0,
     this.totalCount,
     this.activeCount,
+    this.purchaseCounts = const {},
   });
 
   final List<PackagePlan> packages;
@@ -25,6 +26,7 @@ class PackagesState {
   final int firstIndex;
   final int? totalCount;
   final int? activeCount;
+  final Map<String, int> purchaseCounts;
 
   PackagesState copyWith({
     List<PackagePlan>? packages,
@@ -36,6 +38,7 @@ class PackagesState {
     int? firstIndex,
     int? totalCount,
     int? activeCount,
+    Map<String, int>? purchaseCounts,
   }) {
     return PackagesState(
       packages: packages ?? this.packages,
@@ -47,6 +50,7 @@ class PackagesState {
       firstIndex: firstIndex ?? this.firstIndex,
       totalCount: totalCount ?? this.totalCount,
       activeCount: activeCount ?? this.activeCount,
+      purchaseCounts: purchaseCounts ?? this.purchaseCounts,
     );
   }
 }

@@ -10,6 +10,7 @@ import 'package:zuno_admin_dashboard/core/widgets/app_section_label.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_side_sheet.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_details_header.dart';
+import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_failure_details.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_labels.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_total_panel.dart';
 
@@ -19,6 +20,8 @@ class WithdrawalDetailsSheet extends StatelessWidget {
     required this.withdrawal,
     this.onMoveToPending,
     this.onWithdraw,
+    this.onMarkFailed,
+    this.onRetry,
   });
 
   static const double _headerGap = 18;
@@ -28,6 +31,8 @@ class WithdrawalDetailsSheet extends StatelessWidget {
   final Withdrawal withdrawal;
   final VoidCallback? onMoveToPending;
   final VoidCallback? onWithdraw;
+  final VoidCallback? onMarkFailed;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -103,6 +108,10 @@ class WithdrawalDetailsSheet extends StatelessWidget {
                 AppDetailItem(AppStrings.paidBy, value: withdrawal.paidByLabel),
             ],
           ),
+          if (withdrawal.hasFailure) ...[
+            const SizedBox(height: _sectionGap),
+            WithdrawalFailureDetails(withdrawal: withdrawal),
+          ],
           const SizedBox(height: _sectionGap),
           const AppSectionLabel(AppStrings.bankAccount),
           const SizedBox(height: _labelGap),
@@ -144,11 +153,22 @@ class WithdrawalDetailsSheet extends StatelessWidget {
               compact: true,
               onPressed: onMove,
             ),
+          if (onMarkFailed case final onMarkFailed?)
+            AppSecondaryButton(
+              label: AppStrings.markAsFailed,
+              onPressed: onMarkFailed,
+            ),
           if (onWithdraw case final onWithdraw?)
             AppPrimaryButton(
               label: AppStrings.withdraw,
               compact: true,
               onPressed: onWithdraw,
+            ),
+          if (onRetry case final onRetry?)
+            AppPrimaryButton(
+              label: AppStrings.retryPayout,
+              compact: true,
+              onPressed: onRetry,
             ),
         ],
       ),

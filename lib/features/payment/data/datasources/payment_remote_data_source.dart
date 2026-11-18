@@ -13,6 +13,7 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/bank_account_record.dart';
 import 'package:zuno_admin_dashboard/features/host_details/data/models/wallet_transaction.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_batch_result.dart';
+import 'package:zuno_admin_dashboard/features/payment/data/models/payout_failure_reason.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_sheet_row.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_summary.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
@@ -24,6 +25,8 @@ class PaymentRemoteDataSource {
   static const String _appDocument = 'app';
   static const String _moveFunction = 'movePayoutsToPending';
   static const String _completeFunction = 'completeHostPayouts';
+  static const String _failFunction = 'failHostPayouts';
+  static const String _retryFunction = 'retryHostPayouts';
   static const String _internalErrorCode = 'internal';
   static const String _payoutIdField = 'payoutId';
   static const int _idsPerQuery = 30;
@@ -55,6 +58,11 @@ class PaymentRemoteDataSource {
   Query<Map<String, dynamic>> get _paid => _payouts.where(
     Withdrawal.statusField,
     isEqualTo: Withdrawal.successStatus,
+  );
+
+  Query<Map<String, dynamic>> get _failed => _payouts.where(
+    Withdrawal.statusField,
+    isEqualTo: Withdrawal.failedStatus,
   );
 
   Future<Either<Failure, double?>> fetchMinimumPayout() async {
@@ -101,6 +109,22 @@ class PaymentRemoteDataSource {
     RecordPageQuery(cursor: cursor),
     Withdrawal.fromDocument,
     sortField: Withdrawal.paidAtField,
+  );
+
+  Future<Either<Failure, RecordPage<Withdrawal>>> fetchFailedPage({
+    Object? cursor,
+  }) => RecordPages.fetch(
+    _failed,
+    RecordPageQuery(cursor: cursor),
+    Withdrawal.fromDocument,
+    sortField: Withdrawal.updatedAtField,
+  );
+
+  Future<Either<Failure, List<Withdrawal>>> fetchAllFailed({
+    required int limit,
+  }) => _fetchAll(
+    _failed.orderBy(Withdrawal.updatedAtField, descending: true),
+    limit,
   );
 
   Future<Either<Failure, List<Withdrawal>>> fetchAllOpen(
@@ -156,6 +180,15 @@ class PaymentRemoteDataSource {
   Future<Either<Failure, int>> countPending() => _count(_pending);
 
   Future<Either<Failure, int>> countPaid() => _count(_paid);
+
+  Future<Either<Failure, int>> countFailed() => _count(_failed);
+
+  Future<Either<Failure, List<Withdrawal>>> fetchFailedForHosts(
+    Iterable<String> hostIds,
+  ) => _whereIn(
+    hostIds,
+    (batch) => _failed.where(Withdrawal.hostIdField, whereIn: batch),
+  );
 
   Future<Either<Failure, List<Withdrawal>>> fetchByIds(Iterable<String> ids) =>
       _whereIn(
@@ -306,17 +339,41 @@ class PaymentRemoteDataSource {
       },
   ]);
 
+  Future<Either<Failure, List<PayoutItemResult>>> failPayouts(
+    List<Withdrawal> withdrawals,
+    PayoutFailureInput failure,
+  ) => _callBatch(
+    _failFunction,
+    _expectedTotals(withdrawals),
+    extra: {'reason': failure.reason.value, 'note': ?failure.note},
+  );
+
+  Future<Either<Failure, List<PayoutItemResult>>> retryPayouts(
+    List<Withdrawal> withdrawals,
+  ) => _callBatch(_retryFunction, _expectedTotals(withdrawals));
+
+  static List<Map<String, Object>> _expectedTotals(
+    List<Withdrawal> withdrawals,
+  ) => [
+    for (final withdrawal in withdrawals)
+      {
+        'payoutId': withdrawal.id,
+        'expectedTotalAmount': withdrawal.totalAmount,
+      },
+  ];
+
   Future<Either<Failure, List<PayoutItemResult>>> _callBatch(
     String function,
-    List<Map<String, Object>> items,
-  ) async {
+    List<Map<String, Object>> items, {
+    Map<String, Object> extra = const {},
+  }) async {
     try {
       final response = await _functions
           .httpsCallable(
             function,
             options: HttpsCallableOptions(timeout: _batchTimeout),
           )
-          .call<Map<Object?, Object?>>({'items': items});
+          .call<Map<Object?, Object?>>({'items': items, ...extra});
       final results = response.data['results'];
       return right([
         if (results is List)

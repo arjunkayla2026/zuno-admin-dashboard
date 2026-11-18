@@ -21,6 +21,12 @@ class PackagesRepository {
   Future<Either<Failure, ({int total, int active})>> fetchCounts() =>
       _dataSource.fetchCounts();
 
+  Future<Either<Failure, Map<String, int>>> fetchPurchaseCounts(
+    List<String> packageIds,
+  ) => packageIds.isEmpty
+      ? Future.value(right(const {}))
+      : _dataSource.fetchPurchaseCounts(packageIds);
+
   Future<Either<Failure, PackagePlan>> savePackage(PackagePlan plan) async {
     final fields = plan.toFields();
     if (plan.isNew) {

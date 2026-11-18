@@ -9,6 +9,7 @@ import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/datasources/payment_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_batch_result.dart';
+import 'package:zuno_admin_dashboard/features/payment/data/models/payout_failure_reason.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_sheet_row.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_summary.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
@@ -36,6 +37,8 @@ class PaymentRepository {
 
   Future<Either<Failure, int>> countPaid() => _dataSource.countPaid();
 
+  Future<Either<Failure, int>> countFailed() => _dataSource.countFailed();
+
   Future<Either<Failure, RecordPage<Withdrawal>>> fetchOpenPage({
     required double? minimum,
     Object? cursor,
@@ -58,6 +61,11 @@ class PaymentRepository {
     Object? cursor,
   }) => _dataSource.fetchPaidPage(cursor: cursor);
 
+  Future<Either<Failure, RecordPage<Withdrawal>>> fetchFailedPage({
+    Object? cursor,
+  }) async =>
+      _withBankAccounts(await _dataSource.fetchFailedPage(cursor: cursor));
+
   Future<Either<Failure, List<Withdrawal>>> fetchAll(
     WithdrawalStatus status, {
     required double? minimum,
@@ -68,6 +76,9 @@ class PaymentRepository {
         limit: selectAllLimit,
       ),
       WithdrawalStatus.pending => await _dataSource.fetchAllPending(
+        limit: selectAllLimit,
+      ),
+      WithdrawalStatus.failed => await _dataSource.fetchAllFailed(
         limit: selectAllLimit,
       ),
       WithdrawalStatus.success ||
@@ -113,6 +124,7 @@ class PaymentRepository {
           ),
           WithdrawalStatus.pending => _dataSource.fetchPendingForHosts(hostIds),
           WithdrawalStatus.success => _dataSource.fetchPaidForHosts(hostIds),
+          WithdrawalStatus.failed => _dataSource.fetchFailedForHosts(hostIds),
           WithdrawalStatus.forfeited => Future.value(
             right<Failure, List<Withdrawal>>(const []),
           ),
@@ -242,6 +254,27 @@ class PaymentRepository {
           ),
       DateTime.now(),
     ),
+  );
+
+  Future<Either<Failure, PayoutBatchResult>> markFailed(
+    List<Withdrawal> withdrawals,
+    PayoutFailureInput failure,
+  ) => _runBatches(
+    withdrawals,
+    (chunk) => _dataSource.failPayouts(chunk, failure),
+    (withdrawal, result) => withdrawal.markedFailed(
+      failure,
+      result.failureCount ?? withdrawal.failureCount + 1,
+      DateTime.now(),
+    ),
+  );
+
+  Future<Either<Failure, PayoutBatchResult>> retryPayouts(
+    List<Withdrawal> withdrawals,
+  ) => _runBatches(
+    withdrawals,
+    _dataSource.retryPayouts,
+    (withdrawal, _) => withdrawal.markedRetried(DateTime.now()),
   );
 
   Future<Either<Failure, PayoutBatchResult>> _runBatches(

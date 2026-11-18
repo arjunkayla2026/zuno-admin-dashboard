@@ -6,6 +6,7 @@ import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/features/packages/data/models/package_plan.dart';
 import 'package:zuno_admin_dashboard/features/packages/data/models/package_status.dart';
+import 'package:zuno_admin_dashboard/features/recharge/data/models/recharge_transaction.dart';
 
 class PackagesRemoteDataSource {
   const PackagesRemoteDataSource(this._firestore);
@@ -66,6 +67,39 @@ class PackagesRemoteDataSource {
         total: results[0].count ?? 0,
         active: results[1].count ?? 0,
       ));
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.read(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsLoadFailed));
+    }
+  }
+
+  Future<Either<Failure, Map<String, int>>> fetchPurchaseCounts(
+    List<String> packageIds,
+  ) async {
+    try {
+      final transactions = _firestore.collection(
+        RechargeTransaction.collection,
+      );
+      final counts = await Future.wait([
+        for (final id in packageIds)
+          transactions
+              .where(RechargeTransaction.packageIdField, isEqualTo: id)
+              .where(
+                RechargeTransaction.typeField,
+                isEqualTo: RechargeTransaction.rechargeType,
+              )
+              .where(
+                RechargeTransaction.statusField,
+                isEqualTo: RechargeTransaction.successStatus,
+              )
+              .count()
+              .get(),
+      ]);
+      return right({
+        for (var index = 0; index < packageIds.length; index++)
+          packageIds[index]: counts[index].count ?? 0,
+      });
     } on FirebaseException catch (error) {
       return left(FirestoreFailures.read(error.code));
     } catch (_) {

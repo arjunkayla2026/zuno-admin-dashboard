@@ -508,6 +508,7 @@ abstract final class AppStrings {
   static const String receivableAmount = 'Receivable Amount';
   static const String receivableCoin = 'Receivable Coin';
   static const String totalCoinsWithOffer = 'Total Coins (With Offer)';
+  static const String totalPurchases = 'Total Recharges';
   static const String offerTag = 'Offer Tag';
   static const String offerPercentage = 'Offer %';
   static const String offerPercentageField = 'Offer Percentage (%)';
@@ -613,6 +614,49 @@ abstract final class AppStrings {
   static const String movedToPendingTitle = 'Moved to Pending';
   static const String payoutsCompletedTitle = 'Payouts completed';
   static const String payoutBatchFailuresTitle = "Couldn't be updated";
+  static const String failedWithdrawals = 'Failed Withdrawals';
+  static const String markAsFailed = 'Mark as Failed';
+  static const String retryPayout = 'Retry Payout';
+  static const String markedFailedTitle = 'Marked as failed';
+  static const String movedBackToPendingTitle = 'Moved back to Pending';
+  static const String failureReason = 'Failure Reason';
+  static const String failureNote = 'Note';
+  static const String failureNoteHint = 'Details from the bank';
+  static const String failureNoteRequired = 'Add a note for this reason.';
+  static const String selectReason = 'Select a reason';
+  static const String failedOn = 'Failed On';
+  static const String failedBy = 'Failed By';
+  static const String failedAttempts = 'Failed Attempts';
+  static const String retriedOn = 'Retried On';
+  static const String failureDetails = 'Failure';
+  static const String lastFailureDetails = 'Last failure';
+  static const String bankReference = 'Bank Reference';
+  static const String reasonInvalidAccount = 'Invalid account number or IFSC';
+  static const String reasonAccountClosed = 'Account closed or frozen';
+  static const String reasonNameMismatch = 'Account holder name mismatch';
+  static const String reasonBankRejected = 'Rejected by the bank';
+
+  static String markFailedTitle(int count) =>
+      'Mark ${payoutCount(count)} as failed?';
+
+  static String markFailedMessage(int count, String amount) =>
+      "$amount for ${payoutCount(count)} moves to Failed. Nothing is taken "
+      "from the hosts' wallets, and you can retry once the transfer can be "
+      'sent again.';
+
+  static String markedFailedMessage(int count, String amount) =>
+      '${payoutCount(count)} for $amount moved to Failed. Retry them from the '
+      'Failed tab once the transfer can be sent again.';
+
+  static String retryPayoutTitle(int count) => 'Retry ${payoutCount(count)}?';
+
+  static String retryPayoutMessage(int count, String amount) =>
+      '$amount for ${payoutCount(count)} moves back to Pending to be paid '
+      'again. Export the withdrawal sheet again before sending; the reference '
+      'number gets a retry suffix.';
+
+  static String movedBackToPendingMessage(int count, String amount) =>
+      '${payoutCount(count)} for $amount moved back to Pending.';
 
   static String withdrawalOverviewNote(int hosts, String minimum) =>
       '$hosts hosts ready · earnings up to yesterday · '

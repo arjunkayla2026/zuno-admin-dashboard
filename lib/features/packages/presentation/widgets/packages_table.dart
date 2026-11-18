@@ -14,7 +14,11 @@ import 'package:zuno_admin_dashboard/features/packages/presentation/widgets/pack
 import 'package:zuno_admin_dashboard/features/packages/presentation/widgets/package_offer_tag.dart';
 
 class PackagesTable extends StatelessWidget {
-  const PackagesTable({super.key, required this.packages});
+  const PackagesTable({
+    super.key,
+    required this.packages,
+    required this.purchaseCounts,
+  });
 
   static const double _editIconSize = 12;
   static const List<AppTableColumn> _columns = [
@@ -25,11 +29,13 @@ class PackagesTable extends StatelessWidget {
     AppTableColumn('', 28),
     AppTableColumn(AppStrings.offerTag, 162),
     AppTableColumn(AppStrings.offerPercentage, 110),
+    AppTableColumn(AppStrings.totalPurchases, 150, alignEnd: true),
     AppTableColumn(AppStrings.status, 120),
     AppTableColumn('', 100, alignEnd: true),
   ];
 
   final List<PackagePlan> packages;
+  final Map<String, int> purchaseCounts;
 
   @override
   Widget build(BuildContext context) {
@@ -65,6 +71,13 @@ class PackagesTable extends StatelessWidget {
                     style: strong,
                   )
                 : Text(AppStrings.emptyValue, style: muted),
+            switch (purchaseCounts[plan.id]) {
+              final int count => Text(
+                NumberFormatter.grouped(count),
+                style: strong,
+              ),
+              null => Text(AppStrings.emptyValue, style: muted),
+            },
             AppStatusBadge(
               label: plan.isActive ? AppStrings.active : AppStrings.inactive,
               status: plan.isActive ? AppStatus.active : AppStatus.inactive,

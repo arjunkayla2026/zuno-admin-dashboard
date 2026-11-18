@@ -15,11 +15,13 @@ import 'package:zuno_admin_dashboard/core/widgets/app_side_sheet.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_success_dialog.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/exporters/payout_sheet_exporter.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_batch_result.dart';
+import 'package:zuno_admin_dashboard/features/payment/data/models/payout_failure_reason.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_sheet_row.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_cubit.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_state.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/payout_batch_failures.dart';
+import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/payout_failure_dialog.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_details_sheet.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_review_summary.dart';
 
@@ -47,8 +49,126 @@ Future<void> openWithdrawalDetails(
       onWithdraw: withdrawal.isPending
           ? () => _reviewWithdrawal(context, sheetContext, withdrawal)
           : null,
+      onMarkFailed: withdrawal.isPending
+          ? () => _failFromSheet(context, sheetContext, withdrawal)
+          : null,
+      onRetry: withdrawal.isFailed
+          ? () => _retryFromSheet(context, sheetContext, withdrawal)
+          : null,
     ),
   );
+}
+
+Future<void> markSelectedFailed(BuildContext context) async {
+  final cubit = context.read<PaymentCubit>();
+  final selection = cubit.state.selected.values.toList();
+  if (selection.isEmpty) return;
+  final failure = await _askFailure(context, selection);
+  if (failure == null || !context.mounted) return;
+  final result = await cubit.markSelectedFailed(failure);
+  if (!context.mounted) return;
+  await _showFailResult(context, result);
+}
+
+Future<void> retrySelected(BuildContext context) async {
+  final cubit = context.read<PaymentCubit>();
+  final selection = cubit.state.selected.values.toList();
+  if (selection.isEmpty) return;
+  if (!await _confirmRetry(context, selection) || !context.mounted) return;
+  final result = await cubit.retrySelected();
+  if (!context.mounted) return;
+  await _showRetryResult(context, result);
+}
+
+Future<PayoutFailureInput?> _askFailure(
+  BuildContext context,
+  List<Withdrawal> selection,
+) => showPayoutFailureDialog(
+  context: context,
+  title: AppStrings.markFailedTitle(selection.length),
+  message: AppStrings.markFailedMessage(
+    selection.length,
+    NumberFormatter.rupeesAmount(_totalOf(selection)),
+  ),
+);
+
+Future<bool> _confirmRetry(BuildContext context, List<Withdrawal> selection) =>
+    showAppConfirmDialog(
+      context: context,
+      iconAsset: AppImages.paymentIcon,
+      title: AppStrings.retryPayoutTitle(selection.length),
+      message: TextSpan(
+        text: AppStrings.retryPayoutMessage(
+          selection.length,
+          NumberFormatter.rupeesAmount(_totalOf(selection)),
+        ),
+      ),
+      confirmLabel: AppStrings.retryPayout,
+      brand: true,
+    );
+
+Future<void> _showFailResult(
+  BuildContext context,
+  Either<Failure, PayoutBatchResult> result,
+) => _showBatchResult(
+  context,
+  result,
+  title: AppStrings.markedFailedTitle,
+  message: (batch) => AppStrings.markedFailedMessage(
+    batch.succeeded.length,
+    NumberFormatter.rupeesAmount(batch.succeededTotal),
+  ),
+);
+
+Future<void> _showRetryResult(
+  BuildContext context,
+  Either<Failure, PayoutBatchResult> result,
+) => _showBatchResult(
+  context,
+  result,
+  title: AppStrings.movedBackToPendingTitle,
+  message: (batch) => AppStrings.movedBackToPendingMessage(
+    batch.succeeded.length,
+    NumberFormatter.rupeesAmount(batch.succeededTotal),
+  ),
+);
+
+Future<void> _failFromSheet(
+  BuildContext pageContext,
+  BuildContext sheetContext,
+  Withdrawal withdrawal,
+) async {
+  final cubit = pageContext.read<PaymentCubit>();
+  final failure = await _askFailure(sheetContext, [withdrawal]);
+  if (failure == null || !sheetContext.mounted) return;
+  final result = await cubit.markFailed([withdrawal], failure);
+  final failed = result.match((_) => false, (batch) => batch.hasSuccess);
+  if (failed && sheetContext.mounted) Navigator.of(sheetContext).pop();
+  if (!pageContext.mounted) return;
+  await _showFailResult(pageContext, result);
+}
+
+Future<void> _retryFromSheet(
+  BuildContext pageContext,
+  BuildContext sheetContext,
+  Withdrawal withdrawal,
+) async {
+  final cubit = pageContext.read<PaymentCubit>();
+  if (!withdrawal.hasBankAccount) {
+    ScaffoldMessenger.of(pageContext).showSnackBar(
+      const SnackBar(content: Text(AppStrings.payoutNoBankAccount)),
+    );
+    return;
+  }
+  if (!await _confirmRetry(sheetContext, [withdrawal]) ||
+      !sheetContext.mounted) {
+    return;
+  }
+  final result = await cubit.retryFailed([withdrawal]);
+  final retried = result.match((_) => false, (batch) => batch.hasSuccess);
+  if (retried && sheetContext.mounted) Navigator.of(sheetContext).pop();
+  if (!pageContext.mounted) return;
+  await _showRetryResult(pageContext, result);
 }
 
 Future<void> selectAllWithdrawals(BuildContext context) async {
