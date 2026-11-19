@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fpdart/fpdart.dart' hide State;
+import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/images/app_images.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
@@ -22,13 +24,17 @@ class HostRequestSheet extends StatefulWidget {
   const HostRequestSheet({
     super.key,
     required this.request,
-    required this.onChanged,
+    required this.onSave,
     required this.onReview,
     required this.onDecide,
   });
 
   final HostRequest request;
-  final ValueChanged<HostRequest> onChanged;
+  final Future<Either<Failure, HostRequest>> Function(
+    HostRequest original,
+    HostRequest edited,
+  )
+  onSave;
   final Future<String?> Function(
     HostRequest request,
     HostDocumentType type,
@@ -55,6 +61,7 @@ class _HostRequestSheetState extends State<HostRequestSheet> {
   late HostRequest _request = widget.request;
   bool _editing = false;
   bool _reviewing = false;
+  bool _saving = false;
   String? _errorMessage;
 
   late final _realNameController = TextEditingController();
@@ -91,31 +98,51 @@ class _HostRequestSheetState extends State<HostRequestSheet> {
     _gender = _request.gender;
     _motherTongue = _request.motherTongue;
     _languages = {..._request.languages};
-    setState(() => _editing = true);
+    setState(() {
+      _editing = true;
+      _errorMessage = null;
+    });
   }
 
-  void _commit(HostRequest request) {
-    widget.onChanged(request);
-    setState(() => _request = request);
-  }
+  void _cancelEditing() => setState(() {
+    _editing = false;
+    _errorMessage = null;
+  });
 
-  void _save() {
-    _commit(
-      _request.copyWith(
-        realName: _realNameController.text.trim(),
-        nickName: _nickNameController.text.trim(),
-        phone: _phoneController.text.trim(),
-        city: _cityController.text.trim(),
-        dateOfBirth: _dateOfBirth,
-        gender: _gender,
-        motherTongue: _motherTongue,
-        languages: [
-          for (final language in HostLanguage.values)
-            if (_languages.contains(language)) language,
-        ],
-      ),
+  Future<void> _save() async {
+    final edited = _request.copyWith(
+      realName: _realNameController.text.trim(),
+      nickName: _nickNameController.text.trim(),
+      phone: _phoneController.text.trim(),
+      city: _cityController.text.trim(),
+      dateOfBirth: _dateOfBirth,
+      gender: _gender,
+      motherTongue: _motherTongue,
+      languages: [
+        for (final language in HostLanguage.values)
+          if (_languages.contains(language)) language,
+      ],
     );
-    setState(() => _editing = false);
+    setState(() {
+      _saving = true;
+      _errorMessage = null;
+    });
+    final result = await widget.onSave(_request, edited);
+    if (!mounted) return;
+
+    switch (result) {
+      case Left(value: final failure):
+        setState(() {
+          _saving = false;
+          _errorMessage = failure.message;
+        });
+      case Right(value: final saved):
+        setState(() {
+          _saving = false;
+          _editing = false;
+          _request = saved;
+        });
+    }
   }
 
   Future<void> _pickDateOfBirth() async {
@@ -275,12 +302,12 @@ class _HostRequestSheetState extends State<HostRequestSheet> {
       children: [
         AppSecondaryButton(
           label: AppStrings.cancel,
-          onPressed: () => setState(() => _editing = false),
+          onPressed: _saving ? null : _cancelEditing,
         ),
         AppPrimaryButton(
           label: AppStrings.saveChanges,
           compact: true,
-          onPressed: _canSave ? _save : null,
+          onPressed: _canSave && !_saving ? _save : null,
         ),
       ],
     );

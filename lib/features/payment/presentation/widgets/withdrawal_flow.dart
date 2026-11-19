@@ -59,17 +59,6 @@ Future<void> openWithdrawalDetails(
   );
 }
 
-Future<void> markSelectedFailed(BuildContext context) async {
-  final cubit = context.read<PaymentCubit>();
-  final selection = cubit.state.selected.values.toList();
-  if (selection.isEmpty) return;
-  final failure = await _askFailure(context, selection);
-  if (failure == null || !context.mounted) return;
-  final result = await cubit.markSelectedFailed(failure);
-  if (!context.mounted) return;
-  await _showFailResult(context, result);
-}
-
 Future<void> retrySelected(BuildContext context) async {
   final cubit = context.read<PaymentCubit>();
   final selection = cubit.state.selected.values.toList();
@@ -191,7 +180,7 @@ Future<void> moveSelectedToPending(BuildContext context) async {
 
 Future<void> markSelectedPaid(BuildContext context) => markWithdrawalsPaid(
   context,
-  context.read<PaymentCubit>().state.selected.values.toList(),
+  context.read<PaymentCubit>().state.selectedPending,
 );
 
 /// Rejects a pending payout through the existing Mark as Failed action, with
@@ -408,37 +397,54 @@ Future<void> exportBeneficiaries(BuildContext context) => _exportSheet(
   context,
   build: (rows, _) => PayoutSheetExporter.beneficiaries(rows),
   fileName: AppStrings.beneficiarySheetFileName,
-  message: AppStrings.beneficiariesExported,
+  message: (count, _) => AppStrings.beneficiariesExported(count),
   description: AppStrings.beneficiarySheetRows,
+  registerBeneficiaries: true,
 );
 
 Future<void> exportWithdrawals(BuildContext context) => _exportSheet(
   context,
   build: PayoutSheetExporter.withdrawals,
   fileName: AppStrings.withdrawalSheetFileName,
-  message: AppStrings.withdrawalsExported,
+  message: (count, skipped) => skipped == 0
+      ? AppStrings.withdrawalsExported(count)
+      : AppStrings.withdrawalsExportedSkipping(count, skipped),
   description: AppStrings.withdrawalSheetRows,
+  requireBeneficiary: true,
 );
 
 Future<void> _exportSheet(
   BuildContext context, {
   required Uint8List Function(List<PayoutSheetRow> rows, DateTime today) build,
   required String Function(String date) fileName,
-  required String Function(int count) message,
+  required String Function(int count, int skipped) message,
   required String Function(int count) description,
+  bool registerBeneficiaries = false,
+  bool requireBeneficiary = false,
 }) async {
   final messenger = ScaffoldMessenger.of(context);
-  final result = await context.read<PaymentCubit>().loadSheetRows();
+  final result = await context.read<PaymentCubit>().loadSheetRows(
+    registerBeneficiaries: registerBeneficiaries,
+  );
   if (result == null || !context.mounted) return;
 
   switch (result) {
     case Left(value: final failure):
       messenger.showSnackBar(SnackBar(content: Text(failure.message)));
-    case Right(value: final rows) when rows.isEmpty:
+    case Right(value: final loaded) when loaded.isEmpty:
       messenger.showSnackBar(
         const SnackBar(content: Text(AppStrings.nothingToExport)),
       );
-    case Right(value: final rows):
+    case Right(value: final loaded)
+        when requireBeneficiary && !loaded.any((row) => row.hasBeneficiary):
+      messenger.showSnackBar(
+        const SnackBar(content: Text(AppStrings.noRegisteredBeneficiaries)),
+      );
+    case Right(value: final loaded):
+      final rows = requireBeneficiary
+          ? loaded.where((row) => row.hasBeneficiary).toList()
+          : loaded;
+      final skipped = loaded.length - rows.length;
       final today = DateTime.now();
       final name = fileName(DateFormatter.short(today).replaceAll(' ', '-'));
       try {
@@ -452,7 +458,7 @@ Future<void> _exportSheet(
       await showAppSuccessDialog(
         context: context,
         title: AppStrings.exportComplete,
-        message: message(rows.length),
+        message: message(rows.length, skipped),
         details: AppExportFileTile(
           fileName: name,
           description: description(rows.length),

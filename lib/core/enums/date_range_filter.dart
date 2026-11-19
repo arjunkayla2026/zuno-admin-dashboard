@@ -1,1 +1,1 @@
-enum DateRangeFilter { today, yesterday, last7Days, last30Days, custom }
+enum DateRangeFilter { today, yesterday, last7Days, last30Days, custom, all }

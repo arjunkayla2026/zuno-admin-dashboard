@@ -28,9 +28,8 @@ class PaymentTabsCard extends StatelessWidget {
   static const double _emptyHeight = 160;
 
   static Widget? _selectionBar(BuildContext context, PaymentState state) {
-    if (!state.tab.isSelectable || state.selected.isEmpty) return null;
+    if (state.tab != PaymentTab.failed || state.selected.isEmpty) return null;
     final cubit = context.read<PaymentCubit>();
-    final isPendingTab = state.tab == PaymentTab.pending;
     final selectAllCount = state.canSelectMore
         ? state.totalCount?.clamp(0, PaymentRepository.selectAllLimit)
         : null;
@@ -39,22 +38,8 @@ class PaymentTabsCard extends StatelessWidget {
         state.selected.length,
         NumberFormatter.rupeesAmount(state.selectedTotal),
       ),
-      actionLabel: switch (state.tab) {
-        PaymentTab.pending => AppStrings.markAsSuccess,
-        PaymentTab.failed => AppStrings.retryPayout,
-        PaymentTab.withdrawalList ||
-        PaymentTab.success => AppStrings.moveToPending,
-      },
-      onAction: () => switch (state.tab) {
-        PaymentTab.pending => markSelectedPaid(context),
-        PaymentTab.failed => retrySelected(context),
-        PaymentTab.withdrawalList ||
-        PaymentTab.success => moveSelectedToPending(context),
-      },
-      secondaryActionLabel: isPendingTab ? AppStrings.markAsFailed : null,
-      onSecondaryAction: isPendingTab
-          ? () => markSelectedFailed(context)
-          : null,
+      actionLabel: AppStrings.retryPayout,
+      onAction: () => retrySelected(context),
       onClear: cubit.clearSelection,
       selectAllLabel: selectAllCount == null
           ? null

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:zuno_admin_dashboard/core/enums/date_range_filter.dart';
 import 'package:zuno_admin_dashboard/core/resources/images/app_images.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_date_filter_button.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_search_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_cubit.dart';
@@ -19,6 +22,11 @@ class PaymentToolbar extends StatelessWidget {
   static const double _iconSize = 16;
   static const EdgeInsets _padding = EdgeInsets.all(12);
 
+  static String _successDateLabel(DateRangeFilter filter) => switch (filter) {
+    DateRangeFilter.last7Days => AppStrings.lastWeek,
+    _ => AppDateFilterButton.defaultLabel(filter),
+  };
+
   Widget _downloadIcon(BuildContext context) => SvgPicture.asset(
     AppImages.downloadIcon,
     width: _iconSize,
@@ -31,10 +39,21 @@ class PaymentToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (isPending, exporting) = context.select(
-      (PaymentCubit cubit) =>
-          (cubit.state.tab == PaymentTab.pending, cubit.state.exporting),
+    final cubit = context.read<PaymentCubit>();
+    final (tab, exporting, selectedCount, busy) = context.select(
+      (PaymentCubit cubit) => (
+        cubit.state.tab,
+        cubit.state.exporting,
+        cubit.state.selected.length,
+        cubit.state.batchRunning || cubit.state.selectingAll,
+      ),
     );
+    final (dateFilter, customRange) = context.select(
+      (PaymentCubit cubit) =>
+          (cubit.state.successDateFilter, cubit.state.successCustomRange),
+    );
+    final isPending = tab == PaymentTab.pending;
+    final hasSelection = selectedCount > 0;
 
     return Padding(
       padding: _padding,
@@ -45,15 +64,32 @@ class PaymentToolbar extends StatelessWidget {
           spacing: AppUtils.spacingMd,
           runSpacing: AppUtils.spacingSm,
           children: [
-            SizedBox(
-              width: constraints.maxWidth < _searchWidth
-                  ? constraints.maxWidth
-                  : _searchWidth,
-              child: AppSearchField(
-                hint: AppStrings.searchWithdrawalsHint,
-                verticalPadding: _searchPadding,
-                onChanged: context.read<PaymentCubit>().search,
-              ),
+            Wrap(
+              spacing: AppUtils.spacingSm,
+              runSpacing: AppUtils.spacingSm,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                SizedBox(
+                  width: constraints.maxWidth < _searchWidth
+                      ? constraints.maxWidth
+                      : _searchWidth,
+                  child: AppSearchField(
+                    hint: AppStrings.searchWithdrawalsHint,
+                    verticalPadding: _searchPadding,
+                    onChanged: cubit.search,
+                  ),
+                ),
+                if (tab == PaymentTab.success)
+                  AppDateFilterButton(
+                    value: dateFilter,
+                    today: DateUtils.dateOnly(DateTime.now()),
+                    customRange: customRange,
+                    options: PaymentState.successDateOptions,
+                    labelOf: _successDateLabel,
+                    onFilterSelected: cubit.selectSuccessDateFilter,
+                    onCustomRangeSelected: cubit.selectSuccessCustomRange,
+                  ),
+              ],
             ),
             if (isPending)
               Wrap(
@@ -74,7 +110,28 @@ class PaymentToolbar extends StatelessWidget {
                         ? null
                         : () => exportWithdrawals(context),
                   ),
+                  if (hasSelection)
+                    AppPrimaryButton(
+                      label: AppStrings.withSelectedCount(
+                        AppStrings.markAsSuccess,
+                        selectedCount,
+                      ),
+                      compact: true,
+                      positive: true,
+                      onPressed: busy || exporting
+                          ? null
+                          : () => markSelectedPaid(context),
+                    ),
                 ],
+              ),
+            if (tab == PaymentTab.withdrawalList && hasSelection)
+              AppPrimaryButton(
+                label: AppStrings.withSelectedCount(
+                  AppStrings.moveToPending,
+                  selectedCount,
+                ),
+                compact: true,
+                onPressed: busy ? null : () => moveSelectedToPending(context),
               ),
           ],
         ),

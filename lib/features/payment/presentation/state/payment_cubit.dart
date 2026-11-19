@@ -1,11 +1,14 @@
 import 'dart:async';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/cursor_pager.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
+import 'package:zuno_admin_dashboard/core/enums/date_range_filter.dart';
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
+import 'package:zuno_admin_dashboard/core/utils/date_range_matcher.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_batch_result.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_failure_reason.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_sheet_row.dart';
@@ -33,6 +36,8 @@ class PaymentCubit extends Cubit<PaymentState> {
   List<Withdrawal> _searchMatches = const [];
   Timer? _debounce;
   int _searchRequest = 0;
+  int _paidCountRequest = 0;
+  (DateTime?, DateTime?) _paidRange = (null, null);
 
   Future<void> load() async {
     emit(state.copyWith(status: LoadStatus.loading));
@@ -103,6 +108,43 @@ class PaymentCubit extends Cubit<PaymentState> {
     });
   }
 
+  void selectSuccessDateFilter(DateRangeFilter filter) {
+    if (filter == state.successDateFilter) return;
+    _applySuccessDates(state.copyWith(successDateFilter: filter));
+  }
+
+  void selectSuccessCustomRange(DateTimeRange range) => _applySuccessDates(
+    state.copyWith(
+      successDateFilter: DateRangeFilter.custom,
+      successCustomRange: range,
+    ),
+  );
+
+  void _applySuccessDates(PaymentState next) {
+    _paidRange = next.successDateFilter.momentBounds(
+      today: DateUtils.dateOnly(DateTime.now()),
+      customRange: next.successCustomRange,
+    );
+    emit(next.copyWith(clearPaidCount: true));
+    _views.remove(PaymentTab.success);
+    if (!state.minimumLoaded) return;
+    unawaited(_loadPaidCount());
+    if (state.tab != PaymentTab.success) {
+      _stale.add(PaymentTab.success);
+    } else if (state.isSearching) {
+      unawaited(_runSearch());
+    } else {
+      _stale.remove(PaymentTab.success);
+      unawaited(_pagers[PaymentTab.success]!.reset());
+    }
+  }
+
+  bool _paidRangeIncludes(DateTime moment) {
+    final (from, until) = _paidRange;
+    return (from == null || !moment.isBefore(from)) &&
+        (until == null || moment.isBefore(until));
+  }
+
   void goToPage(int page) {
     (_searchPager ?? _pagers[state.tab]!).goToPage(page);
   }
@@ -156,9 +198,12 @@ class PaymentCubit extends Cubit<PaymentState> {
   }
 
   /// Loads the bank sheet rows for the selected pending payouts, or for every
-  /// pending payout when nothing is selected. Returns null when an export is
-  /// already running or the Pending tab is not open.
-  Future<Either<Failure, List<PayoutSheetRow>>?> loadSheetRows() async {
+  /// pending payout when nothing is selected. With [registerBeneficiaries],
+  /// each host is also registered as a beneficiary first. Returns null when an
+  /// export is already running or the Pending tab is not open.
+  Future<Either<Failure, List<PayoutSheetRow>>?> loadSheetRows({
+    bool registerBeneficiaries = false,
+  }) async {
     if (state.exporting || state.tab != PaymentTab.pending) return null;
     emit(state.copyWith(exporting: true));
     final source = state.selected.isNotEmpty
@@ -171,9 +216,10 @@ class PaymentCubit extends Cubit<PaymentState> {
       Left(value: final failure) => left<Failure, List<PayoutSheetRow>>(
         failure,
       ),
-      Right(value: final withdrawals) => await _repository.fetchSheetRows(
-        withdrawals,
-      ),
+      Right(value: final withdrawals) =>
+        registerBeneficiaries
+            ? await _repository.fetchBeneficiarySheetRows(withdrawals)
+            : await _repository.fetchSheetRows(withdrawals),
     };
     if (!isClosed) emit(state.copyWith(exporting: false));
     return rows;
@@ -209,27 +255,26 @@ class PaymentCubit extends Cubit<PaymentState> {
   Future<Either<Failure, PayoutBatchResult>> markPaid(
     List<Withdrawal> withdrawals,
   ) => _runBatch(
-    withdrawals,
+    withdrawals.where((item) => item.isPending).toList(),
     _repository.completePayouts,
     onDone: (paid) {
       final pendingCount = state.pendingCount;
       final paidCount = state.paidCount;
+      final countsAsPaid = _paidRangeIncludes(DateTime.now());
       _stale.add(PaymentTab.success);
       emit(
         state.copyWith(
           pendingCount: pendingCount == null
               ? null
               : (pendingCount - paid.length).clamp(0, pendingCount),
-          paidCount: paidCount == null ? null : paidCount + paid.length,
+          paidCount: paidCount == null || !countsAsPaid
+              ? null
+              : paidCount + paid.length,
         ),
       );
       _removeFrom(PaymentTab.pending, paid);
     },
   );
-
-  Future<Either<Failure, PayoutBatchResult>> markSelectedFailed(
-    PayoutFailureInput failure,
-  ) => markFailed(state.selected.values.toList(), failure);
 
   Future<Either<Failure, PayoutBatchResult>> retrySelected() =>
       retryFailed(state.selected.values.toList());
@@ -352,7 +397,11 @@ class PaymentCubit extends Cubit<PaymentState> {
         cursor: cursor,
       ),
       PaymentTab.pending => _repository.fetchPendingPage(cursor: cursor),
-      PaymentTab.success => _repository.fetchPaidPage(cursor: cursor),
+      PaymentTab.success => _repository.fetchPaidPage(
+        cursor: cursor,
+        from: _paidRange.$1,
+        until: _paidRange.$2,
+      ),
       PaymentTab.failed => _repository.fetchFailedPage(cursor: cursor),
     };
   }
@@ -376,21 +425,28 @@ class PaymentCubit extends Cubit<PaymentState> {
 
   Future<void> _loadCounts() async {
     final minimum = state.minimumPayout;
-    final (summary, pendingCount, paidCount, failedCount) = await (
+    final (summary, pendingCount, failedCount, _) = await (
       _repository.fetchSummary(minimum),
       _repository.countPending(),
-      _repository.countPaid(),
       _repository.countFailed(),
+      _loadPaidCount(),
     ).wait;
     if (isClosed) return;
     emit(
       state.copyWith(
         summary: summary.toNullable(),
         pendingCount: pendingCount.toNullable(),
-        paidCount: paidCount.toNullable(),
         failedCount: failedCount.toNullable(),
       ),
     );
+  }
+
+  Future<void> _loadPaidCount() async {
+    final request = ++_paidCountRequest;
+    final (from, until) = _paidRange;
+    final count = await _repository.countPaid(from: from, until: until);
+    if (isClosed || request != _paidCountRequest) return;
+    emit(state.copyWith(paidCount: count.toNullable()));
   }
 
   Future<void> _runSearch() async {
@@ -401,6 +457,8 @@ class PaymentCubit extends Cubit<PaymentState> {
       state.query,
       minimum: state.minimumPayout,
       status: tab.status,
+      paidFrom: _paidRange.$1,
+      paidUntil: _paidRange.$2,
     );
     if (isClosed || request != _searchRequest) return;
 

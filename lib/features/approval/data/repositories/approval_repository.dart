@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
@@ -11,6 +12,8 @@ import 'package:zuno_admin_dashboard/features/host_management/data/models/host_p
 
 class ApprovalRepository {
   const ApprovalRepository(this._dataSource, {this._avatars});
+
+  static const String _hostDetails = 'hostDetails';
 
   final UsersRemoteDataSource _dataSource;
   final AvatarStorageRemoteDataSource? _avatars;
@@ -66,6 +69,65 @@ class ApprovalRepository {
     document: _fieldOf(type),
     status: _statusValue(decision),
   );
+
+  /// Saves the admin's edits to the applicant's `users` document, writing only
+  /// the fields that changed (the same fields Host Management edits), and
+  /// returns the request as it is now stored.
+  Future<Either<Failure, HostRequest>> updateHostRequest(
+    HostRequest original,
+    HostRequest edited,
+  ) async {
+    String? text(String value) {
+      final trimmed = value.trim();
+      return trimmed.isEmpty || trimmed == AppStrings.emptyValue
+          ? null
+          : trimmed;
+    }
+
+    final phoneChanged = edited.phone.trim() != original.phone.trim();
+    final phoneFields = phoneChanged
+        ? UserRecord.phoneFields(edited.phone)
+        : const <String, Object?>{};
+    if (phoneFields == null) {
+      return left(const DataFailure(AppStrings.enterValidPhone));
+    }
+
+    final result = await _dataSource.updateRecord(original.requestId, {
+      if (text(edited.realName) != text(original.realName))
+        '$_hostDetails.fullName': text(edited.realName),
+      if (text(edited.nickName) != text(original.nickName))
+        '$_hostDetails.userName': text(edited.nickName),
+      if (text(edited.city) != text(original.city))
+        '$_hostDetails.district': text(edited.city),
+      if (edited.dateOfBirth != original.dateOfBirth)
+        '$_hostDetails.dob': edited.dateOfBirth?.toIso8601String(),
+      if (edited.gender != original.gender)
+        '$_hostDetails.${UserRecord.genderField}': edited.gender?.name,
+      if (edited.motherTongue != original.motherTongue)
+        '$_hostDetails.motherTongue': edited.motherTongue?.name,
+      if (!listEquals(edited.languages, original.languages))
+        '$_hostDetails.languages': [
+          for (final language in edited.languages) language.name,
+        ],
+      ...phoneFields,
+    });
+    return result.map(
+      (_) => phoneChanged
+          ? edited.copyWith(
+              phone: UserRecord.formatPhone(
+                phoneFields['countryCode'] as String? ??
+                    _countryCodeOf(original.phone),
+                phoneFields['phoneNumber'] as String?,
+              ),
+            )
+          : edited,
+    );
+  }
+
+  static String? _countryCodeOf(String phoneLabel) {
+    final first = phoneLabel.trim().split(' ').first;
+    return first.startsWith('+') ? first : null;
+  }
 
   Future<Either<Failure, Unit>> decideRequest(
     HostRequest request,

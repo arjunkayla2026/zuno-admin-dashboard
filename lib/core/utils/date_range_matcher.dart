@@ -30,6 +30,7 @@ extension DateRangeMatcher on DateRangeFilter {
         today,
       ),
       DateRangeFilter.custom => (customRange?.start, customRange?.end),
+      DateRangeFilter.all => (null, null),
     };
     if (start == null || end == null) return (null, null);
     return (_dayOf(start), _dayOf(end));

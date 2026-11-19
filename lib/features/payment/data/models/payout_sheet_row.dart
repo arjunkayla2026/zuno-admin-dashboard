@@ -53,6 +53,7 @@ class PayoutSheetRow {
     this.district,
     this.state,
     this.remarks = const PayoutRemarks(),
+    this.beneficiaryId,
   });
 
   final Withdrawal withdrawal;
@@ -61,4 +62,17 @@ class PayoutSheetRow {
   final String? district;
   final String? state;
   final PayoutRemarks remarks;
+  final String? beneficiaryId;
+
+  bool get hasBeneficiary => beneficiaryId != null;
+
+  PayoutSheetRow withBeneficiaryId(String? beneficiaryId) => PayoutSheetRow(
+    withdrawal: withdrawal,
+    bankAccount: bankAccount,
+    fullName: fullName,
+    district: district,
+    state: state,
+    remarks: remarks,
+    beneficiaryId: beneficiaryId,
+  );
 }

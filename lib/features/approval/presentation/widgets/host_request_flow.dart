@@ -14,7 +14,7 @@ Future<void> openHostRequest(BuildContext context, HostRequest request) async {
     context: context,
     builder: (_) => HostRequestSheet(
       request: request,
-      onChanged: cubit.updateRequest,
+      onSave: cubit.saveHostRequest,
       onReview: cubit.reviewDocument,
       onDecide: cubit.decideRequest,
     ),

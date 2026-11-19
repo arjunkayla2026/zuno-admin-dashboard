@@ -20,6 +20,7 @@ abstract final class DashboardLabels {
     DateRangeFilter.last7Days => AppStrings.last7Days,
     DateRangeFilter.last30Days => AppStrings.last30Days,
     DateRangeFilter.custom => AppStrings.customDateRange,
+    DateRangeFilter.all => AppStrings.all,
   };
 
   static String range(DashboardState state) {

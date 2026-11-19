@@ -69,7 +69,7 @@ class PayoutSheetExporter {
         for (final row in rows)
           [
             customerId,
-            row.withdrawal.hostUserId,
+            row.beneficiaryId ?? '',
             _beneficiaryName(row),
             row.bankAccount.accountNumber ?? '',
             row.bankAccount.ifscCode ?? '',
@@ -98,7 +98,7 @@ class PayoutSheetExporter {
             _beneficiaryName(row),
             row.bankAccount.ifscCode ?? '',
             '',
-            row.withdrawal.hostUserId,
+            row.beneficiaryId ?? '',
             _remarks(row.remarks.credit),
             _remarks(row.remarks.debit),
             row.withdrawal.bankReference,

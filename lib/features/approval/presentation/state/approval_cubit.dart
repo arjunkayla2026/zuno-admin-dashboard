@@ -3,10 +3,12 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/data/user_search.dart';
 import 'package:zuno_admin_dashboard/core/enums/date_range_filter.dart';
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
+import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/utils/date_range_matcher.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/host_request.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/payout_request.dart';
@@ -41,9 +43,10 @@ class ApprovalCubit extends Cubit<ApprovalState> {
   final PayoutRepository _payoutRepository;
   final DateTime Function() _now;
   Timer? _debounce;
+  final Set<String> _approvedRequestIds = {};
 
   late final ApprovalPager<HostRequest> _hosts = ApprovalPager(
-    fetch: _repository.fetchHostRequests,
+    fetch: _fetchHostRequests,
     count: _repository.countHostRequests,
     now: _now,
     onChanged: (view) => _publish(
@@ -84,6 +87,17 @@ class ApprovalCubit extends Cubit<ApprovalState> {
         photoPaging: view.paging,
         pendingPhotoCount: view.unfilteredTotal,
       ),
+    ),
+  );
+
+  Future<Either<Failure, RecordPage<HostRequest>>> _fetchHostRequests(
+    RecordPageQuery query,
+  ) async => (await _repository.fetchHostRequests(query)).map(
+    (page) => page.mapItems(
+      (items) => [
+        for (final item in items)
+          if (!_approvedRequestIds.contains(item.requestId)) item,
+      ],
     ),
   );
 
@@ -181,13 +195,20 @@ class ApprovalCubit extends Cubit<ApprovalState> {
     if (isClosed) return null;
 
     return result.match((failure) => failure.message, (_) {
-      _hosts
-        ..recordDecision()
-        ..update(
+      _hosts.recordDecision();
+      if (decision == HostRequestStatus.approved) {
+        _approvedRequestIds.add(request.requestId);
+        final reload = _hosts.remove(
+          (item) => item.requestId == request.requestId,
+        );
+        if (reload) unawaited(_hosts.show(_filter, force: true));
+      } else {
+        _hosts.update(
           (item) => item.requestId == request.requestId
               ? item.copyWith(status: decision)
               : item,
         );
+      }
       _publish(state.copyWith(pendingCount: max(0, state.pendingCount - 1)));
       return null;
     });
@@ -205,6 +226,17 @@ class ApprovalCubit extends Cubit<ApprovalState> {
       updateRequest(request.withDocumentStatus(type, decision));
       return null;
     });
+  }
+
+  /// Saves the edited request to Firestore and, once stored, shows it in the
+  /// list.
+  Future<Either<Failure, HostRequest>> saveHostRequest(
+    HostRequest original,
+    HostRequest edited,
+  ) async {
+    final result = await _repository.updateHostRequest(original, edited);
+    if (!isClosed) result.map(updateRequest);
+    return result;
   }
 
   Future<String?> decideProfilePhoto(

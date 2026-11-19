@@ -167,6 +167,40 @@ class ApprovalPager<T> {
     }
   }
 
+  /// Removes the items matching [test] from every cached page and shows the
+  /// current page without them. Cached results for other filters that are
+  /// left with an empty page are dropped so they load again. Returns true
+  /// when the current page is now empty while other pages exist, so the
+  /// caller should reload it.
+  bool remove(bool Function(T item) test) {
+    for (final key in _entries.keys.toList()) {
+      final entry = _entries[key]!;
+      for (var index = 0; index < entry.pages.length; index++) {
+        entry.pages[index] = [
+          for (final item in entry.pages[index])
+            if (!test(item)) item,
+        ];
+      }
+      if (key != _key && entry.pages.any((page) => page.isEmpty)) {
+        _entries.remove(key);
+      }
+    }
+
+    final current = _entries[_key];
+    if (current == null ||
+        _inFlight != null ||
+        _page > current.pages.length) {
+      return false;
+    }
+    final emptied = current.pages[_page - 1].isEmpty;
+    if (emptied && (_page > 1 || current.hasNext)) {
+      _entries.remove(_key);
+      return true;
+    }
+    onChanged(_loadedView(current, includeUnfilteredTotal: false));
+    return false;
+  }
+
   void recordDecision() {
     for (final entry in _entries.values) {
       final total = entry.total;

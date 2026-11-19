@@ -422,6 +422,7 @@ abstract final class AppStrings {
   static const String profilePhotoReview = 'Profile Photo Review';
   static const String last7Days = 'Last 7 Days';
   static const String last30Days = 'Last 30 Days';
+  static const String lastWeek = 'Last Week';
   static const String realName = 'Real Name';
   static const String nickName = 'Nick Name';
   static const String mobileNumber = 'Mobile Number';
@@ -591,6 +592,9 @@ abstract final class AppStrings {
   static const String nothingToExport =
       'There are no pending withdrawals to export.';
   static const String exportFailed = 'The sheet could not be downloaded.';
+  static const String noRegisteredBeneficiaries =
+      'None of these hosts has a beneficiary registered for their current '
+      'bank account. Export the beneficiary sheet first.';
   static const String bonus = 'Bonus';
   static const String payoutFailed =
       "The payout couldn't be completed. Try again.";
@@ -716,6 +720,8 @@ abstract final class AppStrings {
       count == 1 ? '1 payout' : '$count payouts';
 
   static String selectAll(int count) => 'Select all $count';
+  static String withSelectedCount(String action, int count) =>
+      '$action ($count)';
 
   static String selectionSummary(int count, String amount) =>
       '$count selected · $amount';
@@ -785,6 +791,11 @@ abstract final class AppStrings {
 
   static String withdrawalsExported(int count) =>
       '$count withdrawals were exported.';
+
+  static String withdrawalsExportedSkipping(int count, int skipped) =>
+      '${withdrawalsExported(count)} $skipped left out because their '
+      'beneficiary is not registered for the current bank account. Export '
+      'the beneficiary sheet for them first.';
 
   static String withdrawalSheetRows(int count) =>
       'Withdrawal sheet · $count rows';

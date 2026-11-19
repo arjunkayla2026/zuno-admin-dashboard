@@ -9,6 +9,7 @@ import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/datasources/payment_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_batch_result.dart';
+import 'package:zuno_admin_dashboard/features/payment/data/models/payout_beneficiary.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_failure_reason.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_sheet_row.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_summary.dart';
@@ -35,7 +36,8 @@ class PaymentRepository {
 
   Future<Either<Failure, int>> countPending() => _dataSource.countPending();
 
-  Future<Either<Failure, int>> countPaid() => _dataSource.countPaid();
+  Future<Either<Failure, int>> countPaid({DateTime? from, DateTime? until}) =>
+      _dataSource.countPaid(from: from, until: until);
 
   Future<Either<Failure, int>> countFailed() => _dataSource.countFailed();
 
@@ -59,7 +61,9 @@ class PaymentRepository {
 
   Future<Either<Failure, RecordPage<Withdrawal>>> fetchPaidPage({
     Object? cursor,
-  }) => _dataSource.fetchPaidPage(cursor: cursor);
+    DateTime? from,
+    DateTime? until,
+  }) => _dataSource.fetchPaidPage(cursor: cursor, from: from, until: until);
 
   Future<Either<Failure, RecordPage<Withdrawal>>> fetchFailedPage({
     Object? cursor,
@@ -91,10 +95,23 @@ class PaymentRepository {
     String term, {
     required double? minimum,
     required WithdrawalStatus status,
+    DateTime? paidFrom,
+    DateTime? paidUntil,
   }) async {
     final text = term.trim();
+    bool paidInRange(Withdrawal withdrawal) {
+      if (!withdrawal.isPaid || (paidFrom == null && paidUntil == null)) {
+        return true;
+      }
+      final paidOn = withdrawal.paidOn;
+      return paidOn != null &&
+          (paidFrom == null || !paidOn.isBefore(paidFrom)) &&
+          (paidUntil == null || paidOn.isBefore(paidUntil));
+    }
+
     bool keep(Withdrawal withdrawal) =>
         withdrawal.status == status &&
+        paidInRange(withdrawal) &&
         (!withdrawal.isOpen ||
             withdrawal.totalAmount >= PayoutSettings.eligibleFrom(minimum));
 
@@ -123,7 +140,11 @@ class PaymentRepository {
             records.map(_pendingPayoutIdOf).nonNulls,
           ),
           WithdrawalStatus.pending => _dataSource.fetchPendingForHosts(hostIds),
-          WithdrawalStatus.success => _dataSource.fetchPaidForHosts(hostIds),
+          WithdrawalStatus.success => _dataSource.fetchPaidForHosts(
+            hostIds,
+            from: paidFrom,
+            until: paidUntil,
+          ),
           WithdrawalStatus.failed => _dataSource.fetchFailedForHosts(hostIds),
           WithdrawalStatus.forfeited => Future.value(
             right<Failure, List<Withdrawal>>(const []),
@@ -146,8 +167,37 @@ class PaymentRepository {
     }
   }
 
+  /// Builds the beneficiary sheet rows for [withdrawals] and registers each
+  /// host as a beneficiary: a host keeps its `hostDetails.beneficiaryId`
+  /// while its bank account is unchanged and gets a new one otherwise.
+  Future<Either<Failure, List<PayoutSheetRow>>> fetchBeneficiarySheetRows(
+    List<Withdrawal> withdrawals,
+  ) async {
+    final rows = await fetchSheetRows(withdrawals);
+    switch (rows) {
+      case Left():
+        return rows;
+      case Right(value: final loaded):
+        if (loaded.isEmpty) return rows;
+        final registered = await _dataSource.registerBeneficiaries({
+          for (final row in loaded)
+            row.withdrawal.hostId: PayoutBeneficiary.fingerprint(
+              row.withdrawal.hostId,
+              row.bankAccount,
+            ),
+        });
+        return registered.map(
+          (ids) => [
+            for (final row in loaded)
+              row.withBeneficiaryId(ids[row.withdrawal.hostId]),
+          ],
+        );
+    }
+  }
+
   /// Builds the bank sheet rows for [withdrawals], skipping mock payouts and
   /// any without an approved bank account. Joins each host's `hostDetails`
+  /// (including a beneficiary ID still valid for the current bank account)
   /// and the admin credit / debit remarks written against the payout.
   Future<Either<Failure, List<PayoutSheetRow>>> fetchSheetRows(
     List<Withdrawal> withdrawals,
@@ -203,9 +253,15 @@ class PaymentRepository {
       ).isAfter(DateTime(periodEnd.year, periodEnd.month, periodEnd.day));
     }
 
+    final bankAccount = withdrawal.bankAccount!;
     return PayoutSheetRow(
       withdrawal: withdrawal,
-      bankAccount: withdrawal.bankAccount!,
+      bankAccount: bankAccount,
+      beneficiaryId: PayoutBeneficiary.currentId(
+        withdrawal.hostId,
+        details,
+        bankAccount,
+      ),
       fullName: UserRecord.readText(details['fullName']),
       district: UserRecord.readText(details['district']),
       state: UserRecord.readText(details['state']),

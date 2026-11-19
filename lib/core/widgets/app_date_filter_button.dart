@@ -16,6 +16,7 @@ class AppDateFilterButton extends StatelessWidget {
     required this.onCustomRangeSelected,
     this.customRange,
     this.options = defaultOptions,
+    this.labelOf,
   });
 
   static const double height = 46;
@@ -35,14 +36,19 @@ class AppDateFilterButton extends StatelessWidget {
   final ValueChanged<DateRangeFilter> onFilterSelected;
   final ValueChanged<DateTimeRange> onCustomRangeSelected;
   final List<DateRangeFilter> options;
+  final String Function(DateRangeFilter filter)? labelOf;
 
-  static String _optionLabel(DateRangeFilter filter) => switch (filter) {
+  static String defaultLabel(DateRangeFilter filter) => switch (filter) {
     DateRangeFilter.today => AppStrings.today,
     DateRangeFilter.yesterday => AppStrings.yesterday,
     DateRangeFilter.last7Days => AppStrings.last7Days,
     DateRangeFilter.last30Days => AppStrings.last30Days,
     DateRangeFilter.custom => AppStrings.customDateRange,
+    DateRangeFilter.all => AppStrings.all,
   };
+
+  String _optionLabel(DateRangeFilter filter) =>
+      (labelOf ?? defaultLabel)(filter);
 
   String get _buttonLabel {
     final range = customRange;

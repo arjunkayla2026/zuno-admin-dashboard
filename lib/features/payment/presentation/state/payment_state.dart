@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:zuno_admin_dashboard/core/data/cursor_pager.dart';
 import 'package:zuno_admin_dashboard/core/data/payout_settings.dart';
+import 'package:zuno_admin_dashboard/core/enums/date_range_filter.dart';
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_summary.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
@@ -38,9 +40,19 @@ class PaymentState {
     this.selectingAll = false,
     this.exporting = false,
     this.batchRunning = false,
+    this.successDateFilter = DateRangeFilter.all,
+    this.successCustomRange,
   });
 
   static const int tdsPercent = PayoutSettings.tdsPercent;
+
+  static const List<DateRangeFilter> successDateOptions = [
+    DateRangeFilter.all,
+    DateRangeFilter.yesterday,
+    DateRangeFilter.last7Days,
+    DateRangeFilter.last30Days,
+    DateRangeFilter.custom,
+  ];
 
   final PaymentTab tab;
   final String query;
@@ -61,6 +73,8 @@ class PaymentState {
   final bool selectingAll;
   final bool exporting;
   final bool batchRunning;
+  final DateRangeFilter successDateFilter;
+  final DateTimeRange? successCustomRange;
 
   bool get isSearching => query.trim().isNotEmpty;
 
@@ -99,6 +113,9 @@ class PaymentState {
     return selectedRows == rows.length ? true : null;
   }
 
+  List<Withdrawal> get selectedPending =>
+      selected.values.where((item) => item.isPending).toList();
+
   double get selectedTotal =>
       selected.values.fold(0, (total, item) => total + item.totalAmount);
 
@@ -135,6 +152,7 @@ class PaymentState {
     PayoutSummary? summary,
     int? pendingCount,
     int? paidCount,
+    bool clearPaidCount = false,
     int? failedCount,
     int? searchCount,
     bool clearSearchCount = false,
@@ -142,6 +160,8 @@ class PaymentState {
     bool? selectingAll,
     bool? exporting,
     bool? batchRunning,
+    DateRangeFilter? successDateFilter,
+    DateTimeRange? successCustomRange,
   }) {
     return PaymentState(
       tab: tab ?? this.tab,
@@ -156,13 +176,15 @@ class PaymentState {
       minimumLoaded: minimumLoaded ?? this.minimumLoaded,
       summary: summary ?? this.summary,
       pendingCount: pendingCount ?? this.pendingCount,
-      paidCount: paidCount ?? this.paidCount,
+      paidCount: clearPaidCount ? null : paidCount ?? this.paidCount,
       failedCount: failedCount ?? this.failedCount,
       searchCount: clearSearchCount ? null : searchCount ?? this.searchCount,
       selected: selected ?? this.selected,
       selectingAll: selectingAll ?? this.selectingAll,
       exporting: exporting ?? this.exporting,
       batchRunning: batchRunning ?? this.batchRunning,
+      successDateFilter: successDateFilter ?? this.successDateFilter,
+      successCustomRange: successCustomRange ?? this.successCustomRange,
     );
   }
 }
