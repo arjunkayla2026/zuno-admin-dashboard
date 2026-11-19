@@ -189,9 +189,48 @@ Future<void> moveSelectedToPending(BuildContext context) async {
   await _showMoveResult(context, result);
 }
 
-Future<void> markSelectedPaid(BuildContext context) async {
+Future<void> markSelectedPaid(BuildContext context) => markWithdrawalsPaid(
+  context,
+  context.read<PaymentCubit>().state.selected.values.toList(),
+);
+
+/// Rejects a pending payout through the existing Mark as Failed action, with
+/// the reason Rejected by the bank. Nothing is added to the host's withdrawn
+/// total.
+Future<void> rejectWithdrawal(
+  BuildContext context,
+  Withdrawal withdrawal,
+) async {
   final cubit = context.read<PaymentCubit>();
-  final selection = cubit.state.selected.values.toList();
+  final confirmed = await showAppConfirmDialog(
+    context: context,
+    iconAsset: AppImages.paymentIcon,
+    title: AppStrings.rejectWithdrawalTitle,
+    message: TextSpan(
+      text: AppStrings.rejectWithdrawalMessage(
+        NumberFormatter.rupeesAmount(withdrawal.totalAmount),
+        withdrawal.hostName,
+      ),
+    ),
+    confirmLabel: AppStrings.reject,
+  );
+  if (!confirmed || !context.mounted) return;
+  final result = await cubit.markFailed(
+    [withdrawal],
+    const PayoutFailureInput(
+      reason: PayoutFailureReason.bankRejected,
+      note: AppStrings.rejectedInTesting,
+    ),
+  );
+  if (!context.mounted) return;
+  await _showFailResult(context, result);
+}
+
+Future<void> markWithdrawalsPaid(
+  BuildContext context,
+  List<Withdrawal> selection,
+) async {
+  final cubit = context.read<PaymentCubit>();
   if (selection.isEmpty) return;
   final confirmed = await showAppConfirmDialog(
     context: context,
@@ -208,7 +247,7 @@ Future<void> markSelectedPaid(BuildContext context) async {
     positive: true,
   );
   if (!confirmed || !context.mounted) return;
-  final result = await cubit.markSelectedPaid();
+  final result = await cubit.markPaid(selection);
   if (!context.mounted) return;
   await _showBatchResult(
     context,

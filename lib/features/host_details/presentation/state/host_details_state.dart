@@ -57,6 +57,11 @@ class HostDetailsState {
   double? get adminDebitTotal =>
       ledgerAdjustments?.debit ?? host.totalAdminDebit;
 
+  /// The host's stored withdrawn total (`hostEarnings.totalWithdrawel`);
+  /// for a host without it, the `totalAmount` of its `success` payouts once
+  /// the payout totals load.
+  double? get successfulWithdrawals => host.totalWithdrawn ?? totals?.paidTotal;
+
   /// `totalAmount` of the host's `pending` and `failed` payouts (moved to
   /// payment, not paid yet); null until the payout totals load.
   double? get pendingWithdrawals => totals?.awaitingPaymentTotal;
@@ -75,7 +80,7 @@ class HostDetailsState {
 
     return [
       // Total Revenue: `hostDetails.hostEarnings.totalEarnings`.
-      // Successful: `totalAmount` of `success` payouts. Pending:
+      // Successful: `hostDetails.hostEarnings.totalWithdrawel`. Pending:
       // `totalAmount` of `pending` + `failed` payouts.
       AppStat(
         label: AppStrings.totalRevenue,
@@ -83,7 +88,7 @@ class HostDetailsState {
       ),
       AppStat(
         label: AppStrings.totalSuccessfulWithdrawals,
-        value: amount(totals?.paidTotal),
+        value: amount(successfulWithdrawals),
       ),
       AppStat(
         label: AppStrings.totalPendingWithdrawals,

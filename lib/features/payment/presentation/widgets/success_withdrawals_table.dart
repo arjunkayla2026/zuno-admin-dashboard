@@ -8,6 +8,7 @@ import 'package:zuno_admin_dashboard/core/widgets/app_avatar_name_cell.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_data_table.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_status_badge.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
+import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/mock_withdrawal_badge.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_flow.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_labels.dart';
 
@@ -61,6 +62,7 @@ class SuccessWithdrawalsTable extends StatelessWidget {
                 avatarIndex: withdrawal.avatarIndex,
                 name: withdrawal.hostName,
                 photoUserId: withdrawal.hostId,
+                badge: MockWithdrawalBadge.of(withdrawal),
               ),
               Text(withdrawal.hostUserId, style: identifier),
               Text(WithdrawalLabels.period(withdrawal), style: cell),

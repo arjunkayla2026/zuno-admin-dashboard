@@ -146,13 +146,15 @@ class PaymentRepository {
     }
   }
 
-  /// Builds the bank sheet rows for [withdrawals], skipping any without an
-  /// approved bank account. Joins each host's `hostDetails` and the admin
-  /// credit / debit remarks written against the payout.
+  /// Builds the bank sheet rows for [withdrawals], skipping mock payouts and
+  /// any without an approved bank account. Joins each host's `hostDetails`
+  /// and the admin credit / debit remarks written against the payout.
   Future<Either<Failure, List<PayoutSheetRow>>> fetchSheetRows(
     List<Withdrawal> withdrawals,
   ) async {
-    final ready = withdrawals.where((item) => item.hasBankAccount).toList();
+    final ready = withdrawals
+        .where((item) => item.hasBankAccount && !item.isMock)
+        .toList();
     if (ready.isEmpty) return right(const []);
     final (hosts, adjustments) = await (
       _usersDataSource.fetchByIds(ready.map((item) => item.hostId)),

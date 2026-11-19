@@ -6,6 +6,7 @@ import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_user_photo_avatar.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_status_badge.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
+import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/mock_withdrawal_badge.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_labels.dart';
 
 class WithdrawalDetailsHeader extends StatelessWidget {
@@ -13,6 +14,7 @@ class WithdrawalDetailsHeader extends StatelessWidget {
 
   static const double _avatarSize = 44;
   static const double _avatarGap = 12;
+  static const double _badgeGap = 6;
 
   final Withdrawal withdrawal;
 
@@ -52,6 +54,10 @@ class WithdrawalDetailsHeader extends StatelessWidget {
             ],
           ),
         ),
+        if (MockWithdrawalBadge.of(withdrawal) case final badge?) ...[
+          badge,
+          const SizedBox(width: _badgeGap),
+        ],
         AppStatusBadge(label: statusLabel, status: status),
       ],
     );

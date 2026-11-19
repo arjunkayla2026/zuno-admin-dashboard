@@ -99,6 +99,7 @@ class Withdrawal {
     this.failedOn,
     this.failedByName,
     this.retriedOn,
+    this.isMock = false,
   });
 
   factory Withdrawal.fromDocument(String id, Map<String, dynamic> data) {
@@ -181,10 +182,12 @@ class Withdrawal {
       failedOn: UserRecord.readDate(data['failedAt']),
       failedByName: UserRecord.readText(data['failedByName']),
       retriedOn: UserRecord.readDate(data['retriedAt']),
+      isMock: data[isMockField] == true,
     );
   }
 
   static const String collection = 'hostPayouts';
+  static const String isMockField = 'isMock';
   static const String hostIdField = 'hostId';
   static const String hostNameField = 'hostName';
   static const String hostUserIdField = 'hostUserId';
@@ -259,6 +262,9 @@ class Withdrawal {
   final DateTime? failedOn;
   final String? failedByName;
   final DateTime? retriedOn;
+
+  /// Created by Withdrawal Workflow Testing for a mock host; never exported.
+  final bool isMock;
 
   String get initials => NameFormatter.initials(hostName);
 
@@ -400,6 +406,7 @@ class Withdrawal {
       failedOn: failedOn ?? this.failedOn,
       failedByName: failedByName,
       retriedOn: retriedOn ?? this.retriedOn,
+      isMock: isMock,
     );
   }
 }

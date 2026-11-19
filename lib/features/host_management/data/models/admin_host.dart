@@ -29,6 +29,7 @@ class AdminHost {
     this.availableBalance = 0,
     this.totalAdminCredit,
     this.totalAdminDebit,
+    this.totalWithdrawn,
     this.isOnline = false,
     this.lastOnline,
     this.approvedAt,
@@ -70,6 +71,12 @@ class AdminHost {
 
   bool get hasStoredAdminTotals =>
       totalAdminCredit != null && totalAdminDebit != null;
+
+  /// Paid payouts before TDS: `hostDetails.hostEarnings.totalWithdrawel`
+  /// (stored spelling), which the calling app's `completeHostPayouts` adds to
+  /// once per payout, or the older `hostDetails.totalWithdrawn`. Null when
+  /// the host has neither.
+  final double? totalWithdrawn;
   final bool isOnline;
   final DateTime? lastOnline;
 
@@ -126,6 +133,7 @@ class AdminHost {
       availableBalance: availableBalance,
       totalAdminCredit: totalAdminCredit ?? this.totalAdminCredit,
       totalAdminDebit: totalAdminDebit ?? this.totalAdminDebit,
+      totalWithdrawn: totalWithdrawn,
       isOnline: isOnline,
       lastOnline: lastOnline,
       approvedAt: approvedAt,

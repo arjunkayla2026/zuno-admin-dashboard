@@ -57,8 +57,8 @@ class HostEarningsRemoteDataSource {
     (batch) => batch.where((payout) => payout.isListed),
   );
 
-  /// One count per listed status, the same `hostId` + `status` equality
-  /// shape as [fetchTotals], so no composite index is needed.
+  /// One count per listed status. Counts with only equality filters are
+  /// served by the single-field indexes, so no composite index is needed.
   Future<Either<Failure, int>> countWithdrawals(String hostId) async {
     try {
       final counts = await Future.wait([
@@ -99,9 +99,16 @@ class HostEarningsRemoteDataSource {
 
   /// Payout totals for the Host Details cards: `totalAmount` (the withdraw
   /// amount, before TDS) of the host's `success` / `pending` / `failed` /
-  /// `open` `hostPayouts`. Total Revenue, the Available Wallet Amount and the
-  /// admin credit / debit totals come from the host's `hostDetails.hostEarnings`
-  /// instead (see `HostManagementRepository.toAdminHost`).
+  /// `open` `hostPayouts`. Total Revenue, the Available Wallet Amount, the
+  /// withdrawn total and the admin credit / debit totals come from the host's
+  /// `hostDetails.hostEarnings` instead (see
+  /// `HostManagementRepository.toAdminHost`).
+  ///
+  /// It reads the host's records with the single `hostId` equality (one
+  /// record per payout cycle, so few) and adds them up by status here.
+  /// Firestore `sum()` with the `hostId` + `status` filters would need a
+  /// `hostId` + `status` + `totalAmount` composite index that is not
+  /// deployed, and failed the whole read.
   Future<Either<Failure, HostEarningsTotals>> fetchTotals(String hostId) async {
     Future<T> logged<T>(String part, Future<T> Function() read) async {
       try {
@@ -116,32 +123,41 @@ class HostEarningsRemoteDataSource {
       }
     }
 
-    Future<double> statusSum(String status, String field) =>
-        logged(status, () async {
-          final result = await _payoutsOf(hostId)
-              .where(Withdrawal.statusField, isEqualTo: status)
-              .aggregate(sum(field))
-              .get();
-          return result.getSum(field) ?? 0;
-        });
-
-    try {
-      final (
-        paidTotal,
-        pendingTotal,
-        failedTotal,
-        openTotal,
-        deletion,
-      ) = await (
-        statusSum(Withdrawal.successStatus, Withdrawal.totalAmountField),
-        statusSum(Withdrawal.pendingStatus, Withdrawal.totalAmountField),
-        statusSum(Withdrawal.failedStatus, Withdrawal.totalAmountField),
-        statusSum(Withdrawal.openStatus, Withdrawal.totalAmountField),
-        logged(
+    Future<Map<String, dynamic>?> deletionData() async {
+      try {
+        final snapshot = await logged(
           DeletedAccountRecord.document,
           () => _firestore.doc(DeletedAccountRecord.document).get(),
-        ),
+        );
+        return snapshot.data();
+      } catch (_) {
+        return null;
+      }
+    }
+
+    try {
+      final (payouts, deletion) = await (
+        logged(Withdrawal.collection, () => _payoutsOf(hostId).get()),
+        deletionData(),
       ).wait;
+      final totalsByStatus = <Object?, double>{};
+      for (final document in payouts.docs) {
+        final data = document.data();
+        final amount = data[Withdrawal.totalAmountField];
+        totalsByStatus.update(
+          data[Withdrawal.statusField],
+          (total) => total + (amount is num ? amount.toDouble() : 0),
+          ifAbsent: () => amount is num ? amount.toDouble() : 0,
+        );
+      }
+      AppLogger.info(
+        'hostEarnings.totals $hostId ${payouts.docs.length} payouts $totalsByStatus',
+      );
+      double statusSum(String status) => totalsByStatus[status] ?? 0;
+      final paidTotal = statusSum(Withdrawal.successStatus);
+      final pendingTotal = statusSum(Withdrawal.pendingStatus);
+      final failedTotal = statusSum(Withdrawal.failedStatus);
+      final openTotal = statusSum(Withdrawal.openStatus);
       return right(
         HostEarningsTotals(
           paidTotal: paidTotal,
@@ -149,7 +165,7 @@ class HostEarningsRemoteDataSource {
           failedTotal: failedTotal,
           openTotal: openTotal,
           deletedAccountProfit:
-              DeletedAccountRecord.incomeOf(deletion.data(), hostId) ??
+              DeletedAccountRecord.incomeOf(deletion, hostId) ??
               openTotal + pendingTotal,
         ),
       );

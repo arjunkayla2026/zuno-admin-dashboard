@@ -53,6 +53,21 @@ class PaymentCubit extends Cubit<PaymentState> {
     }
   }
 
+  /// Reloads every tab and count from page 1, keeping the current tab and
+  /// search, after records were added or removed outside the page's own
+  /// actions.
+  Future<void> refresh() async {
+    if (state.batchRunning) return;
+    _stale.addAll(PaymentTab.values);
+    _views.clear();
+    emit(state.copyWith(selected: const {}));
+    if (state.isSearching && state.minimumLoaded) {
+      unawaited(_loadCounts());
+      return _runSearch();
+    }
+    await load();
+  }
+
   Future<void> retry() async {
     if (!state.minimumLoaded) return load();
     if (state.isSearching) return _runSearch();
