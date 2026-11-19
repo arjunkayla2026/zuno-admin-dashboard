@@ -7,6 +7,7 @@ import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_batch_result.dart';
+import 'package:zuno_admin_dashboard/features/payment/data/models/payout_failure_reason.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_sheet_row.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/repositories/payment_repository.dart';
@@ -50,6 +51,21 @@ class PaymentCubit extends Cubit<PaymentState> {
         unawaited(_loadCounts());
         _show(state.tab);
     }
+  }
+
+  /// Reloads every tab and count from page 1, keeping the current tab and
+  /// search, after records were added or removed outside the page's own
+  /// actions.
+  Future<void> refresh() async {
+    if (state.batchRunning) return;
+    _stale.addAll(PaymentTab.values);
+    _views.clear();
+    emit(state.copyWith(selected: const {}));
+    if (state.isSearching && state.minimumLoaded) {
+      unawaited(_loadCounts());
+      return _runSearch();
+    }
+    await load();
   }
 
   Future<void> retry() async {
@@ -211,6 +227,58 @@ class PaymentCubit extends Cubit<PaymentState> {
     },
   );
 
+  Future<Either<Failure, PayoutBatchResult>> markSelectedFailed(
+    PayoutFailureInput failure,
+  ) => markFailed(state.selected.values.toList(), failure);
+
+  Future<Either<Failure, PayoutBatchResult>> retrySelected() =>
+      retryFailed(state.selected.values.toList());
+
+  Future<Either<Failure, PayoutBatchResult>> markFailed(
+    List<Withdrawal> withdrawals,
+    PayoutFailureInput failure,
+  ) => _runBatch(
+    withdrawals,
+    (items) => _repository.markFailed(items, failure),
+    onDone: (failed) {
+      final pendingCount = state.pendingCount;
+      final failedCount = state.failedCount;
+      _stale.add(PaymentTab.failed);
+      emit(
+        state.copyWith(
+          pendingCount: pendingCount == null
+              ? null
+              : (pendingCount - failed.length).clamp(0, pendingCount),
+          failedCount: failedCount == null ? null : failedCount + failed.length,
+        ),
+      );
+      _removeFrom(PaymentTab.pending, failed);
+    },
+  );
+
+  Future<Either<Failure, PayoutBatchResult>> retryFailed(
+    List<Withdrawal> withdrawals,
+  ) => _runBatch(
+    withdrawals,
+    _repository.retryPayouts,
+    onDone: (retried) {
+      final pendingCount = state.pendingCount;
+      final failedCount = state.failedCount;
+      _stale.add(PaymentTab.pending);
+      emit(
+        state.copyWith(
+          failedCount: failedCount == null
+              ? null
+              : (failedCount - retried.length).clamp(0, failedCount),
+          pendingCount: pendingCount == null
+              ? null
+              : pendingCount + retried.length,
+        ),
+      );
+      _removeFrom(PaymentTab.failed, retried);
+    },
+  );
+
   Future<Either<Failure, PayoutBatchResult>> _runBatch(
     List<Withdrawal> withdrawals,
     Future<Either<Failure, PayoutBatchResult>> Function(List<Withdrawal>)
@@ -285,6 +353,7 @@ class PaymentCubit extends Cubit<PaymentState> {
       ),
       PaymentTab.pending => _repository.fetchPendingPage(cursor: cursor),
       PaymentTab.success => _repository.fetchPaidPage(cursor: cursor),
+      PaymentTab.failed => _repository.fetchFailedPage(cursor: cursor),
     };
   }
 
@@ -307,10 +376,11 @@ class PaymentCubit extends Cubit<PaymentState> {
 
   Future<void> _loadCounts() async {
     final minimum = state.minimumPayout;
-    final (summary, pendingCount, paidCount) = await (
+    final (summary, pendingCount, paidCount, failedCount) = await (
       _repository.fetchSummary(minimum),
       _repository.countPending(),
       _repository.countPaid(),
+      _repository.countFailed(),
     ).wait;
     if (isClosed) return;
     emit(
@@ -318,6 +388,7 @@ class PaymentCubit extends Cubit<PaymentState> {
         summary: summary.toNullable(),
         pendingCount: pendingCount.toNullable(),
         paidCount: paidCount.toNullable(),
+        failedCount: failedCount.toNullable(),
       ),
     );
   }

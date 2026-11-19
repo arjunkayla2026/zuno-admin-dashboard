@@ -112,7 +112,7 @@ async function main() {
   const clearedPayoutIds = new Set(cleared.map(({ id }) => id));
   const unpaidByHost = sumBy(
     kept,
-    (data) => data.status === 'open' || data.status === 'pending',
+    (data) => ['open', 'pending', 'failed'].includes(data.status),
   );
   const withdrawnByHost = sumBy(kept, (data) => data.status === 'success');
 

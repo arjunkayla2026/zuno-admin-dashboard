@@ -196,6 +196,7 @@ class _PackageSheetState extends State<PackageSheet> {
       isGstEnabled: _gst,
       createdAt: widget.plan?.createdAt,
       updatedAt: widget.plan?.updatedAt,
+      totalRechargeCount: widget.plan?.totalRechargeCount,
     );
     setState(() {
       _saving = true;

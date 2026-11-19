@@ -18,7 +18,7 @@ class CallsRemoteDataSource {
   Query<Map<String, dynamic>> _filtered({
     DateTime? from,
     DateTime? until,
-    String? status,
+    List<String>? statuses,
     bool lowBalanceOnly = false,
     String? callType,
     CallParticipant? participant,
@@ -29,8 +29,10 @@ class CallsRemoteDataSource {
     if (participant != null) {
       query = query.where(participant.field, isEqualTo: participant.id);
     }
-    if (status != null) {
-      query = query.where(CallLog.statusField, isEqualTo: status);
+    if (statuses != null && statuses.isNotEmpty) {
+      query = statuses.length == 1
+          ? query.where(CallLog.statusField, isEqualTo: statuses.single)
+          : query.where(CallLog.statusField, whereIn: statuses);
     }
     if (lowBalanceOnly) {
       query = query.where(CallLog.insufficientBalanceField, isEqualTo: true);
@@ -56,7 +58,7 @@ class CallsRemoteDataSource {
   Future<Either<Failure, RecordPage<CallLog>>> fetchPage({
     DateTime? from,
     DateTime? until,
-    String? status,
+    List<String>? statuses,
     bool lowBalanceOnly = false,
     String? callType,
     CallParticipant? participant,
@@ -66,7 +68,7 @@ class CallsRemoteDataSource {
     'calls.fetchPage',
     () => RecordPages.fetch(
       _filtered(
-        status: status,
+        statuses: statuses,
         lowBalanceOnly: lowBalanceOnly,
         callType: callType,
         participant: participant,
@@ -81,7 +83,7 @@ class CallsRemoteDataSource {
   Future<Either<Failure, int>> count({
     DateTime? from,
     DateTime? until,
-    String? status,
+    List<String>? statuses,
     bool lowBalanceOnly = false,
     String? callType,
     CallParticipant? participant,
@@ -89,7 +91,7 @@ class CallsRemoteDataSource {
     final snapshot = await _filtered(
       from: from,
       until: until,
-      status: status,
+      statuses: statuses,
       lowBalanceOnly: lowBalanceOnly,
       callType: callType,
       participant: participant,
@@ -127,8 +129,11 @@ class CallsRemoteDataSource {
     DateTime? from,
     DateTime? until,
   }) => DataAction.read('calls.fetchStatistics', () async {
-    Query<Map<String, dynamic>> ranged({String? status}) =>
-        _filtered(from: from, until: until, status: status);
+    Query<Map<String, dynamic>> ranged({String? status}) => _filtered(
+      from: from,
+      until: until,
+      statuses: status == null ? null : [status],
+    );
     final answered = ranged().where(
       CallLog.statusField,
       whereIn: CallLogStatus.answeredValues,

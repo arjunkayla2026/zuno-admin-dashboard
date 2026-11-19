@@ -39,6 +39,11 @@ enum CallLogStatus {
 
   final String value;
 
+  /// The stored values this status stands for in a Firestore filter:
+  /// `ongoing` also covers `accepted`, which [fromValue] reads as ongoing.
+  List<String> get rawValues =>
+      this == ongoing ? const [_acceptedValue, 'ongoing'] : [value];
+
   static CallLogStatus fromValue(Object? value) {
     final text = value is String ? value.trim().toLowerCase() : null;
     if (text == _acceptedValue) return ongoing;
@@ -150,6 +155,7 @@ class CallLog {
     final endReason = text([endReasonField]);
     final rawEndedBy = first([endedByField, legacyEndedByField]);
     final duration = number([durationSecondsField, legacyDurationField]);
+    final isLowBalance = data[insufficientBalanceField] == true;
 
     return CallLog(
       callId: id,
@@ -170,16 +176,23 @@ class CallLog {
       startedAt: date([startedAtField, legacyStartedAtField]),
       endedAt: date([endedAtField, legacyEndedAtField]),
       recordedDurationSeconds: duration?.round(),
-      endedBy: _resolveEndedBy(
-        rawEndedBy: rawEndedBy,
-        endedUserId: text([endedUserIdField]),
-        customerIds: [customerId, ?customerUserId],
-        hostIds: [hostId, ?hostUserId],
-        endReason: endReason,
-        status: status,
-        endRequestedBy: data[endRequestedByField],
-        left: data[leftField],
-      ),
+      endedBy:
+          _isLowBalanceEnding(
+            endReason: endReason,
+            isLowBalance: isLowBalance,
+            status: status,
+          )
+          ? CallEndedBy.user
+          : _resolveEndedBy(
+              rawEndedBy: rawEndedBy,
+              endedUserId: text([endedUserIdField]),
+              customerIds: [customerId, ?customerUserId],
+              hostIds: [hostId, ?hostUserId],
+              endReason: endReason,
+              status: status,
+              endRequestedBy: data[endRequestedByField],
+              left: data[leftField],
+            ),
       endReason: endReason,
       spendCoins:
           number([
@@ -216,8 +229,25 @@ class CallLog {
       storedAdminRatePerMinute: number([
         adminRupeesPerMinuteField,
       ])?.toDouble(),
-      isLowBalance: data[insufficientBalanceField] == true,
+      isLowBalance: isLowBalance,
     );
+  }
+
+  /// The calling app's Cloud Functions write `endReason: lowBalance` when
+  /// the caller's balance ran out. Calls settled before that reason existed
+  /// are recognised by `insufficientBalance` on a call that ended with a
+  /// plain hang-up.
+  static bool _isLowBalanceEnding({
+    required String? endReason,
+    required bool isLowBalance,
+    required CallLogStatus status,
+  }) {
+    if (endReason == lowBalanceReason) return true;
+    return isLowBalance &&
+        status == CallLogStatus.completed &&
+        (endReason == null ||
+            endReason == participantLeftReason ||
+            endReason == endedByParticipantReason);
   }
 
   static num? _readNumber(Object? value) => switch (value) {
@@ -372,6 +402,9 @@ class CallLog {
   static const String maxDurationReason = 'maxDuration';
   static const String cancelledByCustomerReason = 'cancelledByCustomer';
   static const String rejectedByHostReason = 'rejectedByHost';
+  static const String lowBalanceReason = 'lowBalance';
+  static const String participantLeftReason = 'participantLeft';
+  static const String endedByParticipantReason = 'endedByParticipant';
 
   static const int _paisePerRupee = 100;
 
@@ -416,6 +449,12 @@ class CallLog {
   /// `channelId`, or the call ID when the document has none, the same
   /// fallback the calling app's `CallModel` uses.
   String get sessionId => _channelId ?? callId;
+
+  bool get endedForLowBalance => _isLowBalanceEnding(
+    endReason: endReason,
+    isLowBalance: isLowBalance,
+    status: status,
+  );
 
   String get userDisplayId => customerUserId ?? customerId;
 

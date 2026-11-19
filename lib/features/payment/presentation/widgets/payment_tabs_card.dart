@@ -15,6 +15,7 @@ import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dar
 import 'package:zuno_admin_dashboard/features/payment/data/repositories/payment_repository.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_cubit.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_state.dart';
+import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/failed_withdrawals_table.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/payment_toolbar.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/pending_withdrawals_table.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/success_withdrawals_table.dart';
@@ -29,7 +30,7 @@ class PaymentTabsCard extends StatelessWidget {
   static Widget? _selectionBar(BuildContext context, PaymentState state) {
     if (!state.tab.isSelectable || state.selected.isEmpty) return null;
     final cubit = context.read<PaymentCubit>();
-    final isOpenTab = state.tab == PaymentTab.withdrawalList;
+    final isPendingTab = state.tab == PaymentTab.pending;
     final selectAllCount = state.canSelectMore
         ? state.totalCount?.clamp(0, PaymentRepository.selectAllLimit)
         : null;
@@ -38,12 +39,22 @@ class PaymentTabsCard extends StatelessWidget {
         state.selected.length,
         NumberFormatter.rupeesAmount(state.selectedTotal),
       ),
-      actionLabel: isOpenTab
-          ? AppStrings.moveToPending
-          : AppStrings.markAsSuccess,
-      onAction: () => isOpenTab
-          ? moveSelectedToPending(context)
-          : markSelectedPaid(context),
+      actionLabel: switch (state.tab) {
+        PaymentTab.pending => AppStrings.markAsSuccess,
+        PaymentTab.failed => AppStrings.retryPayout,
+        PaymentTab.withdrawalList ||
+        PaymentTab.success => AppStrings.moveToPending,
+      },
+      onAction: () => switch (state.tab) {
+        PaymentTab.pending => markSelectedPaid(context),
+        PaymentTab.failed => retrySelected(context),
+        PaymentTab.withdrawalList ||
+        PaymentTab.success => moveSelectedToPending(context),
+      },
+      secondaryActionLabel: isPendingTab ? AppStrings.markAsFailed : null,
+      onSecondaryAction: isPendingTab
+          ? () => markSelectedFailed(context)
+          : null,
       onClear: cubit.clearSelection,
       selectAllLabel: selectAllCount == null
           ? null
@@ -78,6 +89,7 @@ class PaymentTabsCard extends StatelessWidget {
                   PaymentTab.withdrawalList: AppStrings.withdrawalList,
                   PaymentTab.pending: AppStrings.pendingTab,
                   PaymentTab.success: AppStrings.successTab,
+                  PaymentTab.failed: AppStrings.failed,
                 },
                 counts: {
                   for (final tab in PaymentTab.values) tab: ?state.countOf(tab),
@@ -101,6 +113,11 @@ class PaymentTabsCard extends StatelessWidget {
                 PaymentTab.success => SuccessWithdrawalsTable(
                   withdrawals: rows,
                   defaultTdsPercent: PaymentState.tdsPercent,
+                ),
+                PaymentTab.failed => FailedWithdrawalsTable(
+                  withdrawals: rows,
+                  state: state,
+                  firstIndex: state.firstIndex,
                 ),
               },
               if (state.status == LoadStatus.loading)

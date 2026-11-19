@@ -16,6 +16,8 @@ class AppSelectionBar extends StatelessWidget {
     required this.onClear,
     this.selectAllLabel,
     this.onSelectAll,
+    this.secondaryActionLabel,
+    this.onSecondaryAction,
     this.busy = false,
   });
 
@@ -30,12 +32,16 @@ class AppSelectionBar extends StatelessWidget {
   final VoidCallback onClear;
   final String? selectAllLabel;
   final VoidCallback? onSelectAll;
+  final String? secondaryActionLabel;
+  final VoidCallback? onSecondaryAction;
   final bool busy;
 
   @override
   Widget build(BuildContext context) {
     final selectAllLabel = this.selectAllLabel;
     final onSelectAll = this.onSelectAll;
+    final secondaryActionLabel = this.secondaryActionLabel;
+    final onSecondaryAction = this.onSecondaryAction;
 
     return Container(
       padding: _padding,
@@ -72,6 +78,12 @@ class AppSelectionBar extends StatelessWidget {
                 small: true,
                 onPressed: busy ? null : onClear,
               ),
+              if (secondaryActionLabel != null && onSecondaryAction != null)
+                AppSecondaryButton(
+                  label: secondaryActionLabel,
+                  small: true,
+                  onPressed: busy ? null : onSecondaryAction,
+                ),
               AppPrimaryButton(
                 label: actionLabel,
                 small: true,

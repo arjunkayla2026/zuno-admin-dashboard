@@ -7,7 +7,8 @@ import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dar
 enum PaymentTab {
   withdrawalList(WithdrawalStatus.open),
   pending(WithdrawalStatus.pending),
-  success(WithdrawalStatus.success);
+  success(WithdrawalStatus.success),
+  failed(WithdrawalStatus.failed);
 
   const PaymentTab(this.status);
 
@@ -31,6 +32,7 @@ class PaymentState {
     this.summary,
     this.pendingCount,
     this.paidCount,
+    this.failedCount,
     this.searchCount,
     this.selected = const {},
     this.selectingAll = false,
@@ -53,6 +55,7 @@ class PaymentState {
   final PayoutSummary? summary;
   final int? pendingCount;
   final int? paidCount;
+  final int? failedCount;
   final int? searchCount;
   final Map<String, Withdrawal> selected;
   final bool selectingAll;
@@ -75,6 +78,7 @@ class PaymentState {
     PaymentTab.withdrawalList => summary?.hostCount,
     PaymentTab.pending => pendingCount,
     PaymentTab.success => paidCount,
+    PaymentTab.failed => failedCount,
   };
 
   int? get totalCount => isSearching ? searchCount : countOf(tab);
@@ -131,6 +135,7 @@ class PaymentState {
     PayoutSummary? summary,
     int? pendingCount,
     int? paidCount,
+    int? failedCount,
     int? searchCount,
     bool clearSearchCount = false,
     Map<String, Withdrawal>? selected,
@@ -152,6 +157,7 @@ class PaymentState {
       summary: summary ?? this.summary,
       pendingCount: pendingCount ?? this.pendingCount,
       paidCount: paidCount ?? this.paidCount,
+      failedCount: failedCount ?? this.failedCount,
       searchCount: clearSearchCount ? null : searchCount ?? this.searchCount,
       selected: selected ?? this.selected,
       selectingAll: selectingAll ?? this.selectingAll,

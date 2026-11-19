@@ -24,6 +24,12 @@ abstract final class CallLogLabels {
   }
 
   static String endedBy(CallLog call) {
+    if (call.endedForLowBalance) {
+      return AppStrings.endedByReason(
+        AppStrings.userRole,
+        AppStrings.lowBalanceReason,
+      );
+    }
     final party = switch (call.endedBy) {
       CallEndedBy.user => AppStrings.userRole,
       CallEndedBy.host => AppStrings.hostRole,
@@ -48,6 +54,7 @@ abstract final class CallLogLabels {
 
   static String statusFilter(CallStatusFilter filter) => switch (filter) {
     CallStatusFilter.incoming => AppStrings.incomingCalls,
+    CallStatusFilter.ongoing => AppStrings.ongoingCalls,
     CallStatusFilter.completed => AppStrings.completedCalls,
     CallStatusFilter.busy => AppStrings.busyCalls,
     CallStatusFilter.rejected => AppStrings.rejectedCalls,

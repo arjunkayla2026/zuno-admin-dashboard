@@ -7,6 +7,7 @@ class PayoutItemResult {
     this.error,
     this.totalAmount = 0,
     this.receipt,
+    this.failureCount,
   });
 
   static PayoutItemResult? fromMap(Object? value) {
@@ -16,6 +17,7 @@ class PayoutItemResult {
     final ok = value['ok'] == true;
     final error = value['error'];
     final total = value['totalAmount'];
+    final failureCount = value['failureCount'];
     return PayoutItemResult(
       payoutId: payoutId,
       ok: ok,
@@ -24,6 +26,7 @@ class PayoutItemResult {
       receipt: ok && value['tdsPercent'] is num
           ? PayoutReceipt.fromMap(Map<Object?, Object?>.from(value))
           : null,
+      failureCount: failureCount is num ? failureCount.round() : null,
     );
   }
 
@@ -32,6 +35,7 @@ class PayoutItemResult {
   final String? error;
   final double totalAmount;
   final PayoutReceipt? receipt;
+  final int? failureCount;
 }
 
 class PayoutFailure {

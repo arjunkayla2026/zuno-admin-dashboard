@@ -39,7 +39,10 @@ class PackageListSection extends StatelessWidget {
           LoadStatus.loaded => Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              PackagesTable(packages: state.packages),
+              PackagesTable(
+                packages: state.packages,
+                purchaseCounts: state.purchaseCounts,
+              ),
               const Divider(color: AppColors.cardBorder),
               AppTableFooter(
                 firstIndex: state.firstIndex,

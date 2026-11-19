@@ -280,6 +280,7 @@ abstract final class AppStrings {
   static const String accountHolderName = 'Account Holder Name';
   static const String accountNumber = 'Account Number';
   static const String ifscCode = 'IFSC Code';
+  static const String panNumber = 'PAN Number';
   static const String withdrawId = 'Withdraw ID';
   static const String pending = 'Pending';
   static const String success = 'Success';
@@ -365,6 +366,7 @@ abstract final class AppStrings {
   static const String busyCalls = 'Busy Calls';
   static const String notAnsweredCalls = 'Not Answered Calls';
   static const String lowBalanceCalls = 'Low Balance Calls';
+  static const String ongoingCalls = 'Ongoing Calls';
   static const String callsType = 'Calls Type';
   static const String audioCall = 'Audio Call';
   static const String videoCall = 'Video Call';
@@ -388,6 +390,7 @@ abstract final class AppStrings {
   static const String timeLimitReason = 'time limit reached';
   static const String cancelledReason = 'cancelled';
   static const String rejectedReason = 'rejected';
+  static const String lowBalanceReason = 'low balance';
 
   static String endedByReason(String party, String reason) =>
       '$party – $reason';
@@ -507,7 +510,8 @@ abstract final class AppStrings {
   static const String receivableAmount = 'Receivable Amount';
   static const String receivableCoin = 'Receivable Coin';
   static const String totalCoinsWithOffer = 'Total Coins (With Offer)';
-  static const String offerTag = 'Offer Tag';
+  static const String totalPurchases = 'Package-wise Total Recharge Count';
+  static const String offerTag = 'Tagline';
   static const String offerPercentage = 'Offer %';
   static const String offerPercentageField = 'Offer Percentage (%)';
   static const String offerPercentageTooHigh = 'Enter 100 or less.';
@@ -614,6 +618,91 @@ abstract final class AppStrings {
   static const String movedToPendingTitle = 'Moved to Pending';
   static const String payoutsCompletedTitle = 'Payouts completed';
   static const String payoutBatchFailuresTitle = "Couldn't be updated";
+  static const String failedWithdrawals = 'Failed Withdrawals';
+  static const String markAsFailed = 'Mark as Failed';
+  static const String retryPayout = 'Retry Payout';
+  static const String markedFailedTitle = 'Marked as failed';
+  static const String movedBackToPendingTitle = 'Moved back to Pending';
+  static const String failureReason = 'Failure Reason';
+  static const String failureNote = 'Note';
+  static const String failureNoteHint = 'Details from the bank';
+  static const String failureNoteRequired = 'Add a note for this reason.';
+  static const String selectReason = 'Select a reason';
+  static const String failedOn = 'Failed On';
+  static const String failedBy = 'Failed By';
+  static const String failedAttempts = 'Failed Attempts';
+  static const String retriedOn = 'Retried On';
+  static const String failureDetails = 'Failure';
+  static const String lastFailureDetails = 'Last failure';
+  static const String bankReference = 'Bank Reference';
+  static const String reasonInvalidAccount = 'Invalid account number or IFSC';
+  static const String reasonAccountClosed = 'Account closed or frozen';
+  static const String reasonNameMismatch = 'Account holder name mismatch';
+  static const String reasonBankRejected = 'Rejected by the bank';
+  static const String mockBadge = 'Mock';
+  static const String withdrawalWorkflowTesting = 'Withdrawal Workflow Testing';
+  static const String withdrawalWorkflowTestingNote =
+      'Staging only · mock hosts and payouts are flagged isMock and never '
+      'exported to bank sheets';
+  static const String generateMockWithdrawals = 'Generate Mock Withdrawals';
+  static const String clearMockData = 'Clear Mock Data';
+  static const String generatingMockWithdrawals = 'Generating…';
+  static const String clearingMockData = 'Clearing…';
+  static const String totalRejectedWithdrawals = 'Total Rejected Withdrawals';
+  static const String totalMockWithdrawalAmount =
+      'Total Mock Withdrawal Amount';
+  static const String totalSuccessfullyWithdrawnAmount =
+      'Total Successfully Withdrawn Amount';
+  static const String mockPendingWithdrawals = 'Pending mock withdrawals';
+  static const String mockHostWithdrawnTotals = 'Host withdrawn totals';
+  static const String noMockWithdrawals =
+      'No mock withdrawals yet. Generate them to start testing.';
+  static const String noMockPendingWithdrawals =
+      'No pending mock withdrawals. Generate them again to start over.';
+  static const String mockGenerateTitle = 'Generate mock withdrawals?';
+  static const String mockGenerateMessage =
+      'Creates 2 mock hosts with pending, successful, failed and open payouts '
+      'and approved dummy bank accounts. Existing mock data is replaced with '
+      'the original values. Real hosts and payouts are not touched.';
+  static const String mockGeneratedTitle = 'Mock withdrawals generated';
+  static const String mockClearTitle = 'Clear mock data?';
+  static const String mockClearMessage =
+      'Deletes every withdrawal flagged isMock from Firebase, and the mock '
+      'hosts with their bank accounts, ledger entries and notifications. Their '
+      'earnings return to the original test values the next time you '
+      'generate. Records without isMock are never deleted.';
+  static const String mockClearDoneTitle = 'Mock data cleared';
+  static const String mockDataFailed =
+      "The mock data couldn't be updated. Try again.";
+  static const String mockDataLoadFailed =
+      "The mock withdrawals couldn't be loaded.";
+  static const String rejectWithdrawalTitle = 'Reject this withdrawal?';
+  static const String rejectedInTesting =
+      'Rejected in withdrawal workflow testing';
+  static const String withdrawnMatches = 'Matches success records';
+  static const String withdrawnMismatch = "Doesn't match success records";
+
+  static String markFailedTitle(int count) =>
+      'Mark ${payoutCount(count)} as failed?';
+
+  static String markFailedMessage(int count, String amount) =>
+      "$amount for ${payoutCount(count)} moves to Failed. Nothing is taken "
+      "from the hosts' wallets, and you can retry once the transfer can be "
+      'sent again.';
+
+  static String markedFailedMessage(int count, String amount) =>
+      '${payoutCount(count)} for $amount moved to Failed. Retry them from the '
+      'Failed tab once the transfer can be sent again.';
+
+  static String retryPayoutTitle(int count) => 'Retry ${payoutCount(count)}?';
+
+  static String retryPayoutMessage(int count, String amount) =>
+      '$amount for ${payoutCount(count)} moves back to Pending to be paid '
+      'again. Export the withdrawal sheet again before sending; the reference '
+      'number gets a retry suffix.';
+
+  static String movedBackToPendingMessage(int count, String amount) =>
+      '${payoutCount(count)} for $amount moved back to Pending.';
 
   static String withdrawalOverviewNote(int hosts, String minimum) =>
       '$hosts hosts ready · earnings up to yesterday · '
@@ -659,6 +748,22 @@ abstract final class AppStrings {
 
   static String payoutBatchNoneDone(String reason) =>
       'No payouts were updated. $reason';
+
+  static String mockGeneratedMessage(int payouts, int hosts) =>
+      '${payoutCount(payouts)} were saved to Firebase for $hosts mock hosts. '
+      'They are listed in the Withdrawal List, Pending, Success and Failed '
+      'tabs with a Mock badge.';
+
+  static String mockClearDoneMessage(int records) => records == 1
+      ? '1 mock record was deleted from Firebase.'
+      : '$records mock records were deleted from Firebase.';
+
+  static String rejectWithdrawalMessage(String amount, String hostName) =>
+      "$amount for $hostName moves to Failed as Rejected by the bank. Nothing "
+      "is added to the host's withdrawn total.";
+
+  static String mockWithdrawnBreakdown(String recorded, String records) =>
+      'Host earnings $recorded · success records $records';
 
   static String payoutFailureLine(String hostName, String withdrawId) =>
       '$hostName · $withdrawId';

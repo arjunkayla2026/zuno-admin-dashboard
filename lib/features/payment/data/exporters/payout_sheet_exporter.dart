@@ -101,7 +101,7 @@ class PayoutSheetExporter {
             row.withdrawal.hostUserId,
             _remarks(row.remarks.credit),
             _remarks(row.remarks.debit),
-            row.withdrawal.withdrawId,
+            row.withdrawal.bankReference,
           ],
       ]);
 

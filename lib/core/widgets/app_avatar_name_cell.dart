@@ -14,9 +14,11 @@ class AppAvatarNameCell extends StatelessWidget {
     this.avatarSize = 30,
     this.imageUrl,
     this.photoUserId,
+    this.badge,
   });
 
   static const double _gap = 10;
+  static const double _badgeGap = 6;
   static final TextStyle _initialsStyle = AppTextStyles.captionSmall.copyWith(
     fontWeight: FontWeight.w700,
   );
@@ -32,9 +34,19 @@ class AppAvatarNameCell extends StatelessWidget {
   /// Looks the profile picture up by this user or host ID instead.
   final String? photoUserId;
 
+  /// Shown after the name, wrapping below it when space is short.
+  final Widget? badge;
+
   @override
   Widget build(BuildContext context) {
     const palette = AppColors.avatarPalette;
+    final nameText = Text(
+      name,
+      style: AppTextStyles.bodySmall.copyWith(
+        color: context.colorScheme.onSurface,
+        fontWeight: FontWeight.w700,
+      ),
+    );
 
     return Row(
       children: [
@@ -56,13 +68,15 @@ class AppAvatarNameCell extends StatelessWidget {
           ),
         const SizedBox(width: _gap),
         Expanded(
-          child: Text(
-            name,
-            style: AppTextStyles.bodySmall.copyWith(
-              color: context.colorScheme.onSurface,
-              fontWeight: FontWeight.w700,
+          child: switch (badge) {
+            final badge? => Wrap(
+              spacing: _badgeGap,
+              runSpacing: _badgeGap,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [nameText, badge],
             ),
-          ),
+            null => nameText,
+          },
         ),
       ],
     );

@@ -1,10 +1,11 @@
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/name_formatter.dart';
+import 'package:zuno_admin_dashboard/features/payment/data/models/payout_failure_reason.dart';
 
 /// [forfeited] also covers any status the dashboard does not recognise, so an
 /// unexpected payout can never be listed or acted on as open.
-enum WithdrawalStatus { open, pending, success, forfeited }
+enum WithdrawalStatus { open, pending, success, failed, forfeited }
 
 class PayoutBankAccount {
   const PayoutBankAccount({
@@ -12,6 +13,7 @@ class PayoutBankAccount {
     this.branchName,
     this.accountNumber,
     this.ifscCode,
+    this.panNumber,
   });
 
   static PayoutBankAccount? fromMap(Object? value) {
@@ -21,6 +23,7 @@ class PayoutBankAccount {
       branchName: UserRecord.readText(value['branchName']),
       accountNumber: UserRecord.readText(value['accountNo']),
       ifscCode: UserRecord.readText(value['ifscCode']),
+      panNumber: UserRecord.readText(value['panNumber']),
     );
   }
 
@@ -28,6 +31,7 @@ class PayoutBankAccount {
   final String? branchName;
   final String? accountNumber;
   final String? ifscCode;
+  final String? panNumber;
 }
 
 class PayoutReceipt {
@@ -89,6 +93,13 @@ class Withdrawal {
     this.paidTdsAmount,
     this.paidReceivableAmount,
     this.bankAccount,
+    this.failureReason,
+    this.failureNote,
+    this.failureCount = 0,
+    this.failedOn,
+    this.failedByName,
+    this.retriedOn,
+    this.isMock = false,
   });
 
   factory Withdrawal.fromDocument(String id, Map<String, dynamic> data) {
@@ -96,6 +107,7 @@ class Withdrawal {
       openStatus => WithdrawalStatus.open,
       pendingStatus => WithdrawalStatus.pending,
       successStatus => WithdrawalStatus.success,
+      failedStatus => WithdrawalStatus.failed,
       _ => WithdrawalStatus.forfeited,
     };
     final isOpen = status == WithdrawalStatus.open;
@@ -121,6 +133,7 @@ class Withdrawal {
     }
 
     final tdsPercent = data[tdsPercentField];
+    final failureCount = data[failureCountField];
     return Withdrawal(
       id: id,
       withdrawId: UserRecord.readText(data[withdrawIdField]) ?? id,
@@ -163,10 +176,18 @@ class Withdrawal {
       bankAccount: isPaid
           ? PayoutBankAccount.fromMap(data['bankAccount'])
           : null,
+      failureReason: PayoutFailureReason.fromValue(data['failureReason']),
+      failureNote: UserRecord.readText(data['failureNote']),
+      failureCount: failureCount is num ? failureCount.round() : 0,
+      failedOn: UserRecord.readDate(data['failedAt']),
+      failedByName: UserRecord.readText(data['failedByName']),
+      retriedOn: UserRecord.readDate(data['retriedAt']),
+      isMock: data[isMockField] == true,
     );
   }
 
   static const String collection = 'hostPayouts';
+  static const String isMockField = 'isMock';
   static const String hostIdField = 'hostId';
   static const String hostNameField = 'hostName';
   static const String hostUserIdField = 'hostUserId';
@@ -181,20 +202,24 @@ class Withdrawal {
   static const String updatedAtField = 'updatedAt';
   static const String paidAtField = 'paidAt';
   static const String tdsPercentField = 'tdsPercent';
+  static const String failureCountField = 'failureCount';
   static const String pendingPayoutIdField = 'pendingPayoutId';
   static const String openStatus = 'open';
   static const String pendingStatus = 'pending';
   static const String successStatus = 'success';
+  static const String failedStatus = 'failed';
   static const List<String> listedStatuses = [
     openStatus,
     pendingStatus,
     successStatus,
+    failedStatus,
   ];
+  static const String _retrySuffix = '-R';
 
   static String withdrawablePath(String field) => '$withdrawableField.$field';
 
-  /// Shown in a host's withdrawal history: open, pending and paid records,
-  /// not ones forfeited when the account was deleted.
+  /// Shown in a host's withdrawal history: open, pending, paid and failed
+  /// records, not ones forfeited when the account was deleted.
   bool get isListed => status != WithdrawalStatus.forfeited;
 
   static DateTime? _dayOf(Object? value) =>
@@ -231,6 +256,15 @@ class Withdrawal {
   final double? paidTdsAmount;
   final double? paidReceivableAmount;
   final PayoutBankAccount? bankAccount;
+  final PayoutFailureReason? failureReason;
+  final String? failureNote;
+  final int failureCount;
+  final DateTime? failedOn;
+  final String? failedByName;
+  final DateTime? retriedOn;
+
+  /// Created by Withdrawal Workflow Testing for a mock host; never exported.
+  final bool isMock;
 
   String get initials => NameFormatter.initials(hostName);
 
@@ -245,9 +279,17 @@ class Withdrawal {
 
   bool get isPaid => status == WithdrawalStatus.success;
 
+  bool get isFailed => status == WithdrawalStatus.failed;
+
+  bool get hasFailure => failureReason != null;
+
   bool get hasBankAccount => bankAccount != null;
 
-  DateTime get settledDate => paidOn ?? pendingOn ?? date;
+  DateTime get settledDate =>
+      paidOn ?? (isFailed ? failedOn : null) ?? pendingOn ?? date;
+
+  String get bankReference =>
+      failureCount > 0 ? '$withdrawId$_retrySuffix$failureCount' : withdrawId;
 
   double get hostCredit => totalAmount - amountEarned;
 
@@ -265,6 +307,8 @@ class Withdrawal {
       bankAccount?.accountNumber ?? AppStrings.emptyValue;
 
   String get ifscCode => bankAccount?.ifscCode ?? AppStrings.emptyValue;
+
+  String get panNumber => bankAccount?.panNumber ?? AppStrings.emptyValue;
 
   String get accountLastDigits => accountNumber.length <= _visibleDigits
       ? accountNumber
@@ -295,6 +339,22 @@ class Withdrawal {
     paidReceivableAmount: receipt.receivableAmount,
   );
 
+  Withdrawal markedFailed(
+    PayoutFailureInput failure,
+    int failureCount,
+    DateTime failedOn,
+  ) => _copy(
+    status: WithdrawalStatus.failed,
+    failureReason: failure.reason,
+    failureNote: failure.note,
+    clearFailureNote: failure.note == null,
+    failureCount: failureCount,
+    failedOn: failedOn,
+  );
+
+  Withdrawal markedRetried(DateTime retriedOn) =>
+      _copy(status: WithdrawalStatus.pending, retriedOn: retriedOn);
+
   Withdrawal _copy({
     WithdrawalStatus? status,
     double? totalAmount,
@@ -304,6 +364,12 @@ class Withdrawal {
     double? paidTdsAmount,
     double? paidReceivableAmount,
     PayoutBankAccount? bankAccount,
+    PayoutFailureReason? failureReason,
+    String? failureNote,
+    bool clearFailureNote = false,
+    int? failureCount,
+    DateTime? failedOn,
+    DateTime? retriedOn,
   }) {
     return Withdrawal(
       id: id,
@@ -334,6 +400,13 @@ class Withdrawal {
       paidTdsAmount: paidTdsAmount ?? this.paidTdsAmount,
       paidReceivableAmount: paidReceivableAmount ?? this.paidReceivableAmount,
       bankAccount: bankAccount ?? this.bankAccount,
+      failureReason: failureReason ?? this.failureReason,
+      failureNote: clearFailureNote ? null : failureNote ?? this.failureNote,
+      failureCount: failureCount ?? this.failureCount,
+      failedOn: failedOn ?? this.failedOn,
+      failedByName: failedByName,
+      retriedOn: retriedOn ?? this.retriedOn,
+      isMock: isMock,
     );
   }
 }

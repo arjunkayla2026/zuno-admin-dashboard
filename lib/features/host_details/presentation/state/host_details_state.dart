@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:zuno_admin_dashboard/core/data/cursor_pager.dart';
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/core/enums/wallet_adjustment_type.dart';
@@ -59,12 +57,14 @@ class HostDetailsState {
   double? get adminDebitTotal =>
       ledgerAdjustments?.debit ?? host.totalAdminDebit;
 
-  /// Total Revenue less what has been paid out; null until the payout
-  /// totals load.
-  double? get pendingWithdrawals {
-    final paid = totals?.paidTotal;
-    return paid == null ? null : math.max(host.totalRevenue - paid, 0);
-  }
+  /// The host's stored withdrawn total (`hostEarnings.totalWithdrawel`);
+  /// for a host without it, the `totalAmount` of its `success` payouts once
+  /// the payout totals load.
+  double? get successfulWithdrawals => host.totalWithdrawn ?? totals?.paidTotal;
+
+  /// `totalAmount` of the host's `pending` and `failed` payouts (moved to
+  /// payment, not paid yet); null until the payout totals load.
+  double? get pendingWithdrawals => totals?.awaitingPaymentTotal;
 
   WalletAdjustmentType? get walletType => switch (walletFilter) {
     WalletFilter.all => null,
@@ -80,15 +80,15 @@ class HostDetailsState {
 
     return [
       // Total Revenue: `hostDetails.hostEarnings.totalEarnings`.
-      // Successful: `totalAmount` of `success` payouts. Pending: Total
-      // Revenue − Successful, never below zero.
+      // Successful: `hostDetails.hostEarnings.totalWithdrawel`. Pending:
+      // `totalAmount` of `pending` + `failed` payouts.
       AppStat(
         label: AppStrings.totalRevenue,
         value: NumberFormatter.rupeesAmount(host.totalRevenue),
       ),
       AppStat(
         label: AppStrings.totalSuccessfulWithdrawals,
-        value: amount(totals?.paidTotal),
+        value: amount(successfulWithdrawals),
       ),
       AppStat(
         label: AppStrings.totalPendingWithdrawals,

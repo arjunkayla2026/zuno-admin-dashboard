@@ -141,6 +141,9 @@ class HostManagementRepository {
       availableBalance: _amountOf(earnings[_availableBalanceKey]),
       totalAdminCredit: _amountOrNull(earnings[_totalAdminCreditKey]),
       totalAdminDebit: _amountOrNull(earnings[_totalAdminDebitKey]),
+      totalWithdrawn:
+          _amountOrNull(earnings[_totalWithdrawnKey]) ??
+          _amountOrNull(details[_legacyTotalWithdrawnKey]),
       isOnline: isAvailable(details),
       lastOnline: record.lastOnline,
       approvedAt: record.hostApprovedAt,
@@ -183,6 +186,8 @@ class HostManagementRepository {
   static const String _availableBalanceKey = 'availableBalance';
   static const String _totalAdminCreditKey = 'totalAdminCredit';
   static const String _totalAdminDebitKey = 'totalAdminDebit';
+  static const String _totalWithdrawnKey = 'totalWithdrawel';
+  static const String _legacyTotalWithdrawnKey = 'totalWithdrawn';
 
   /// The `hostDetails.hostEarnings` map the calling app's settlement keeps
   /// (`totalEarnings`, `totalCallsEarnings`, `availableBalance`, …), read

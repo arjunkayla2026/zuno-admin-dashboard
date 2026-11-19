@@ -12,6 +12,7 @@ class PackagesCubit extends Cubit<PackagesState> {
     : super(const PackagesState(packages: [], status: LoadStatus.loading));
 
   final PackagesRepository _repository;
+  final Set<String> _requestedPurchaseCounts = {};
 
   late final CursorPager<PackagePlan> _pager = CursorPager(
     fetch: (cursor) => _repository.fetchPackages(cursor: cursor),
@@ -82,6 +83,25 @@ class PackagesCubit extends Cubit<PackagesState> {
         page: view.page,
         totalPages: view.totalPages,
         firstIndex: view.firstIndex,
+      ),
+    );
+    unawaited(_loadPurchaseCounts(view.items));
+  }
+
+  Future<void> _loadPurchaseCounts(List<PackagePlan> packages) async {
+    final ids = [
+      for (final plan in packages)
+        if (plan.totalRechargeCount == null &&
+            _requestedPurchaseCounts.add(plan.id))
+          plan.id,
+    ];
+    if (ids.isEmpty) return;
+    final result = await _repository.fetchPurchaseCounts(ids);
+    if (isClosed) return;
+    result.match(
+      (_) => _requestedPurchaseCounts.removeAll(ids),
+      (counts) => emit(
+        state.copyWith(purchaseCounts: {...state.purchaseCounts, ...counts}),
       ),
     );
   }
