@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zuno_admin_dashboard/core/enums/app_status.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
@@ -22,6 +23,7 @@ class CallsTable extends StatelessWidget {
     AppTableColumn(AppStrings.date, 101),
     AppTableColumn(AppStrings.userName, 131),
     AppTableColumn(AppStrings.hostName, 124),
+    AppTableColumn(AppStrings.callType, 96),
     AppTableColumn(AppStrings.callInitiatedTime, 127),
     AppTableColumn(AppStrings.callStartTime, 108),
     AppTableColumn(AppStrings.callEndTime, 99),
@@ -36,7 +38,6 @@ class CallsTable extends StatelessWidget {
     AppTableColumn(AppStrings.totalAdminRevenue, 150, alignEnd: true),
     AppTableColumn('', 24),
     AppTableColumn(AppStrings.callId, 196),
-    AppTableColumn(AppStrings.sessionId, 196),
   ];
 
   static final int columnCount = _columns.length;
@@ -48,7 +49,6 @@ class CallsTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textColor = context.colorScheme.onSurface;
-    final muted = context.appColors.textSecondary;
     final cell = AppTextStyles.bodySmall.copyWith(color: textColor);
     final strong = cell.copyWith(fontWeight: FontWeight.w700);
     final mono = AppTextStyles.monoSmall.copyWith(color: textColor);
@@ -67,18 +67,10 @@ class CallsTable extends StatelessWidget {
               Text('${firstNumber + index}', style: cell),
               Text(DateFormatter.short(call.initiatedAt), style: cell),
               Text(call.userName, style: cell),
-              Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(text: call.hostName, style: strong),
-                    TextSpan(
-                      text: AppStrings.hostWithCallType(
-                        CallLogLabels.type(call.type),
-                      ),
-                      style: cell.copyWith(color: muted),
-                    ),
-                  ],
-                ),
+              Text(call.hostName, style: strong),
+              AppStatusBadge(
+                label: CallLogLabels.type(call.type),
+                status: AppStatus.isNew,
               ),
               Text(
                 DateFormatter.timeWithSeconds(call.initiatedAt),
@@ -131,7 +123,6 @@ class CallsTable extends StatelessWidget {
               ),
               const SizedBox.shrink(),
               Text(call.callId, style: mono),
-              Text(call.sessionId, style: mono),
             ];
           }(),
       ],

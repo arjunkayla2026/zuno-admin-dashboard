@@ -39,6 +39,7 @@ class HostRequest {
     required this.city,
     required this.gender,
     required this.languages,
+    this.motherTongue,
     required this.maskedAadhaar,
     required this.avatarIndex,
     this.status = HostRequestStatus.pending,
@@ -59,6 +60,7 @@ class HostRequest {
   final String city;
   final HostGender? gender;
   final List<HostLanguage> languages;
+  final HostLanguage? motherTongue;
   final String maskedAadhaar;
   final int avatarIndex;
   final HostRequestStatus status;
@@ -106,6 +108,7 @@ class HostRequest {
     String? city,
     HostGender? gender,
     List<HostLanguage>? languages,
+    HostLanguage? motherTongue,
     HostRequestStatus? status,
     List<HostDocument>? documents,
   }) {
@@ -120,6 +123,7 @@ class HostRequest {
       city: city ?? this.city,
       gender: gender ?? this.gender,
       languages: languages ?? this.languages,
+      motherTongue: motherTongue ?? this.motherTongue,
       maskedAadhaar: maskedAadhaar,
       avatarIndex: avatarIndex,
       status: status ?? this.status,

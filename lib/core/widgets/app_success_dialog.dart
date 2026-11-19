@@ -32,7 +32,7 @@ class AppSuccessDialog extends StatelessWidget {
     this.message,
     this.messageSpan,
     this.details,
-  }) : assert(message != null || messageSpan != null);
+  });
 
   static const double _iconCircleSize = 72;
   static const double _iconSize = 38;
@@ -52,6 +52,9 @@ class AppSuccessDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.appColors;
+    final message = this.message;
+    final span =
+        messageSpan ?? (message == null ? null : TextSpan(text: message));
 
     return AppDialogSurface(
       padding: _padding,
@@ -79,14 +82,16 @@ class AppSuccessDialog extends StatelessWidget {
               color: context.colorScheme.onSurface,
             ),
           ),
-          const SizedBox(height: _titleGap),
-          Text.rich(
-            messageSpan ?? TextSpan(text: message),
-            textAlign: TextAlign.center,
-            style: AppTextStyles.tableCell.copyWith(
-              color: colors.textSecondary,
+          if (span != null) ...[
+            const SizedBox(height: _titleGap),
+            Text.rich(
+              span,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.tableCell.copyWith(
+                color: colors.textSecondary,
+              ),
             ),
-          ),
+          ],
           if (details case final details?) ...[
             const SizedBox(height: _detailsGap),
             details,

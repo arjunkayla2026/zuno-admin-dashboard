@@ -1,10 +1,16 @@
 const {initializeApp} = require("firebase-admin/app");
+const {getAuth} = require("firebase-admin/auth");
 const {getFirestore} = require("firebase-admin/firestore");
 const {getMessaging} = require("firebase-admin/messaging");
 const {setGlobalOptions} = require("firebase-functions");
 const {HttpsError, onCall} = require("firebase-functions/https");
 const logger = require("firebase-functions/logger");
-const {requireNotificationAdmin} = require("./src/admin_access");
+const {
+  requireAdminManager,
+  requireNotificationAdmin,
+} = require("./src/admin_access");
+const {parseAdminAccountRequest} = require("./src/admin_account_request");
+const {saveAdminAccount} = require("./src/admin_accounts");
 const {parseNotificationRequest} = require("./src/notification_request");
 const {targetsFor, topicsFor} = require("./src/topics");
 
@@ -72,5 +78,29 @@ exports.sendAdminNotification = onCall(
         );
       }
       return {status, topics};
+    },
+);
+
+exports.saveAdminAccount = onCall(
+    {timeoutSeconds: 60},
+    async (callRequest) => {
+      const firestore = getFirestore();
+      const caller = await requireAdminManager(firestore, callRequest.auth);
+      const request = parseAdminAccountRequest(callRequest.data);
+      const result = await saveAdminAccount({
+        firestore,
+        auth: getAuth(),
+        caller,
+        request,
+      });
+      logger.info("Admin account saved.", {
+        savedBy: caller.uid,
+        adminId: result.id,
+        created: request.id === null,
+        role: request.role,
+        loginCreated: result.loginCreated,
+        passwordChanged: result.passwordChanged,
+      });
+      return result;
     },
 );

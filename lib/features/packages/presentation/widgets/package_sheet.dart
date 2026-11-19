@@ -112,6 +112,13 @@ class _PackageSheetState extends State<PackageSheet> {
       ? AppStrings.offerPercentageTooHigh
       : null;
 
+  bool get _isOfferTagValid =>
+      _offerTagController.text.trim().length <= PackagePlan.maxOfferTagLength;
+
+  String? get _offerTagError => _submitted && !_isOfferTagValid
+      ? AppStrings.offerTagTooLong(PackagePlan.maxOfferTagLength)
+      : null;
+
   void _onPayableChanged(String value) {
     if (_manualReceivable) {
       setState(() {});
@@ -173,7 +180,8 @@ class _PackageSheetState extends State<PackageSheet> {
     final offerPercentage = _parse(_offerPercentageController);
     if (payable <= 0 ||
         !PackagePlan.isReceivableValid(receivable, payable: payable) ||
-        offerPercentage > PackagePlan.maxOfferPercentage) {
+        offerPercentage > PackagePlan.maxOfferPercentage ||
+        !_isOfferTagValid) {
       setState(() => _submitted = true);
       return;
     }
@@ -221,15 +229,6 @@ class _PackageSheetState extends State<PackageSheet> {
       inputFormatters: [_amountFormatter],
       onChanged: onChanged,
       errorText: errorText ?? _error(controller),
-      dense: true,
-    );
-  }
-
-  Widget _textField(String label, TextEditingController controller) {
-    return AppLabeledTextField(
-      label: label,
-      hint: label,
-      controller: controller,
       dense: true,
     );
   }
@@ -302,7 +301,15 @@ class _PackageSheetState extends State<PackageSheet> {
           ),
           const SizedBox(height: _fieldGap),
           AppFieldRow(
-            first: _textField(AppStrings.offerTag, _offerTagController),
+            first: AppLabeledTextField(
+              label: AppStrings.offerTag,
+              hint: AppStrings.offerTag,
+              controller: _offerTagController,
+              maxLength: PackagePlan.maxOfferTagLength,
+              onChanged: (_) => setState(() {}),
+              errorText: _offerTagError,
+              dense: true,
+            ),
             second: AppLabeledTextField(
               label: AppStrings.offerPercentageField,
               hint: AppStrings.offerPercentageField,

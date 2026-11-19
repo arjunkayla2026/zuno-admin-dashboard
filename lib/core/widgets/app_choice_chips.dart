@@ -12,6 +12,7 @@ class AppChoiceChips<T> extends StatelessWidget {
     required this.labelOf,
     required this.onChanged,
     this.labelStyle,
+    this.enabled = true,
   });
 
   static const double _gap = 6;
@@ -21,6 +22,7 @@ class AppChoiceChips<T> extends StatelessWidget {
   final String Function(T option) labelOf;
   final ValueChanged<Set<T>> onChanged;
   final TextStyle? labelStyle;
+  final bool enabled;
 
   void _toggle(T option) {
     final next = {...selected};
@@ -38,7 +40,7 @@ class AppChoiceChips<T> extends StatelessWidget {
           _Chip(
             label: labelOf(option),
             selected: selected.contains(option),
-            onTap: () => _toggle(option),
+            onTap: enabled ? () => _toggle(option) : null,
             labelStyle: labelStyle,
           ),
       ],
@@ -61,7 +63,7 @@ class _Chip extends StatelessWidget {
 
   final String label;
   final bool selected;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final TextStyle? labelStyle;
 
   @override

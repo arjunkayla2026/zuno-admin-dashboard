@@ -110,34 +110,43 @@ class ApprovalCubit extends Cubit<ApprovalState> {
   };
 
   Future<void> initialize() async {
-    await Future.wait([_hosts.show(_filter), _loadOtherTabCounts()]);
+    await Future.wait([_hosts.show(_filter), _loadTabCounts()]);
   }
 
-  Future<void> _loadOtherTabCounts() async {
+  Future<void> _loadTabCounts() async {
     const query = RecordPageQuery();
-    final (payouts, photos) = await (
+    final (hosts, payouts, photos) = await (
+      _repository.countHostRequests(query),
       _payoutRepository.countPayoutRequests(query),
       _repository.countProfilePhotoRequests(query),
     ).wait;
     _publish(
       state.copyWith(
+        pendingCount: hosts.toNullable(),
         pendingPayoutCount: payouts.toNullable(),
         pendingPhotoCount: photos.toNullable(),
       ),
     );
   }
 
-  Future<void> loadHostRequests() => _hosts.show(_filter, force: true);
+  Future<void> loadHostRequests() async {
+    await Future.wait([_hosts.show(_filter, force: true), _loadTabCounts()]);
+  }
 
-  Future<void> loadPayoutRequests() => _payouts.show(_filter, force: true);
+  Future<void> loadPayoutRequests() async {
+    await Future.wait([_payouts.show(_filter, force: true), _loadTabCounts()]);
+  }
 
-  Future<void> loadProfilePhotos() => _photos.show(_filter, force: true);
+  Future<void> loadProfilePhotos() async {
+    await Future.wait([_photos.show(_filter, force: true), _loadTabCounts()]);
+  }
 
   void goToPage(int page) => _activePager.show(_filter, page: page);
 
   void selectTab(ApprovalTab tab) {
     emit(state.copyWith(tab: tab));
     _applyFilters();
+    _loadTabCounts();
   }
 
   void search(String query) {

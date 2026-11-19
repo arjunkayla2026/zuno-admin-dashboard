@@ -19,8 +19,8 @@ class RechargeHistoryTable extends StatelessWidget {
     AppTableColumn(AppStrings.adminDebitAmount, 165, alignEnd: true),
     AppTableColumn(AppStrings.receivedCoins, 123, alignEnd: true),
     AppTableColumn('', 23),
-    AppTableColumn(AppStrings.paymentId, 146),
-    AppTableColumn(AppStrings.orderId, 163),
+    AppTableColumn(AppStrings.paymentId, 180),
+    AppTableColumn(AppStrings.orderId, 196),
     AppTableColumn(AppStrings.paymentGateway, 120),
     AppTableColumn(AppStrings.status, 125),
   ];

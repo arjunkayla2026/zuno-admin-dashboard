@@ -3,9 +3,11 @@ const {HttpsError} = require("firebase-functions/https");
 const ADMIN_COLLECTION = "admin";
 const EMAIL_FIELD = "email";
 const PERMISSIONS_FIELD = "permissions";
-const REQUIRED_PERMISSION = "settings";
 const ROLE_FIELD = "role";
 const SUPER_ADMIN_ROLE = "superAdmin";
+const SETTINGS_PERMISSION = "settings";
+
+const normalizeEmail = (email) => email.trim().toLowerCase();
 
 const findAdmin = async (firestore, email) => {
   const collection = firestore.collection(ADMIN_COLLECTION);
@@ -18,31 +20,58 @@ const findAdmin = async (firestore, email) => {
   return byId.exists ? byId : null;
 };
 
-const canSendNotifications = (account) => {
-  if (account.get(ROLE_FIELD) === SUPER_ADMIN_ROLE) return true;
+const isSuperAdmin = (account) =>
+  account.get(ROLE_FIELD) === SUPER_ADMIN_ROLE;
+
+const hasPermission = (account, permission) => {
+  if (isSuperAdmin(account)) return true;
   const permissions = account.get(PERMISSIONS_FIELD);
-  return Array.isArray(permissions) &&
-    permissions.includes(REQUIRED_PERMISSION);
+  return Array.isArray(permissions) && permissions.includes(permission);
 };
 
-const requireNotificationAdmin = async (firestore, auth) => {
+const requireAdmin = async (firestore, auth, permission, deniedMessage) => {
   if (!auth) {
-    throw new HttpsError("unauthenticated", "Sign in to send notifications.");
+    throw new HttpsError("unauthenticated", "Sign in to continue.");
   }
   const email = auth.token.email;
   if (typeof email !== "string" || email.trim().length === 0) {
     throw new HttpsError("permission-denied", "This account is not an admin.");
   }
 
-  const id = email.trim().toLowerCase();
+  const id = normalizeEmail(email);
   const account = await findAdmin(firestore, id);
-  if (!account || !canSendNotifications(account)) {
-    throw new HttpsError(
-        "permission-denied",
-        "This account is not allowed to send notifications.",
-    );
+  if (!account || !hasPermission(account, permission)) {
+    throw new HttpsError("permission-denied", deniedMessage);
   }
-  return {uid: auth.uid, email: id};
+  return {
+    uid: auth.uid,
+    email: id,
+    accountId: account.id,
+    isSuperAdmin: isSuperAdmin(account),
+  };
 };
 
-module.exports = {requireNotificationAdmin};
+const requireNotificationAdmin = (firestore, auth) => requireAdmin(
+    firestore,
+    auth,
+    SETTINGS_PERMISSION,
+    "This account is not allowed to send notifications.",
+);
+
+const requireAdminManager = (firestore, auth) => requireAdmin(
+    firestore,
+    auth,
+    SETTINGS_PERMISSION,
+    "This account is not allowed to add or edit admins.",
+);
+
+module.exports = {
+  ADMIN_COLLECTION,
+  EMAIL_FIELD,
+  ROLE_FIELD,
+  SUPER_ADMIN_ROLE,
+  findAdmin,
+  normalizeEmail,
+  requireAdminManager,
+  requireNotificationAdmin,
+};

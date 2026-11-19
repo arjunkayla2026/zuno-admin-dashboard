@@ -10,6 +10,7 @@ import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_status_badge.dart';
 import 'package:zuno_admin_dashboard/core/widgets/documents/app_document_image.dart';
+import 'package:zuno_admin_dashboard/core/widgets/documents/app_document_preview_dialog.dart';
 import 'package:zuno_admin_dashboard/core/widgets/documents/app_selfie_preview.dart';
 import 'package:zuno_admin_dashboard/features/approval/data/models/profile_photo_request.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/widgets/profile_photo_flow.dart';
@@ -19,14 +20,39 @@ class ProfilePhotoCard extends StatelessWidget {
   const ProfilePhotoCard({super.key, required this.photo});
 
   static const double _photoAspectRatio = 1.48;
-  static const double _placeholderAvatarSize = 72;
-  static const double _idGap = 8;
+  static const double _placeholderAvatarSize = 52;
+  static const double _previewAvatarSize = 200;
+  static const double _previewAspectRatio = 1;
+  static const double _idGap = 6;
   static const double _lineGap = 2;
-  static const double _actionsGap = 12;
-  static const double _buttonGap = 10;
-  static const EdgeInsets _bodyPadding = EdgeInsets.fromLTRB(12, 12, 12, 12);
+  static const double _actionsGap = 10;
+  static const double _buttonGap = 8;
+  static const EdgeInsets _bodyPadding = EdgeInsets.all(10);
 
   final ProfilePhotoRequest photo;
+
+  Widget _photo({required double avatarSize, BoxFit fit = BoxFit.cover}) =>
+      AppDocumentImage(
+        imageUrl: photo.photoUrl,
+        fit: fit,
+        placeholder: AppSelfiePreview(
+          initials: photo.initials,
+          avatarIndex: photo.avatarIndex,
+          avatarSize: avatarSize,
+        ),
+      );
+
+  void _preview(BuildContext context) {
+    showAppDocumentPreview(
+      context: context,
+      title: AppStrings.documentPreviewTitle(
+        AppStrings.profilePhoto,
+        photo.hostName,
+      ),
+      aspectRatio: _previewAspectRatio,
+      preview: _photo(avatarSize: _previewAvatarSize, fit: BoxFit.contain),
+    );
+  }
 
   static (String, AppStatus) _status(ProfilePhotoStatus status) =>
       switch (status) {
@@ -54,13 +80,15 @@ class ProfilePhotoCard extends StatelessWidget {
         children: [
           AspectRatio(
             aspectRatio: _photoAspectRatio,
-            child: AppDocumentImage(
-              imageUrl: photo.photoUrl,
-              placeholder: AppSelfiePreview(
-                initials: photo.initials,
-                avatarIndex: photo.avatarIndex,
-                avatarSize: _placeholderAvatarSize,
-              ),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                _photo(avatarSize: _placeholderAvatarSize),
+                Material(
+                  type: MaterialType.transparency,
+                  child: InkWell(onTap: () => _preview(context)),
+                ),
+              ],
             ),
           ),
           Padding(

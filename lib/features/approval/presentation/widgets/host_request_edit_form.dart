@@ -18,10 +18,12 @@ class HostRequestEditForm extends StatelessWidget {
     required this.dateOfBirthController,
     required this.cityController,
     required this.gender,
+    required this.motherTongue,
     required this.languages,
     required this.onTextChanged,
     required this.onPickDateOfBirth,
     required this.onGenderChanged,
+    required this.onMotherTongueChanged,
     required this.onLanguagesChanged,
   });
 
@@ -34,10 +36,12 @@ class HostRequestEditForm extends StatelessWidget {
   final TextEditingController dateOfBirthController;
   final TextEditingController cityController;
   final HostGender? gender;
+  final HostLanguage? motherTongue;
   final Set<HostLanguage> languages;
   final ValueChanged<String> onTextChanged;
   final VoidCallback onPickDateOfBirth;
   final ValueChanged<HostGender> onGenderChanged;
+  final ValueChanged<HostLanguage> onMotherTongueChanged;
   final ValueChanged<Set<HostLanguage>> onLanguagesChanged;
 
   Widget _textField(
@@ -94,6 +98,17 @@ class HostRequestEditForm extends StatelessWidget {
               if (value != null) onGenderChanged(value);
             },
           ),
+        ),
+        const SizedBox(height: _rowGap),
+        AppLabeledDropdownField<HostLanguage>(
+          label: AppStrings.motherTongueField,
+          hint: AppStrings.selectHint,
+          value: motherTongue,
+          options: HostLanguage.values,
+          labelOf: HostProfileLabels.language,
+          onChanged: (value) {
+            if (value != null) onMotherTongueChanged(value);
+          },
         ),
         const SizedBox(height: _rowGap),
         Text(

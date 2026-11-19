@@ -253,6 +253,7 @@ abstract final class AppStrings {
   static const String aadhaarCard = 'Aadhaar card';
   static const String aadhaarCardFront = 'Aadhaar card · Front';
   static const String selfie = 'Selfie';
+  static const String profilePhoto = 'Profile Photo';
   static const String totalRevenue = 'Total Revenue';
   static const String totalSuccessfulWithdrawals =
       'Total Successful Withdrawals';
@@ -399,8 +400,6 @@ abstract final class AppStrings {
 
   static String perMinute(String amount) => '$amount/min';
 
-  static String hostWithCallType(String type) => ' · $type';
-
   static const String callDetails = 'Call Details';
   static const String backToCalls = 'Back to calls';
   static const String audioCallTitle = 'Audio call';
@@ -409,8 +408,8 @@ abstract final class AppStrings {
   static const String userSpend = 'User spend';
   static const String revenueSplit = 'Revenue split';
   static const String callId = 'Call ID';
-  static const String sessionId = 'Session ID';
   static const String callTypeField = 'Call type';
+  static const String callType = 'Call Type';
   static const String totalHostRevenue = 'Total Host Revenue';
   static const String userRole = 'User';
   static const String hostRole = 'Host';
@@ -516,6 +515,8 @@ abstract final class AppStrings {
   static const String offerPercentage = 'Offer %';
   static const String offerPercentageField = 'Offer Percentage (%)';
   static const String offerPercentageTooHigh = 'Enter 100 or less.';
+  static String offerTagTooLong(int maxLength) =>
+      'Use $maxLength characters or fewer.';
   static const String packageActiveTitle = 'Active';
   static const String packageActiveHelper =
       'Only active packages are shown in the user app';
@@ -826,8 +827,8 @@ abstract final class AppStrings {
       'Only these app versions can use the apps. Add each version exactly as '
       'it appears in the store, for example 1.0.3.';
   static const String appVersion = 'Version';
-  static const String appVersionHint = 'e.g. 1.0.3';
-  static const String enterAppVersion = 'Enter a version like 1.0.3';
+  static const String appVersionHint = 'e.g. 10.0.0';
+  static const String enterAppVersion = 'Enter a version like 10.0.0';
   static const String appVersionExists = 'This version is already added';
   static const String addVersion = 'Add version';
   static const String noAllowedVersions = 'No versions added yet';
@@ -878,6 +879,14 @@ abstract final class AppStrings {
   static const String enterName = 'Enter a name.';
   static const String enterValidEmail = 'Enter a valid email.';
   static const String enterValidPhone = 'Enter a valid phone number.';
+  static const String enterTenDigitPhone = 'Enter a 10-digit phone number.';
+  static const String enterAdminPassword = 'Enter a password.';
+  static const String passwordTooShort = 'Use at least 6 characters.';
+  static const String selectAllModules = 'Select all';
+  static const String superAdminAllModules =
+      'Super admins can open every module.';
+  static const String adminSaveDenied =
+      'You do not have permission to add or edit admins.';
   static const String chooseModule = 'Choose at least one module.';
   static const String adminEmailExists =
       'An admin with this email already exists.';
@@ -885,23 +894,13 @@ abstract final class AppStrings {
       'At least 6 characters. Share it with the admin so they can sign in. '
       'If this email already has a login, its current password is kept.';
   static const String editAdminPasswordHelper =
-      'Optional. Creates a login with this password if the admin does not '
-      'have one yet. Leave blank to keep their current login.';
-  static const String adminLoginExists =
-      'This admin already has a login, and its password cannot be changed '
-      'here. Clear the password field to save the other changes.';
-  static const String passwordTooShort = 'Use at least 6 characters.';
-  static const String adminLoginWeakPassword =
-      'This password was rejected. Choose a stronger one.';
-  static const String adminLoginsDisabled =
-      'Email and password sign-in is turned off for this project.';
-  static const String adminLoginCreateFailed =
-      'Could not create the login for this admin. Try again.';
+      "Optional. Enter a new password to change this admin's password, or "
+      'leave blank to keep the current one.';
   static const String noAdminsTitle = 'No admins yet';
   static const String noAdminsMessage =
       'Add a team member to give them access to the admin panel.';
   static const String superAdminsManageAdmins =
-      'Only super admins can add or edit admins.';
+      'Only admins with Settings access can add or edit admins.';
   static const String noModuleAccessTitle = 'No access to this module';
   static const String noModuleAccessMessage =
       'Your account does not have permission to open this module. Ask a '
@@ -943,9 +942,6 @@ abstract final class AppStrings {
       'The notification could not be sent. Try again.';
   static const String notificationSendDenied =
       'Your account is not allowed to send notifications.';
-
-  static String notificationSentMessage(String topics) =>
-      'Sent to every device subscribed to $topics.';
 
   static String hostsForLanguages(String languages) => 'Hosts ($languages)';
 

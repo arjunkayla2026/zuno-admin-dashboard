@@ -14,7 +14,10 @@ Future<void> openAddBannerDialog(BuildContext anchorContext) async {
   final cubit = anchorContext.read<SettingsCubit>();
   final screen = await showAppOptionsMenu<BannerScreen>(
     anchorContext: anchorContext,
-    options: BannerScreen.values,
+    options: const [
+      BannerScreen.home,
+      // BannerScreen.recharge,
+    ],
     labelOf: BannerLabels.option,
   );
   if (screen == null || !anchorContext.mounted) return;

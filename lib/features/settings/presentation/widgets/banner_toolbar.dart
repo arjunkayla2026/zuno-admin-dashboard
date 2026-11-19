@@ -48,7 +48,10 @@ class BannerToolbar extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                for (final screen in BannerScreen.values)
+                for (final screen in const [
+                  BannerScreen.home,
+                  // BannerScreen.recharge,
+                ])
                   Container(
                     padding: _badgePadding,
                     decoration: BoxDecoration(

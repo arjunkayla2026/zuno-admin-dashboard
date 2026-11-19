@@ -219,6 +219,7 @@ class ApprovalRepository {
           AppStrings.emptyValue,
       gender: _optionNamed(HostGender.values, details[UserRecord.genderField]),
       languages: _languages(details['languages']),
+      motherTongue: _optionNamed(HostLanguage.values, details['motherTongue']),
       maskedAadhaar: AppStrings.emptyValue,
       avatarIndex: record.avatarIndex,
       status: switch (details['hostStatus']) {

@@ -15,6 +15,13 @@ abstract final class HostRequestLabels {
   static String languages(HostRequest request) =>
       HostProfileLabels.languageList(request.languages);
 
+  static String motherTongue(HostRequest request) {
+    final language = request.motherTongue;
+    return language == null
+        ? AppStrings.emptyValue
+        : HostProfileLabels.language(language);
+  }
+
   static String document(HostDocumentType type) => switch (type) {
     HostDocumentType.aadhaarFront => AppStrings.aadhaarFront,
     HostDocumentType.aadhaarBack => AppStrings.aadhaarBack,
