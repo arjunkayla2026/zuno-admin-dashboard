@@ -31,6 +31,12 @@ class ReportsCubit extends Cubit<ReportsState> {
     await Future.wait([_pager.load(), _loadCount()]);
   }
 
+  Future<void> refresh() async {
+    _repository.clearCache();
+    emit(state.copyWith(today: _today()));
+    await Future.wait([_pager.reset(), _loadCount()]);
+  }
+
   void search(String query) => _searchDebouncer.run(() {
     if (isClosed || query == state.query) return;
     _applyFilters(state.copyWith(query: query));

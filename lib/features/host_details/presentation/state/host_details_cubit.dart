@@ -44,6 +44,15 @@ class HostDetailsCubit extends Cubit<HostDetailsState> {
 
   Future<void> load() => _loadSummary();
 
+  Future<void> refresh() async {
+    if (state.adjusting) return;
+    await Future.wait([
+      _loadSummary(),
+      if (_withdrawalsOpened) _withdrawalPager.reset(),
+      if (_walletOpened) _walletPager.reset(),
+    ]);
+  }
+
   void updateHost(AdminHost host) {
     emit(state.copyWith(host: host));
     _onHostChanged?.call(host);

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_refresh_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_search_field.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/state/approval_cubit.dart';
 import 'package:zuno_admin_dashboard/features/approval/presentation/widgets/approval_filter_button.dart';
@@ -26,6 +27,8 @@ class ApprovalToolbar extends StatelessWidget {
         ),
         const SizedBox(width: AppUtils.spacingXs),
         const ApprovalFilterButton(),
+        const SizedBox(width: AppUtils.spacingXs),
+        AppRefreshButton(onRefresh: context.read<ApprovalCubit>().refresh),
       ],
     );
   }

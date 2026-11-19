@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/firestore_failures.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
-import 'package:zuno_admin_dashboard/core/data/search_keywords.dart';
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
@@ -14,7 +13,7 @@ import 'package:zuno_admin_dashboard/features/approval/data/models/bank_account_
 class PayoutRemoteDataSource {
   const PayoutRemoteDataSource(this._firestore, this._auth);
 
-  static const String _collection = SearchKeywords.bankAccountsCollection;
+  static const String _collection = BankAccountRecord.collection;
   static const String _updatedAtField = 'updatedAt';
   static const int _maxIdsPerQuery = 30;
 

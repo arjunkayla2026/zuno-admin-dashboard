@@ -116,6 +116,7 @@ class AppIdentityDocuments extends StatelessWidget {
           child: AppDocumentTile(
             label: aadhaarLabel,
             preview: _aadhaar(),
+            pageCount: showAadhaarBack ? 2 : 1,
             onTap: () => _previewAadhaar(context),
           ),
         ),

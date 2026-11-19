@@ -19,46 +19,6 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "searchKeywords",
-          "arrayConfig": "CONTAINS"
-        },
-        {
-          "fieldPath": "hostDetails.hostStatus",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "updatedAt",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "users",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "isAvathar",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "avatharStatus",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "updatedAt",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "users",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "searchKeywords",
-          "arrayConfig": "CONTAINS"
-        },
-        {
           "fieldPath": "isAvathar",
           "order": "ASCENDING"
         },
@@ -90,46 +50,6 @@
       "collectionGroup": "users",
       "queryScope": "COLLECTION",
       "fields": [
-        {
-          "fieldPath": "searchKeywords",
-          "arrayConfig": "CONTAINS"
-        },
-        {
-          "fieldPath": "role",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "createdAt",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "users",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "isAccountBlocked",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "role",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "createdAt",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "users",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "searchKeywords",
-          "arrayConfig": "CONTAINS"
-        },
         {
           "fieldPath": "isAccountBlocked",
           "order": "ASCENDING"
@@ -167,54 +87,6 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
-          "fieldPath": "searchKeywords",
-          "arrayConfig": "CONTAINS"
-        },
-        {
-          "fieldPath": "isAccountDeleted",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "role",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "createdAt",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "users",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "deletedBy",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "isAccountDeleted",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "role",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "createdAt",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "users",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "searchKeywords",
-          "arrayConfig": "CONTAINS"
-        },
-        {
           "fieldPath": "deletedBy",
           "order": "ASCENDING"
         },
@@ -236,24 +108,6 @@
       "collectionGroup": "bankAccounts",
       "queryScope": "COLLECTION",
       "fields": [
-        {
-          "fieldPath": "bankAccountStatus",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "updatedAt",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "bankAccounts",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "searchKeywords",
-          "arrayConfig": "CONTAINS"
-        },
         {
           "fieldPath": "bankAccountStatus",
           "order": "ASCENDING"

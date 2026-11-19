@@ -8,7 +8,6 @@ import 'package:zuno_admin_dashboard/core/data/data_revision.dart';
 import 'package:zuno_admin_dashboard/core/data/deleted_account_record.dart';
 import 'package:zuno_admin_dashboard/core/data/firestore_failures.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
-import 'package:zuno_admin_dashboard/core/data/search_keywords.dart';
 import 'package:zuno_admin_dashboard/core/data/user_account_totals.dart';
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
 import 'package:zuno_admin_dashboard/core/data/user_search.dart';
@@ -403,14 +402,10 @@ class UsersRemoteDataSource {
   ) async {
     if (fields.isEmpty) return right(unit);
     try {
-      if (SearchKeywords.touchesSearchableField(fields)) {
-        await _updateWithKeywords(id, fields);
-      } else {
-        await _firestore.collection(_collection).doc(id).update({
-          ...fields,
-          _updatedAtField: FieldValue.serverTimestamp(),
-        });
-      }
+      await _firestore.collection(_collection).doc(id).update({
+        ...fields,
+        _updatedAtField: FieldValue.serverTimestamp(),
+      });
       _revision?.bump();
       return right(unit);
     } on FirebaseException catch (error) {
@@ -418,34 +413,6 @@ class UsersRemoteDataSource {
     } catch (_) {
       return left(const DataFailure(AppStrings.recordsSaveFailed));
     }
-  }
-
-  Future<void> _updateWithKeywords(String id, Map<String, Object?> fields) {
-    final userReference = _firestore.collection(_collection).doc(id);
-    final bankReference = _firestore
-        .collection(SearchKeywords.bankAccountsCollection)
-        .doc(id);
-
-    return _firestore.runTransaction((transaction) async {
-      final userSnapshot = await transaction.get(userReference);
-      final bankSnapshot = await transaction.get(bankReference);
-      final userData = userSnapshot.data();
-      if (userData == null) {
-        throw FirebaseException(plugin: 'cloud_firestore', code: 'not-found');
-      }
-
-      final merged = SearchKeywords.withUpdates(userData, fields);
-      transaction.update(userReference, {
-        ...fields,
-        SearchKeywords.field: SearchKeywords.forUser(merged),
-        _updatedAtField: FieldValue.serverTimestamp(),
-      });
-      if (bankSnapshot.data() case final bankData?) {
-        transaction.update(bankReference, {
-          SearchKeywords.field: SearchKeywords.forBankAccount(bankData, merged),
-        });
-      }
-    });
   }
 
   Future<Either<Failure, Unit>> reviewHostDocument(

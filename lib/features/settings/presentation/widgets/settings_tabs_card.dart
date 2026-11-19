@@ -4,6 +4,7 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_colors.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_refresh_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_underline_tabs.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_cubit.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_state.dart';
@@ -14,6 +15,11 @@ import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/noti
 
 class SettingsTabsCard extends StatelessWidget {
   const SettingsTabsCard({super.key});
+
+  static const EdgeInsets _refreshPadding = EdgeInsets.symmetric(
+    horizontal: 12,
+    vertical: 6,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -30,17 +36,34 @@ class SettingsTabsCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              AppUnderlineTabs<SettingsTab>(
-                tabs: const {
-                  SettingsTab.maintenanceMode: AppStrings.appSettings,
-                  SettingsTab.adminManagement: AppStrings.adminManagement,
-                  SettingsTab.notificationManagement:
-                      AppStrings.notificationManagement,
-                  SettingsTab.bannerImageManagement:
-                      AppStrings.bannerImageManagement,
-                },
-                value: tab,
-                onChanged: context.read<SettingsCubit>().selectTab,
+              Row(
+                children: [
+                  Expanded(
+                    child: AppUnderlineTabs<SettingsTab>(
+                      tabs: const {
+                        SettingsTab.maintenanceMode: AppStrings.appSettings,
+                        SettingsTab.adminManagement: AppStrings.adminManagement,
+                        SettingsTab.notificationManagement:
+                            AppStrings.notificationManagement,
+                        SettingsTab.bannerImageManagement:
+                            AppStrings.bannerImageManagement,
+                      },
+                      value: tab,
+                      onChanged: context.read<SettingsCubit>().selectTab,
+                    ),
+                  ),
+                  Padding(
+                    padding: _refreshPadding,
+                    child: BlocSelector<SettingsCubit, SettingsState, bool>(
+                      selector: (state) => state.isBusy,
+                      builder: (context, busy) => AppRefreshButton(
+                        onRefresh: busy
+                            ? null
+                            : context.read<SettingsCubit>().refresh,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const Divider(color: AppColors.cardBorder),
               switch (tab) {

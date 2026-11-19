@@ -4,6 +4,7 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_date_filter_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_filter_dropdown.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_refresh_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_search_field.dart';
 import 'package:zuno_admin_dashboard/features/reports/presentation/state/reports_cubit.dart';
 import 'package:zuno_admin_dashboard/features/reports/presentation/state/reports_state.dart';
@@ -57,6 +58,7 @@ class ReportsToolbar extends StatelessWidget {
             onSelected: cubit.selectReporter,
             width: _dropdownWidth,
           ),
+          AppRefreshButton(onRefresh: cubit.refresh),
         ],
       ),
     );

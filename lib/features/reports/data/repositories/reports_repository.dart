@@ -26,6 +26,11 @@ class ReportsRepository {
     };
   }
 
+  void clearCache() {
+    _searches.clear();
+    _pending.clear();
+  }
+
   Future<Either<Failure, int>> count(ReportsQuery query) async {
     final term = query.term;
     if (term == null) return _reports.count(query);

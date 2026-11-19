@@ -53,6 +53,12 @@ class SettingsState {
   final List<String> allowedVersions;
   final bool allowedVersionSaving;
 
+  bool get isBusy =>
+      notificationSending ||
+      maintenanceSaving ||
+      minimumPayoutSaving ||
+      allowedVersionSaving;
+
   SettingsState copyWith({
     List<AdminAccount>? admins,
     LoadStatus? adminsStatus,

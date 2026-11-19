@@ -54,7 +54,7 @@ class PaymentCubit extends Cubit<PaymentState> {
       case Right(value: final amount):
         emit(state.copyWith(minimumPayout: amount, minimumLoaded: true));
         unawaited(_loadCounts());
-        _show(state.tab);
+        await _show(state.tab);
     }
   }
 
@@ -86,7 +86,7 @@ class PaymentCubit extends Cubit<PaymentState> {
     if (state.isSearching) {
       unawaited(_runSearch());
     } else {
-      _show(tab);
+      unawaited(_show(tab));
     }
   }
 
@@ -101,7 +101,7 @@ class PaymentCubit extends Cubit<PaymentState> {
         _searchPager = null;
         _searchMatches = const [];
         emit(state.copyWith(query: '', clearSearchCount: true));
-        _show(state.tab);
+        unawaited(_show(state.tab));
       } else {
         unawaited(_runSearch());
       }
@@ -406,15 +406,12 @@ class PaymentCubit extends Cubit<PaymentState> {
     };
   }
 
-  void _show(PaymentTab tab) {
+  Future<void> _show(PaymentTab tab) {
     final pager = _pagers[tab]!;
-    if (_stale.remove(tab)) {
-      unawaited(pager.reset());
-      return;
-    }
+    if (_stale.remove(tab)) return pager.reset();
     final view = _views[tab];
     if (view != null) emit(state.withView(view));
-    unawaited(pager.load());
+    return pager.load();
   }
 
   void _publish(PaymentTab tab, CursorPageView<Withdrawal> view) {

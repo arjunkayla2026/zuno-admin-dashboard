@@ -30,6 +30,13 @@ class UserManagementCubit extends Cubit<UserManagementState> {
 
   Future<void> loadUsers() => _pager.load();
 
+  Future<void> refresh() {
+    _debounce?.cancel();
+    _appliedTerm = UserSearch.normalizeTerm(state.query);
+    _appliedFilter = state.filter;
+    return _pager.reset();
+  }
+
   void search(String query) {
     emit(state.copyWith(query: query));
     _debounce?.cancel();

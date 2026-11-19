@@ -39,6 +39,11 @@ class CallHistoryCubit extends Cubit<CallHistoryState> {
     ]);
   }
 
+  Future<void> refresh() async {
+    emit(state.copyWith(clearMatchCount: true));
+    await Future.wait([_pager.reset(), _loadMatchCount(), _loadTotalCount()]);
+  }
+
   void selectType(CallTypeFilter filter) {
     if (filter == state.typeFilter) return;
     _apply(state.copyWith(typeFilter: filter));

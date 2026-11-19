@@ -5,7 +5,6 @@ import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/firestore_failures.dart';
 import 'package:zuno_admin_dashboard/core/data/payout_settings.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
-import 'package:zuno_admin_dashboard/core/data/search_keywords.dart';
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
 import 'package:zuno_admin_dashboard/core/data/user_search.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
@@ -305,7 +304,7 @@ class PaymentRemoteDataSource {
       final snapshots = await Future.wait([
         for (var start = 0; start < ids.length; start += _idsPerQuery)
           _firestore
-              .collection(SearchKeywords.bankAccountsCollection)
+              .collection(BankAccountRecord.collection)
               .where(
                 FieldPath.documentId,
                 whereIn: ids.sublist(

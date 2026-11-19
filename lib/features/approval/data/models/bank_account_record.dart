@@ -29,6 +29,7 @@ class BankAccountRecord {
     adminApprovedBy: UserRecord.readText(data[adminApprovedByField]),
   );
 
+  static const String collection = 'bankAccounts';
   static const String statusField = 'bankAccountStatus';
   static const String accountNumberField = 'accountNo';
   static const String ifscCodeField = 'ifscCode';

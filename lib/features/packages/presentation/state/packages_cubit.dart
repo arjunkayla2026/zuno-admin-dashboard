@@ -23,6 +23,12 @@ class PackagesCubit extends Cubit<PackagesState> {
     await Future.wait([_pager.load(), _loadCounts()]);
   }
 
+  Future<void> refresh() async {
+    _requestedPurchaseCounts.clear();
+    emit(state.copyWith(purchaseCounts: const {}));
+    await Future.wait([_pager.reset(), _loadCounts()]);
+  }
+
   Future<void> _loadCounts() async {
     final result = await _repository.fetchCounts();
     if (isClosed) return;

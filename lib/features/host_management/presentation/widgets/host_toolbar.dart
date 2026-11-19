@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/core/navigation/app_routes.dart';
 import 'package:zuno_admin_dashboard/core/resources/images/app_images.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_dialog_surface.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_refresh_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_search_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/call_pricing_cubit.dart';
@@ -44,6 +44,13 @@ class HostToolbar extends StatelessWidget {
     );
   }
 
+  Future<void> _refresh(BuildContext context) async {
+    await (
+      context.read<HostManagementCubit>().refresh(),
+      context.read<CallPricingCubit>().load(),
+    ).wait;
+  }
+
   Widget _icon(BuildContext context, String asset) => SvgPicture.asset(
     asset,
     width: _buttonIconSize,
@@ -58,9 +65,6 @@ class HostToolbar extends StatelessWidget {
   Widget build(BuildContext context) {
     final showsPricing = context.select(
       (HostManagementCubit cubit) => cubit.state.showsPricing,
-    );
-    final loading = context.select(
-      (HostManagementCubit cubit) => cubit.state.status == LoadStatus.loading,
     );
 
     return Column(
@@ -99,13 +103,7 @@ class HostToolbar extends StatelessWidget {
                   Navigator.of(context)
                       .pushNamed(AppRoutes.surgeChargeSessions),
             ),
-            AppSecondaryButton(
-              label: AppStrings.refresh,
-              leading: const Icon(Icons.refresh_rounded, size: _buttonIconSize),
-              onPressed: loading
-                  ? null
-                  : context.read<HostManagementCubit>().refresh,
-            ),
+            AppRefreshButton(onRefresh: () => _refresh(context)),
             if (showsPricing) const CallPricingSummary(),
           ],
         ),

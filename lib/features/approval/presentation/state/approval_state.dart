@@ -73,12 +73,13 @@ class ApprovalState {
     String? query,
     DateRangeFilter? dateFilter,
     DateTimeRange? customRange,
+    DateTime? today,
   }) {
     return ApprovalState(
       hostRequests: hostRequests ?? this.hostRequests,
       payoutRequests: payoutRequests ?? this.payoutRequests,
       profilePhotoRequests: profilePhotoRequests ?? this.profilePhotoRequests,
-      today: today,
+      today: today ?? this.today,
       hostRequestsStatus: hostRequestsStatus ?? this.hostRequestsStatus,
       hostRequestsError: hostRequestsError ?? this.hostRequestsError,
       hostPaging: hostPaging ?? this.hostPaging,

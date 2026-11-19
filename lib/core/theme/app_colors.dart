@@ -81,6 +81,8 @@ abstract final class AppColors {
   ];
 
   static const Color modalScrim = Color(0x6B0D1624);
+  static const Color mediaOverlay = Color(0x8C000000);
+  static const Color onMediaOverlay = white;
   static const Color menuText = Color(0xFF202020);
   static const Color iconTileBackground = Color(0xFFFFF7D1);
   static const Color selectedOption = sidebarBackground;

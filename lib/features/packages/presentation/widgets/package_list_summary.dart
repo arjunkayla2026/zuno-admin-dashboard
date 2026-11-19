@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_refresh_button.dart';
+import 'package:zuno_admin_dashboard/features/packages/presentation/state/packages_cubit.dart';
 import 'package:zuno_admin_dashboard/features/packages/presentation/widgets/package_flow.dart';
 
 class PackageListSummary extends StatelessWidget {
@@ -39,11 +42,21 @@ class PackageListSummary extends StatelessWidget {
               color: context.appColors.textSecondary,
             ),
           ),
-          AppPrimaryButton(
-            label: AppStrings.addPackage,
-            icon: Icons.add_rounded,
-            compact: true,
-            onPressed: () => openPackageSheet(context),
+          Wrap(
+            spacing: AppUtils.spacingSm,
+            runSpacing: AppUtils.spacingSm,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              AppRefreshButton(
+                onRefresh: context.read<PackagesCubit>().refresh,
+              ),
+              AppPrimaryButton(
+                label: AppStrings.addPackage,
+                icon: Icons.add_rounded,
+                compact: true,
+                onPressed: () => openPackageSheet(context),
+              ),
+            ],
           ),
         ],
       ),

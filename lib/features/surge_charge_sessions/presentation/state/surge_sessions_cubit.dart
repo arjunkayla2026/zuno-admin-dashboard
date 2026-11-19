@@ -27,6 +27,11 @@ class SurgeSessionsCubit extends Cubit<SurgeSessionsState> {
     );
   }
 
+  Future<void> refresh() async {
+    if (state.saving) return;
+    await load();
+  }
+
   Future<String?> addSession(SurgeSession session) =>
       _save([...state.sessions, session.copyWith(id: state.nextId)]);
 

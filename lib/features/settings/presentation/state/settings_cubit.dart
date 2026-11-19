@@ -16,6 +16,16 @@ class SettingsCubit extends Cubit<SettingsState> {
 
   void selectTab(SettingsTab tab) => emit(state.copyWith(tab: tab));
 
+  Future<void> refresh() async {
+    if (state.isBusy) return;
+    await Future.wait([
+      loadAdmins(),
+      loadGeneralSettings(),
+      loadBanners(),
+      loadNotificationAudience(),
+    ]);
+  }
+
   Future<void> loadNotificationAudience() async {
     emit(state.copyWith(audienceStatus: LoadStatus.loading));
     final result = await _repository.fetchNotificationAudience();

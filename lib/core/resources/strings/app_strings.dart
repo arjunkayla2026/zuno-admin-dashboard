@@ -58,6 +58,7 @@ abstract final class AppStrings {
   static const String hostAudioCallRevenue = 'Host Audio Call Revenue';
   static const String hostVideoCallRevenue = 'Host Video Call Revenue';
   static const String adminCallRevenue = 'Admin Call Revenue';
+  static const String adminMessageRevenue = 'Admin Message Revenue';
   static const String deletedAccountProfit = 'Deleted Account Profit';
   static const String totalAdminRevenue = 'Total Admin Revenue';
   static const String totalUsers = 'Total Users';
@@ -1067,7 +1068,10 @@ abstract final class AppStrings {
   static const String aadhaarBack = 'Aadhaar Back';
 
   static String documentSlideLabel(String side, int page, int count) =>
-      '$side · $page/$count';
+      '$side · ${documentPageCount(page, count)}';
+  static String documentPageCount(int page, int count) => '$page/$count';
+  static String documentPagesHint(int count) =>
+      '$count files inside. Open to view all.';
   static const String documentAlreadyReviewed =
       'This document has already been reviewed.';
   static const String hostRequestNotReady =

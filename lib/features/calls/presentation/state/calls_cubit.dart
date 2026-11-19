@@ -44,6 +44,14 @@ class CallsCubit extends Cubit<CallsState> {
     await Future.wait([_pager.load(), _loadCount()]);
   }
 
+  Future<void> refresh() async {
+    _searchPool = null;
+    _exactCallTerm = null;
+    _exactCall = null;
+    emit(state.copyWith(today: _today(), clearMatchCount: true));
+    await Future.wait([_pager.reset(), _loadCount()]);
+  }
+
   void search(String query) => _searchDebouncer.run(() {
     if (isClosed || query == state.query) return;
     emit(state.copyWith(query: query, clearMatchCount: true));

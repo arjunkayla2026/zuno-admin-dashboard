@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_date_filter_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_filter_dropdown.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_refresh_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_search_field.dart';
 import 'package:zuno_admin_dashboard/features/calls/presentation/state/calls_cubit.dart';
 import 'package:zuno_admin_dashboard/features/calls/presentation/state/calls_state.dart';
@@ -61,6 +62,7 @@ class CallsToolbar extends StatelessWidget {
             width: _typeWidth,
           ),
           TotalCallsCard(count: state.shownCount),
+          AppRefreshButton(onRefresh: cubit.refresh),
         ],
       ),
     );

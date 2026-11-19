@@ -65,6 +65,10 @@ abstract final class DashboardLabels {
         value: _amount(calls?.admin),
       ),
       DashboardStat(
+        label: AppStrings.adminMessageRevenue,
+        value: _amount(messages),
+      ),
+      DashboardStat(
         label: AppStrings.deletedAccountProfit,
         value: _amount(deletedProfit),
       ),

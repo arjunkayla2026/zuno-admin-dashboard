@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zuno_admin_dashboard/core/navigation/app_routes.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_back_link.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_refresh_button.dart';
+import 'package:zuno_admin_dashboard/features/surge_charge_sessions/presentation/state/surge_sessions_cubit.dart';
 import 'package:zuno_admin_dashboard/features/surge_charge_sessions/presentation/widgets/surge_intro_card.dart';
 import 'package:zuno_admin_dashboard/features/surge_charge_sessions/presentation/widgets/surge_sessions_table_card.dart';
 
@@ -16,19 +19,28 @@ class SurgeSessionsContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final saving = context.select(
+      (SurgeSessionsCubit cubit) => cubit.state.saving,
+    );
+
     return SingleChildScrollView(
       padding: AppUtils.isMobile(context) ? _mobilePadding : _padding,
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           AppBackLink(
             label: AppStrings.backToHosts,
             fallbackRoute: AppRoutes.hostManagement,
+            trailing: AppRefreshButton(
+              onRefresh: saving
+                  ? null
+                  : context.read<SurgeSessionsCubit>().refresh,
+            ),
           ),
-          SizedBox(height: _backGap),
-          SurgeIntroCard(),
-          SizedBox(height: _sectionGap),
-          SurgeSessionsTableCard(),
+          const SizedBox(height: _backGap),
+          const SurgeIntroCard(),
+          const SizedBox(height: _sectionGap),
+          const SurgeSessionsTableCard(),
         ],
       ),
     );

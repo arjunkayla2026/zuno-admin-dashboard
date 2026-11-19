@@ -8,12 +8,14 @@ class AppBackLink extends StatelessWidget {
     super.key,
     required this.label,
     required this.fallbackRoute,
+    this.trailing,
   });
 
   static const double _iconSize = 16;
 
   final String label;
   final String fallbackRoute;
+  final Widget? trailing;
 
   void _goBack(BuildContext context) {
     final navigator = Navigator.of(context);
@@ -27,8 +29,7 @@ class AppBackLink extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final muted = context.appColors.textSecondary;
-
-    return Align(
+    final link = Align(
       alignment: Alignment.centerLeft,
       child: InkWell(
         onTap: () => _goBack(context),
@@ -41,6 +42,16 @@ class AppBackLink extends StatelessWidget {
           ],
         ),
       ),
+    );
+    final trailing = this.trailing;
+    if (trailing == null) return link;
+
+    return Row(
+      children: [
+        Expanded(child: link),
+        const SizedBox(width: AppUtils.spacingSm),
+        trailing,
+      ],
     );
   }
 }

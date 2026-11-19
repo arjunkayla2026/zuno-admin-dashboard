@@ -155,6 +155,18 @@ class ApprovalCubit extends Cubit<ApprovalState> {
     await Future.wait([_photos.show(_filter, force: true), _loadTabCounts()]);
   }
 
+  Future<void> refresh() async {
+    _debounce?.cancel();
+    _hosts.clear();
+    _payouts.clear();
+    _photos.clear();
+    emit(state.copyWith(today: _now()));
+    await Future.wait([
+      _activePager.show(_filter, force: true),
+      _loadTabCounts(),
+    ]);
+  }
+
   void goToPage(int page) => _activePager.show(_filter, page: page);
 
   void selectTab(ApprovalTab tab) {

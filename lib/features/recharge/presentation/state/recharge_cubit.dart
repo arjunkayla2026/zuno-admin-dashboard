@@ -42,6 +42,12 @@ class RechargeCubit extends Cubit<RechargeState> {
     await Future.wait([_pager.load(), _loadTotals()]);
   }
 
+  Future<void> refresh() async {
+    _searchPool = null;
+    emit(state.copyWith(today: _today()));
+    await Future.wait([_pager.reset(), _loadTotals()]);
+  }
+
   void search(String query) => _searchDebouncer.run(() {
     if (isClosed || query == state.query) return;
     emit(state.copyWith(query: query));

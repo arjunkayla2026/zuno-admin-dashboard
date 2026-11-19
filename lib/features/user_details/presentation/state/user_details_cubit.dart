@@ -57,6 +57,10 @@ class UserDetailsCubit extends Cubit<UserDetailsState> {
     );
   }
 
+  Future<void> refresh() async {
+    await Future.wait([loadRechargeSummary(), loadDeletedAccountProfit()]);
+  }
+
   Future<void> loadDeletedAccountProfit() async {
     final result = await _users.fetchDeletedAccountProfit(state.user);
     if (isClosed) return;

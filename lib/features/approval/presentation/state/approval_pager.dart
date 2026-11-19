@@ -155,6 +155,8 @@ class ApprovalPager<T> {
     );
   }
 
+  void clear() => _entries.clear();
+
   void update(T Function(T item) transform) {
     for (final entry in _entries.values) {
       for (var index = 0; index < entry.pages.length; index++) {

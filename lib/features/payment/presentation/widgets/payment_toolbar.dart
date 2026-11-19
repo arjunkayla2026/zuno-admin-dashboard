@@ -8,8 +8,10 @@ import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_date_filter_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_refresh_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_search_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
+import 'package:zuno_admin_dashboard/features/payment/presentation/state/mock_withdrawals_cubit.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_cubit.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_state.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_flow.dart';
@@ -36,6 +38,14 @@ class PaymentToolbar extends StatelessWidget {
       BlendMode.srcIn,
     ),
   );
+
+  Future<void> _refresh(BuildContext context) async {
+    final mock = context.read<MockWithdrawalsCubit>();
+    await Future.wait([
+      context.read<PaymentCubit>().refresh(),
+      if (mock.isAvailable) mock.load(),
+    ]);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,6 +99,11 @@ class PaymentToolbar extends StatelessWidget {
                     onFilterSelected: cubit.selectSuccessDateFilter,
                     onCustomRangeSelected: cubit.selectSuccessCustomRange,
                   ),
+                AppRefreshButton(
+                  onRefresh: busy || exporting
+                      ? null
+                      : () => _refresh(context),
+                ),
               ],
             ),
             if (isPending)

@@ -4,7 +4,6 @@ import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/deleted_account_record.dart';
 import 'package:zuno_admin_dashboard/core/data/firestore_failures.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
-import 'package:zuno_admin_dashboard/core/data/search_keywords.dart';
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
@@ -238,7 +237,7 @@ class HostEarningsRemoteDataSource {
   ) async {
     try {
       final snapshot = await _firestore
-          .collection(SearchKeywords.bankAccountsCollection)
+          .collection(BankAccountRecord.collection)
           .doc(hostId)
           .get();
       final data = snapshot.data();
