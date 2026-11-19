@@ -84,7 +84,7 @@ class AdminHost {
   /// Null for hosts approved before the date was recorded.
   final DateTime? approvedAt;
 
-  String get initials => NameFormatter.initials(name);
+  String get initials => NameFormatter.initials(fullName);
 
   bool get isDeleted =>
       status == HostStatus.deletedByAdmin || status == HostStatus.deletedByUser;

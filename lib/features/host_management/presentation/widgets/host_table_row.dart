@@ -65,20 +65,21 @@ class HostTableRow extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        host.name,
+                        host.fullName,
                         style: AppTextStyles.labelMedium.copyWith(
                           color: textColor,
                           fontWeight: FontWeight.w600,
                           height: _nameLineHeight,
                         ),
                       ),
-                      Text(
-                        host.fullName,
-                        style: AppTextStyles.captionSmall.copyWith(
-                          color: context.appColors.textSecondary,
-                          height: _subtitleLineHeight,
+                      if (host.name.isNotEmpty && host.name != host.fullName)
+                        Text(
+                          host.name,
+                          style: AppTextStyles.captionSmall.copyWith(
+                            color: context.appColors.textSecondary,
+                            height: _subtitleLineHeight,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
