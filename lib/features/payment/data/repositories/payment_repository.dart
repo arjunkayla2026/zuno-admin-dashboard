@@ -413,14 +413,17 @@ class PaymentRepository {
       case Right(value: final list):
         final hostIds = {
           for (final item in list)
-            if (!item.isPaid && item.hostId.isNotEmpty) item.hostId,
+            if (item.needsBankAccountLookup && item.hostId.isNotEmpty)
+              item.hostId,
         };
         if (hostIds.isEmpty) return right(list);
         final accounts = await _dataSource.fetchApprovedBankAccounts(hostIds);
         return accounts.map(
           (byHost) => [
             for (final item in list)
-              item.isPaid ? item : item.withBankAccount(byHost[item.hostId]),
+              item.needsBankAccountLookup
+                  ? item.withBankAccount(byHost[item.hostId])
+                  : item,
           ],
         );
     }

@@ -512,7 +512,7 @@ abstract final class AppStrings {
   static const String receivableAmount = 'Receivable Amount';
   static const String receivableCoin = 'Receivable Coin';
   static const String totalCoinsWithOffer = 'Total Coins (With Offer)';
-  static const String totalPurchases = 'Package-wise Total Recharge Count';
+  static const String totalPurchases = 'Package-wise\nTotal Recharge Count';
   static const String offerTag = 'Tagline';
   static const String offerPercentage = 'Offer %';
   static const String offerPercentageField = 'Offer Percentage (%)';

@@ -21,6 +21,7 @@ class UserProfileCard extends StatelessWidget {
   static const double _avatarGap = 22;
   static const double _nameGap = 10;
   static const double _detailsGap = 8;
+  static const double _metaSpacing = 28;
   static const EdgeInsets _padding = EdgeInsets.fromLTRB(22, 20, 20, 20);
 
   final AdminUser user;
@@ -79,6 +80,7 @@ class UserProfileCard extends StatelessWidget {
                 ),
                 const SizedBox(height: _detailsGap),
                 Wrap(
+                  spacing: _metaSpacing,
                   runSpacing: AppUtils.spacingSm,
                   children: [
                     AppMetaField(

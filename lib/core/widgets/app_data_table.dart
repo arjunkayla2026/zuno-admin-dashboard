@@ -8,13 +8,27 @@ class AppTableColumn {
     this.label,
     this.width, {
     this.alignEnd = false,
+    this.alignCenter = false,
     this.header,
   });
 
   final String label;
   final double width;
   final bool alignEnd;
+  final bool alignCenter;
   final Widget? header;
+
+  Alignment get alignment => alignCenter
+      ? Alignment.center
+      : alignEnd
+      ? Alignment.centerRight
+      : Alignment.centerLeft;
+
+  TextAlign get textAlign => alignCenter
+      ? TextAlign.center
+      : alignEnd
+      ? TextAlign.end
+      : TextAlign.start;
 }
 
 class AppDataTable extends StatelessWidget {
@@ -23,6 +37,7 @@ class AppDataTable extends StatelessWidget {
     required this.columns,
     required this.rows,
     this.onRowTap,
+    this.spreadExtraWidth = false,
   });
 
   static const double _leftInset = 10;
@@ -33,13 +48,23 @@ class AppDataTable extends StatelessWidget {
   final List<AppTableColumn> columns;
   final List<List<Widget>> rows;
   final ValueChanged<int>? onRowTap;
+  final bool spreadExtraWidth;
 
   double get _rightInset => columns.last.alignEnd ? _endColumnInset : 0;
 
-  double get _contentWidth =>
-      _leftInset +
-      _rightInset +
+  double get _columnsWidth =>
       columns.fold(0, (sum, column) => sum + column.width);
+
+  double get _contentWidth => _leftInset + _rightInset + _columnsWidth;
+
+  double _widthOf(int index, double extraWidth) {
+    final width = columns[index].width;
+    if (spreadExtraWidth) {
+      final total = _columnsWidth;
+      return total > 0 ? width + extraWidth * width / total : width;
+    }
+    return width + (index == columns.length - 1 ? extraWidth : 0);
+  }
 
   Widget _row(List<Widget> cells, double extraWidth) {
     return Padding(
@@ -48,14 +73,8 @@ class AppDataTable extends StatelessWidget {
         children: [
           for (final (index, column) in columns.indexed)
             SizedBox(
-              width:
-                  column.width + (index == columns.length - 1 ? extraWidth : 0),
-              child: Align(
-                alignment: column.alignEnd
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
-                child: cells[index],
-              ),
+              width: _widthOf(index, extraWidth),
+              child: Align(alignment: column.alignment, child: cells[index]),
             ),
         ],
       ),
@@ -101,7 +120,12 @@ class AppDataTable extends StatelessWidget {
                   ),
                   child: _row([
                     for (final column in columns)
-                      column.header ?? Text(column.label, style: headerStyle),
+                      column.header ??
+                          Text(
+                            column.label,
+                            style: headerStyle,
+                            textAlign: column.textAlign,
+                          ),
                   ], extraWidth),
                 ),
                 for (final (index, cells) in rows.indexed)

@@ -22,17 +22,17 @@ class PackagesTable extends StatelessWidget {
 
   static const double _editIconSize = 12;
   static const List<AppTableColumn> _columns = [
-    AppTableColumn(AppStrings.payableAmount, 158, alignEnd: true),
-    AppTableColumn(AppStrings.receivableAmount, 199, alignEnd: true),
-    AppTableColumn(AppStrings.receivableCoin, 170, alignEnd: true),
-    AppTableColumn(AppStrings.totalCoinsWithOffer, 200, alignEnd: true),
+    AppTableColumn(AppStrings.payableAmount, 158, alignCenter: true),
+    AppTableColumn(AppStrings.receivableAmount, 199, alignCenter: true),
+    AppTableColumn(AppStrings.receivableCoin, 170, alignCenter: true),
+    AppTableColumn(AppStrings.totalCoinsWithOffer, 200, alignCenter: true),
     AppTableColumn('', 28),
-    AppTableColumn(AppStrings.offerTag, 162),
-    AppTableColumn(AppStrings.offerPercentage, 110),
-    AppTableColumn(AppStrings.totalPurchases, 240, alignEnd: true),
+    AppTableColumn(AppStrings.offerTag, 162, alignCenter: true),
+    AppTableColumn(AppStrings.offerPercentage, 110, alignCenter: true),
+    AppTableColumn(AppStrings.totalPurchases, 170, alignCenter: true),
     AppTableColumn('', 40),
-    AppTableColumn(AppStrings.status, 120),
-    AppTableColumn('', 100, alignEnd: true),
+    AppTableColumn(AppStrings.status, 120, alignCenter: true),
+    AppTableColumn('', 100, alignCenter: true),
   ];
 
   final List<PackagePlan> packages;
@@ -47,6 +47,7 @@ class PackagesTable extends StatelessWidget {
 
     return AppDataTable(
       columns: _columns,
+      spreadExtraWidth: true,
       rows: [
         for (final plan in packages)
           [

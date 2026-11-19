@@ -93,6 +93,7 @@ class Withdrawal {
     this.paidTdsAmount,
     this.paidReceivableAmount,
     this.bankAccount,
+    this.hasStoredBankAccount = false,
     this.failureReason,
     this.failureNote,
     this.failureCount = 0,
@@ -173,9 +174,10 @@ class Withdrawal {
           : null,
       paidTdsAmount: paidAmount('tdsAmount'),
       paidReceivableAmount: paidAmount('receivableAmount'),
-      bankAccount: isPaid
-          ? PayoutBankAccount.fromMap(data['bankAccount'])
-          : null,
+      bankAccount: isOpen
+          ? null
+          : PayoutBankAccount.fromMap(data[bankAccountField]),
+      hasStoredBankAccount: !isOpen && data.containsKey(bankAccountField),
       failureReason: PayoutFailureReason.fromValue(data['failureReason']),
       failureNote: UserRecord.readText(data['failureNote']),
       failureCount: failureCount is num ? failureCount.round() : 0,
@@ -204,6 +206,7 @@ class Withdrawal {
   static const String tdsPercentField = 'tdsPercent';
   static const String failureCountField = 'failureCount';
   static const String pendingPayoutIdField = 'pendingPayoutId';
+  static const String bankAccountField = 'bankAccount';
   static const String openStatus = 'open';
   static const String pendingStatus = 'pending';
   static const String successStatus = 'success';
@@ -256,6 +259,7 @@ class Withdrawal {
   final double? paidTdsAmount;
   final double? paidReceivableAmount;
   final PayoutBankAccount? bankAccount;
+  final bool hasStoredBankAccount;
   final PayoutFailureReason? failureReason;
   final String? failureNote;
   final int failureCount;
@@ -284,6 +288,8 @@ class Withdrawal {
   bool get hasFailure => failureReason != null;
 
   bool get hasBankAccount => bankAccount != null;
+
+  bool get needsBankAccountLookup => !isPaid && !hasStoredBankAccount;
 
   DateTime get settledDate =>
       paidOn ?? (isFailed ? failedOn : null) ?? pendingOn ?? date;
@@ -400,6 +406,7 @@ class Withdrawal {
       paidTdsAmount: paidTdsAmount ?? this.paidTdsAmount,
       paidReceivableAmount: paidReceivableAmount ?? this.paidReceivableAmount,
       bankAccount: bankAccount ?? this.bankAccount,
+      hasStoredBankAccount: hasStoredBankAccount,
       failureReason: failureReason ?? this.failureReason,
       failureNote: clearFailureNote ? null : failureNote ?? this.failureNote,
       failureCount: failureCount ?? this.failureCount,

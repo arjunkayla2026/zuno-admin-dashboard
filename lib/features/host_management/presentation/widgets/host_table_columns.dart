@@ -36,7 +36,7 @@ class HostTableColumns extends StatelessWidget {
           Expanded(flex: 120, child: status),
           Expanded(
             flex: 82,
-            child: Align(alignment: Alignment.centerRight, child: wallet),
+            child: Align(alignment: Alignment.centerLeft, child: wallet),
           ),
           Expanded(
             flex: 196,

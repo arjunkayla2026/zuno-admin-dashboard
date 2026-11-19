@@ -8,49 +8,37 @@ class HostRequestDetailsView extends StatelessWidget {
   const HostRequestDetailsView({super.key, required this.request});
 
   static const int _columns = 3;
-  static const double _rowGap = 12;
 
   final HostRequest request;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        AppDetailGrid(
-          columns: _columns,
-          items: [
-            AppDetailItem(AppStrings.realName, value: request.realName),
-            AppDetailItem(AppStrings.nickName, value: request.nickName),
-            AppDetailItem(
-              AppStrings.mobileNumber,
-              value: request.phone,
-              identifier: true,
-            ),
-            AppDetailItem(
-              AppStrings.dateOfBirth,
-              value: HostRequestLabels.dateOfBirth(request),
-            ),
-            AppDetailItem(AppStrings.city, value: request.city),
-            AppDetailItem(
-              AppStrings.gender,
-              value: HostRequestLabels.gender(request),
-            ),
-          ],
+    return AppDetailGrid(
+      columns: _columns,
+      items: [
+        AppDetailItem(AppStrings.realName, value: request.realName),
+        AppDetailItem(AppStrings.nickName, value: request.nickName),
+        AppDetailItem(
+          AppStrings.mobileNumber,
+          value: request.phone,
+          identifier: true,
         ),
-        const SizedBox(height: _rowGap),
-        AppDetailGrid(
-          columns: 1,
-          items: [
-            AppDetailItem(
-              AppStrings.motherTongueField,
-              value: HostRequestLabels.motherTongue(request),
-            ),
-            AppDetailItem(
-              AppStrings.speakLanguages,
-              value: HostRequestLabels.languages(request),
-            ),
-          ],
+        AppDetailItem(
+          AppStrings.dateOfBirth,
+          value: HostRequestLabels.dateOfBirth(request),
+        ),
+        AppDetailItem(AppStrings.city, value: request.city),
+        AppDetailItem(
+          AppStrings.gender,
+          value: HostRequestLabels.gender(request),
+        ),
+        AppDetailItem(
+          AppStrings.motherTongueField,
+          value: HostRequestLabels.motherTongue(request),
+        ),
+        AppDetailItem(
+          AppStrings.speakLanguages,
+          value: HostRequestLabels.languages(request),
         ),
       ],
     );
