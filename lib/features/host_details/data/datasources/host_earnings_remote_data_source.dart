@@ -98,30 +98,55 @@ class HostEarningsRemoteDataSource {
   }
 
   /// Payout totals for the Host Details cards: `totalAmount` (the withdraw
-  /// amount, before TDS) of the host's `success` / `pending` / `open`
-  /// `hostPayouts`. Total Revenue, the Available Wallet Amount and the admin
-  /// credit / debit totals come from the host's `hostDetails.hostEarnings`
+  /// amount, before TDS) of the host's `success` / `pending` / `failed` /
+  /// `open` `hostPayouts`. Total Revenue, the Available Wallet Amount and the
+  /// admin credit / debit totals come from the host's `hostDetails.hostEarnings`
   /// instead (see `HostManagementRepository.toAdminHost`).
   Future<Either<Failure, HostEarningsTotals>> fetchTotals(String hostId) async {
-    Future<double> statusSum(String status, String field) async {
-      final result = await _payoutsOf(hostId)
-          .where(Withdrawal.statusField, isEqualTo: status)
-          .aggregate(sum(field))
-          .get();
-      return result.getSum(field) ?? 0;
+    Future<T> logged<T>(String part, Future<T> Function() read) async {
+      try {
+        return await read();
+      } catch (error, stackTrace) {
+        AppLogger.error(
+          '✖ hostEarnings.totals $part $hostId ${error is FirebaseException ? '${error.code} ${error.message}' : error}',
+          error,
+          stackTrace,
+        );
+        rethrow;
+      }
     }
 
+    Future<double> statusSum(String status, String field) =>
+        logged(status, () async {
+          final result = await _payoutsOf(hostId)
+              .where(Withdrawal.statusField, isEqualTo: status)
+              .aggregate(sum(field))
+              .get();
+          return result.getSum(field) ?? 0;
+        });
+
     try {
-      final (paidTotal, pendingTotal, openTotal, deletion) = await (
+      final (
+        paidTotal,
+        pendingTotal,
+        failedTotal,
+        openTotal,
+        deletion,
+      ) = await (
         statusSum(Withdrawal.successStatus, Withdrawal.totalAmountField),
         statusSum(Withdrawal.pendingStatus, Withdrawal.totalAmountField),
+        statusSum(Withdrawal.failedStatus, Withdrawal.totalAmountField),
         statusSum(Withdrawal.openStatus, Withdrawal.totalAmountField),
-        _firestore.doc(DeletedAccountRecord.document).get(),
+        logged(
+          DeletedAccountRecord.document,
+          () => _firestore.doc(DeletedAccountRecord.document).get(),
+        ),
       ).wait;
       return right(
         HostEarningsTotals(
           paidTotal: paidTotal,
           pendingTotal: pendingTotal,
+          failedTotal: failedTotal,
           openTotal: openTotal,
           deletedAccountProfit:
               DeletedAccountRecord.incomeOf(deletion.data(), hostId) ??
