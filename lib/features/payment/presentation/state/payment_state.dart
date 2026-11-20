@@ -3,6 +3,7 @@ import 'package:zuno_admin_dashboard/core/data/cursor_pager.dart';
 import 'package:zuno_admin_dashboard/core/data/payout_settings.dart';
 import 'package:zuno_admin_dashboard/core/enums/date_range_filter.dart';
 import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
+import 'package:zuno_admin_dashboard/features/payment/data/models/payout_sheet_row.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_summary.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
 
@@ -18,6 +19,16 @@ enum PaymentTab {
 
   bool get isSelectable => this != PaymentTab.success;
 }
+
+/// The rows loaded for one sheet export: [candidates] payouts were
+/// considered, [rows] could be exported, and [wholeTab] is true when nothing
+/// was selected, so every payout of [tab] was used.
+typedef PayoutSheetLoad = ({
+  PaymentTab tab,
+  bool wholeTab,
+  int candidates,
+  List<PayoutSheetRow> rows,
+});
 
 class PaymentState {
   /// Tabs whose payouts can be exported as a bank withdrawal sheet.
@@ -47,15 +58,17 @@ class PaymentState {
     this.selectingAll = false,
     this.exporting = false,
     this.batchRunning = false,
-    this.successDateFilter = DateRangeFilter.all,
+    this.successDateFilter = DateRangeFilter.today,
     this.successCustomRange,
+    this.beneficiaryExportedIds = const {},
+    this.beneficiaryExportedTabs = const {},
   });
 
   static const int tdsPercent = PayoutSettings.tdsPercent;
 
   static const List<DateRangeFilter> successDateOptions = [
     DateRangeFilter.all,
-    DateRangeFilter.yesterday,
+    DateRangeFilter.today,
     DateRangeFilter.last7Days,
     DateRangeFilter.last30Days,
     DateRangeFilter.custom,
@@ -86,6 +99,19 @@ class PaymentState {
   final bool batchRunning;
   final DateRangeFilter successDateFilter;
   final DateTimeRange? successCustomRange;
+
+  /// Payouts whose host was in a beneficiary sheet exported on this page.
+  final Set<String> beneficiaryExportedIds;
+
+  /// Tabs whose whole beneficiary sheet (nothing selected) was exported since
+  /// the last refresh, with no unregistered payout added to them since.
+  final Set<PaymentTab> beneficiaryExportedTabs;
+
+  /// The withdrawal sheet is offered only after the beneficiary sheet for the
+  /// same payouts: the selected ones, or the whole tab when none is selected.
+  bool get canExportWithdrawals => selected.isEmpty
+      ? beneficiaryExportedTabs.contains(tab)
+      : selected.keys.every(beneficiaryExportedIds.contains);
 
   bool get isSearching => query.trim().isNotEmpty;
 
@@ -178,6 +204,8 @@ class PaymentState {
     bool? batchRunning,
     DateRangeFilter? successDateFilter,
     DateTimeRange? successCustomRange,
+    Set<String>? beneficiaryExportedIds,
+    Set<PaymentTab>? beneficiaryExportedTabs,
   }) {
     return PaymentState(
       tab: tab ?? this.tab,
@@ -202,6 +230,10 @@ class PaymentState {
       batchRunning: batchRunning ?? this.batchRunning,
       successDateFilter: successDateFilter ?? this.successDateFilter,
       successCustomRange: successCustomRange ?? this.successCustomRange,
+      beneficiaryExportedIds:
+          beneficiaryExportedIds ?? this.beneficiaryExportedIds,
+      beneficiaryExportedTabs:
+          beneficiaryExportedTabs ?? this.beneficiaryExportedTabs,
     );
   }
 }

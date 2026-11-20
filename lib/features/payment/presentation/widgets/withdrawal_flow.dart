@@ -423,7 +423,8 @@ Future<void> _exportSheet(
   bool requireBeneficiary = false,
 }) async {
   final messenger = ScaffoldMessenger.of(context);
-  final result = await context.read<PaymentCubit>().loadSheetRows(
+  final cubit = context.read<PaymentCubit>();
+  final result = await cubit.loadSheetRows(
     registerBeneficiaries: registerBeneficiaries,
   );
   if (result == null || !context.mounted) return;
@@ -431,16 +432,21 @@ Future<void> _exportSheet(
   switch (result) {
     case Left(value: final failure):
       messenger.showSnackBar(SnackBar(content: Text(failure.message)));
-    case Right(value: final loaded) when loaded.isEmpty:
+    case Right(value: final load) when load.candidates == 0:
       messenger.showSnackBar(
         const SnackBar(content: Text(AppStrings.nothingToExport)),
       );
-    case Right(value: final loaded)
-        when requireBeneficiary && !loaded.any((row) => row.hasBeneficiary):
+    case Right(value: final load) when load.rows.isEmpty:
+      messenger.showSnackBar(
+        const SnackBar(content: Text(AppStrings.noExportableWithdrawals)),
+      );
+    case Right(value: final load)
+        when requireBeneficiary && !load.rows.any((row) => row.hasBeneficiary):
       messenger.showSnackBar(
         const SnackBar(content: Text(AppStrings.noRegisteredBeneficiaries)),
       );
-    case Right(value: final loaded):
+    case Right(value: final load):
+      final loaded = load.rows;
       final rows = requireBeneficiary
           ? loaded.where((row) => row.hasBeneficiary).toList()
           : loaded;
@@ -455,6 +461,7 @@ Future<void> _exportSheet(
         );
         return;
       }
+      if (registerBeneficiaries) cubit.markBeneficiariesExported(load);
       await showAppSuccessDialog(
         context: context,
         title: AppStrings.exportComplete,

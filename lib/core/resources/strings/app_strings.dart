@@ -643,9 +643,13 @@ abstract final class AppStrings {
   static const String withdrawStatus = 'Withdraw Status';
   static const String exportComplete = 'Export complete';
   static const String ready = 'Ready';
-  static const String nothingToExport =
-      'There are no pending withdrawals to export.';
+  static const String nothingToExport = 'There are no withdrawals to export.';
+  static const String noExportableWithdrawals =
+      'None of these withdrawals has an approved bank account, so there is '
+      'nothing to export.';
   static const String exportFailed = 'The sheet could not be downloaded.';
+  static const String exportBeneficiarySheetFirst =
+      'Export the beneficiary sheet for these withdrawals first.';
   static const String noRegisteredBeneficiaries =
       'None of these hosts has a beneficiary registered for their current '
       'bank account. Export the beneficiary sheet first.';

@@ -39,6 +39,34 @@ class PaymentToolbar extends StatelessWidget {
     ),
   );
 
+  List<Widget> _exportButtons(
+    BuildContext context,
+    bool exporting,
+    bool canExportWithdrawals,
+  ) {
+    final withdrawalSheet = AppSecondaryButton(
+      label: AppStrings.exportWithdrawalSheet,
+      leading: _downloadIcon(context),
+      onPressed: exporting || !canExportWithdrawals
+          ? null
+          : () => exportWithdrawals(context),
+    );
+    return [
+      AppSecondaryButton(
+        label: AppStrings.exportBeneficiarySheet,
+        leading: _downloadIcon(context),
+        onPressed: exporting ? null : () => exportBeneficiaries(context),
+      ),
+      if (canExportWithdrawals)
+        withdrawalSheet
+      else
+        Tooltip(
+          message: AppStrings.exportBeneficiarySheetFirst,
+          child: withdrawalSheet,
+        ),
+    ];
+  }
+
   Future<void> _refresh(BuildContext context) async {
     final mock = context.read<MockWithdrawalsCubit>();
     await Future.wait([
@@ -61,6 +89,9 @@ class PaymentToolbar extends StatelessWidget {
     final (dateFilter, customRange) = context.select(
       (PaymentCubit cubit) =>
           (cubit.state.successDateFilter, cubit.state.successCustomRange),
+    );
+    final canExportWithdrawals = context.select(
+      (PaymentCubit cubit) => cubit.state.canExportWithdrawals,
     );
     final isPending = tab == PaymentTab.pending;
     final hasSelection = selectedCount > 0;
@@ -100,9 +131,7 @@ class PaymentToolbar extends StatelessWidget {
                     onCustomRangeSelected: cubit.selectSuccessCustomRange,
                   ),
                 AppRefreshButton(
-                  onRefresh: busy || exporting
-                      ? null
-                      : () => _refresh(context),
+                  onRefresh: busy || exporting ? null : () => _refresh(context),
                 ),
               ],
             ),
@@ -111,20 +140,7 @@ class PaymentToolbar extends StatelessWidget {
                 spacing: AppUtils.spacingSm,
                 runSpacing: AppUtils.spacingSm,
                 children: [
-                  AppSecondaryButton(
-                    label: AppStrings.exportBeneficiarySheet,
-                    leading: _downloadIcon(context),
-                    onPressed: exporting
-                        ? null
-                        : () => exportBeneficiaries(context),
-                  ),
-                  AppSecondaryButton(
-                    label: AppStrings.exportWithdrawalSheet,
-                    leading: _downloadIcon(context),
-                    onPressed: exporting
-                        ? null
-                        : () => exportWithdrawals(context),
-                  ),
+                  ..._exportButtons(context, exporting, canExportWithdrawals),
                   if (hasSelection)
                     AppPrimaryButton(
                       label: AppStrings.withSelectedCount(
@@ -144,13 +160,7 @@ class PaymentToolbar extends StatelessWidget {
                 spacing: AppUtils.spacingSm,
                 runSpacing: AppUtils.spacingSm,
                 children: [
-                  AppSecondaryButton(
-                    label: AppStrings.exportWithdrawalSheet,
-                    leading: _downloadIcon(context),
-                    onPressed: exporting
-                        ? null
-                        : () => exportWithdrawals(context),
-                  ),
+                  ..._exportButtons(context, exporting, canExportWithdrawals),
                   if (hasSelection)
                     AppPrimaryButton(
                       label: AppStrings.withSelectedCount(

@@ -1,10 +1,12 @@
 import 'dart:math';
 
 import 'package:fpdart/fpdart.dart';
+import 'package:zuno_admin_dashboard/core/app_environment/config/flavor_config.dart';
 import 'package:zuno_admin_dashboard/core/data/payout_settings.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
 import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
+import 'package:zuno_admin_dashboard/core/enums/app_environment.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/datasources/payment_remote_data_source.dart';
@@ -27,6 +29,11 @@ class PaymentRepository {
 
   final PaymentRemoteDataSource _dataSource;
   final UsersRemoteDataSource _usersDataSource;
+
+  /// Mock withdrawals exist only on staging, where they are exported like
+  /// real ones so the testing flow can be followed through the bank sheets.
+  bool get _exportsMockWithdrawals =>
+      FlavorConfig.instance.environment == Environment.staging;
 
   Future<Either<Failure, double?>> fetchMinimumPayout() =>
       _dataSource.fetchMinimumPayout();
@@ -207,15 +214,19 @@ class PaymentRepository {
     }
   }
 
-  /// Builds the bank sheet rows for [withdrawals], skipping mock payouts and
-  /// any without an approved bank account. Joins each host's `hostDetails`
-  /// (including a beneficiary ID still valid for the current bank account)
-  /// and the admin credit / debit remarks written against the payout.
+  /// Builds the bank sheet rows for [withdrawals], skipping any without an
+  /// approved bank account, and mock payouts outside staging. Joins each
+  /// host's `hostDetails` (including a beneficiary ID still valid for the
+  /// current bank account) and the admin credit / debit remarks written
+  /// against the payout.
   Future<Either<Failure, List<PayoutSheetRow>>> fetchSheetRows(
     List<Withdrawal> withdrawals,
   ) async {
     final ready = withdrawals
-        .where((item) => item.hasBankAccount && !item.isMock)
+        .where(
+          (item) =>
+              item.hasBankAccount && (_exportsMockWithdrawals || !item.isMock),
+        )
         .toList();
     if (ready.isEmpty) return right(const []);
     final (hosts, adjustments) = await (

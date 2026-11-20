@@ -89,6 +89,7 @@ class PaymentTabsCard extends StatelessWidget {
                 PaymentTab.withdrawalList => WithdrawalsTable(
                   withdrawals: rows,
                   state: state,
+                  firstIndex: state.firstIndex,
                 ),
                 PaymentTab.pending => PendingWithdrawalsTable(
                   withdrawals: rows,
@@ -98,6 +99,7 @@ class PaymentTabsCard extends StatelessWidget {
                 PaymentTab.success => SuccessWithdrawalsTable(
                   withdrawals: rows,
                   defaultTdsPercent: PaymentState.tdsPercent,
+                  firstIndex: state.firstIndex,
                 ),
                 PaymentTab.failed => FailedWithdrawalsTable(
                   withdrawals: rows,

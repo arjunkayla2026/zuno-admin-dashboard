@@ -277,7 +277,7 @@ class Withdrawal {
   final String? failedByName;
   final DateTime? retriedOn;
 
-  /// Created by Withdrawal Workflow Testing for a mock host; never exported.
+  /// Created by Withdrawal Workflow Testing for a mock host (staging only).
   final bool isMock;
 
   String get initials => NameFormatter.initials(hostName);

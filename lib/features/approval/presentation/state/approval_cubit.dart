@@ -45,6 +45,13 @@ class ApprovalCubit extends Cubit<ApprovalState> {
   Timer? _debounce;
   int _latestCountRequest = 0;
   final Set<String> _approvedRequestIds = {};
+  final Set<String> _decidedPayouts = {};
+  final Set<String> _decidedPhotos = {};
+
+  /// A decided bank account or photo is skipped by its ID and submission
+  /// time, so a later resubmission of the same document still shows.
+  static String _decisionKey(String id, DateTime submittedOn) =>
+      '$id@${submittedOn.microsecondsSinceEpoch}';
 
   late final ApprovalPager<HostRequest> _hosts = ApprovalPager(
     fetch: _fetchHostRequests,
@@ -62,7 +69,7 @@ class ApprovalCubit extends Cubit<ApprovalState> {
   );
 
   late final ApprovalPager<PayoutRequest> _payouts = ApprovalPager(
-    fetch: _payoutRepository.fetchPayoutRequests,
+    fetch: _fetchPayoutRequests,
     count: _payoutRepository.countPayoutRequests,
     now: _now,
     onChanged: (view) => _publish(
@@ -77,7 +84,7 @@ class ApprovalCubit extends Cubit<ApprovalState> {
   );
 
   late final ApprovalPager<ProfilePhotoRequest> _photos = ApprovalPager(
-    fetch: _repository.fetchProfilePhotoRequests,
+    fetch: _fetchProfilePhotoRequests,
     count: _repository.countProfilePhotoRequests,
     now: _now,
     onChanged: (view) => _publish(
@@ -101,6 +108,34 @@ class ApprovalCubit extends Cubit<ApprovalState> {
       ],
     ),
   );
+
+  Future<Either<Failure, RecordPage<PayoutRequest>>> _fetchPayoutRequests(
+    RecordPageQuery query,
+  ) async => (await _payoutRepository.fetchPayoutRequests(query)).map(
+    (page) => page.mapItems(
+      (items) => [
+        for (final item in items)
+          if (!_decidedPayouts.contains(
+            _decisionKey(item.payoutId, item.submittedOn),
+          ))
+            item,
+      ],
+    ),
+  );
+
+  Future<Either<Failure, RecordPage<ProfilePhotoRequest>>>
+  _fetchProfilePhotoRequests(RecordPageQuery query) async =>
+      (await _repository.fetchProfilePhotoRequests(query)).map(
+        (page) => page.mapItems(
+          (items) => [
+            for (final item in items)
+              if (!_decidedPhotos.contains(
+                _decisionKey(item.requestId, item.submittedOn),
+              ))
+                item,
+          ],
+        ),
+      );
 
   void _publish(ApprovalState next) {
     if (!isClosed) emit(next);
@@ -272,7 +307,11 @@ class ApprovalCubit extends Cubit<ApprovalState> {
       },
       (_) {
         _photos.recordDecision();
-        updateProfilePhoto(photo.copyWith(status: decision));
+        _decidedPhotos.add(_decisionKey(photo.requestId, photo.submittedOn));
+        final reload = _photos.remove(
+          (item) => item.requestId == photo.requestId,
+        );
+        if (reload) unawaited(_photos.show(_filter, force: true));
         _publish(
           state.copyWith(
             pendingPhotoCount: max(0, state.pendingPhotoCount - 1),
@@ -292,7 +331,11 @@ class ApprovalCubit extends Cubit<ApprovalState> {
 
     return result.match((failure) => failure.message, (_) {
       _payouts.recordDecision();
-      updatePayout(payout.copyWith(status: decision));
+      _decidedPayouts.add(_decisionKey(payout.payoutId, payout.submittedOn));
+      final reload = _payouts.remove(
+        (item) => item.payoutId == payout.payoutId,
+      );
+      if (reload) unawaited(_payouts.show(_filter, force: true));
       _publish(
         state.copyWith(
           pendingPayoutCount: max(0, state.pendingPayoutCount - 1),
