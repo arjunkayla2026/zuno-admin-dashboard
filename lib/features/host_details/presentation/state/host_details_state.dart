@@ -4,6 +4,7 @@ import 'package:zuno_admin_dashboard/core/enums/wallet_adjustment_type.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_stat_cards.dart';
+import 'package:zuno_admin_dashboard/features/approval/data/models/bank_account_record.dart';
 import 'package:zuno_admin_dashboard/features/host_details/data/models/admin_adjustment_totals.dart';
 import 'package:zuno_admin_dashboard/features/host_details/data/models/host_earnings_totals.dart';
 import 'package:zuno_admin_dashboard/features/host_details/data/models/wallet_transaction.dart';
@@ -33,6 +34,10 @@ class HostDetailsState {
       page: 1,
     ),
     this.adjusting = false,
+    this.bankAccount,
+    this.bankAccountStatus = LoadStatus.loading,
+    this.bankAccountError,
+    this.savingBankAccount = false,
   });
 
   final AdminHost host;
@@ -46,6 +51,10 @@ class HostDetailsState {
   final CursorPageView<Withdrawal> withdrawals;
   final CursorPageView<WalletTransaction> wallet;
   final bool adjusting;
+  final BankAccountRecord? bankAccount;
+  final LoadStatus bankAccountStatus;
+  final String? bankAccountError;
+  final bool savingBankAccount;
 
   /// Total of the host's admin credits from the ledger; until that loads
   /// (or if it fails) the stored `hostEarnings.totalAdminCredit`, if any.
@@ -128,6 +137,11 @@ class HostDetailsState {
     CursorPageView<Withdrawal>? withdrawals,
     CursorPageView<WalletTransaction>? wallet,
     bool? adjusting,
+    BankAccountRecord? bankAccount,
+    bool clearBankAccount = false,
+    LoadStatus? bankAccountStatus,
+    String? bankAccountError,
+    bool? savingBankAccount,
   }) {
     return HostDetailsState(
       host: host ?? this.host,
@@ -141,6 +155,12 @@ class HostDetailsState {
       withdrawals: withdrawals ?? this.withdrawals,
       wallet: wallet ?? this.wallet,
       adjusting: adjusting ?? this.adjusting,
+      bankAccount: clearBankAccount ? null : bankAccount ?? this.bankAccount,
+      bankAccountStatus: bankAccountStatus ?? this.bankAccountStatus,
+      bankAccountError: bankAccountStatus == null
+          ? this.bankAccountError
+          : bankAccountError,
+      savingBankAccount: savingBankAccount ?? this.savingBankAccount,
     );
   }
 }

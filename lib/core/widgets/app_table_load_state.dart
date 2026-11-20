@@ -6,16 +6,17 @@ import 'package:zuno_admin_dashboard/core/widgets/app_error_banner.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_secondary_button.dart';
 
 class AppTableLoadingState extends StatelessWidget {
-  const AppTableLoadingState({super.key});
+  const AppTableLoadingState({super.key, this.height = 160});
 
-  static const double _height = 160;
   static const double _loaderSize = 28;
   static const double _loaderStroke = 2.5;
+
+  final double height;
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: _height,
+      height: height,
       child: Center(
         child: SizedBox.square(
           dimension: _loaderSize,

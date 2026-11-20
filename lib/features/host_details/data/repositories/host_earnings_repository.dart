@@ -2,6 +2,9 @@ import 'package:fpdart/fpdart.dart';
 import 'package:zuno_admin_dashboard/core/data/record_page.dart';
 import 'package:zuno_admin_dashboard/core/enums/wallet_adjustment_type.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
+import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:zuno_admin_dashboard/core/utils/bank_account_validator.dart';
+import 'package:zuno_admin_dashboard/features/approval/data/models/bank_account_record.dart';
 import 'package:zuno_admin_dashboard/features/host_details/data/datasources/host_earnings_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/host_details/data/models/admin_adjustment_totals.dart';
 import 'package:zuno_admin_dashboard/features/host_details/data/models/host_earnings_totals.dart';
@@ -35,6 +38,44 @@ class HostEarningsRepository {
 
   Future<Either<Failure, int>> countWithdrawals(String hostId) =>
       _dataSource.countWithdrawals(hostId);
+
+  Future<Either<Failure, BankAccountRecord?>> fetchBankAccount(String hostId) =>
+      _dataSource.fetchBankAccount(hostId);
+
+  Future<Either<Failure, BankAccountRecord>> updateBankAccount(
+    BankAccountRecord reviewed,
+    BankAccountRecord edited,
+  ) async {
+    final normalized = edited.copyWith(
+      accountHolderName: BankAccountValidator.normalizeName(
+        edited.accountHolderName,
+      ),
+      branchName: BankAccountValidator.normalizeName(edited.branchName),
+      accountNumber: BankAccountValidator.normalizeAccountNumber(
+        edited.accountNumber,
+      ),
+      ifscCode: BankAccountValidator.normalizeIfsc(edited.ifscCode),
+      panNumber: BankAccountValidator.normalizePan(edited.panNumber),
+    );
+    final isValid = [
+      BankAccountValidator.accountHolderName(normalized.accountHolderName),
+      BankAccountValidator.branchName(normalized.branchName),
+      BankAccountValidator.accountNumber(normalized.accountNumber),
+      BankAccountValidator.ifscCode(normalized.ifscCode),
+      BankAccountValidator.panNumber(
+        normalized.panNumber,
+        required: reviewed.panNumber != null,
+      ),
+    ].every((error) => error == null);
+    if (!isValid) return left(const DataFailure(AppStrings.bankAccountInvalid));
+    if (normalized.hasSameDetails(reviewed)) return right(reviewed);
+
+    final result = await _dataSource.updateBankAccount(
+      reviewed: reviewed,
+      edited: normalized,
+    );
+    return result.map((_) => normalized.copyWith(updatedAt: DateTime.now()));
+  }
 
   Future<Either<Failure, RecordPage<Withdrawal>>> fetchWithdrawals(
     String hostId, {

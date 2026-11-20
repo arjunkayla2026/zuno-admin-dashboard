@@ -6,6 +6,7 @@ import 'package:zuno_admin_dashboard/core/utils/app_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_back_link.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_stat_cards.dart';
 import 'package:zuno_admin_dashboard/features/host_details/presentation/state/host_details_cubit.dart';
+import 'package:zuno_admin_dashboard/features/host_details/presentation/widgets/host_bank_account_card.dart';
 import 'package:zuno_admin_dashboard/features/host_details/presentation/widgets/host_details_refresh_button.dart';
 import 'package:zuno_admin_dashboard/features/host_details/presentation/widgets/host_history_card.dart';
 import 'package:zuno_admin_dashboard/features/host_details/presentation/widgets/host_overview_section.dart';
@@ -32,6 +33,8 @@ class HostDetailsContent extends StatelessWidget {
           ),
           const SizedBox(height: _backGap),
           const HostOverviewSection(),
+          const SizedBox(height: _sectionGap),
+          const HostBankAccountCard(),
           const SizedBox(height: _sectionGap),
           AppStatCards(
             stats: context.select(

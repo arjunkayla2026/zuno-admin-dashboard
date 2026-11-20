@@ -3,8 +3,11 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zuno_admin_dashboard/core/data/cursor_pager.dart';
+import 'package:zuno_admin_dashboard/core/enums/load_status.dart';
 import 'package:zuno_admin_dashboard/core/enums/wallet_adjustment_type.dart';
+import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_wallet_adjustment_dialog.dart';
+import 'package:zuno_admin_dashboard/features/approval/data/models/bank_account_record.dart';
 import 'package:zuno_admin_dashboard/features/host_details/data/models/wallet_transaction.dart';
 import 'package:zuno_admin_dashboard/features/host_details/data/repositories/host_earnings_repository.dart';
 import 'package:zuno_admin_dashboard/features/host_details/presentation/state/host_details_state.dart';
@@ -22,6 +25,7 @@ class HostDetailsCubit extends Cubit<HostDetailsState> {
   final ValueChanged<AdminHost>? _onHostChanged;
   bool _withdrawalsOpened = false;
   bool _walletOpened = false;
+  int _bankAccountLoad = 0;
 
   late final CursorPager<Withdrawal> _withdrawalPager = CursorPager(
     fetch: (cursor) =>
@@ -42,15 +46,76 @@ class HostDetailsCubit extends Cubit<HostDetailsState> {
     },
   );
 
-  Future<void> load() => _loadSummary();
+  Future<void> load() async {
+    await Future.wait([_loadSummary(), _loadBankAccount()]);
+  }
 
   Future<void> refresh() async {
-    if (state.adjusting) return;
+    if (state.adjusting || state.savingBankAccount) return;
     await Future.wait([
       _loadSummary(),
+      _loadBankAccount(),
       if (_withdrawalsOpened) _withdrawalPager.reset(),
       if (_walletOpened) _walletPager.reset(),
     ]);
+  }
+
+  Future<void> retryBankAccount() => _loadBankAccount();
+
+  Future<String?> saveBankAccount(BankAccountRecord edited) async {
+    final current = state.bankAccount;
+    if (current == null || state.savingBankAccount) {
+      return AppStrings.recordsSaveFailed;
+    }
+    emit(state.copyWith(savingBankAccount: true));
+    final result = await _repository.updateBankAccount(current, edited);
+    if (isClosed) return null;
+
+    return result.match(
+      (failure) {
+        emit(state.copyWith(savingBankAccount: false));
+        return failure.message;
+      },
+      (saved) {
+        _bankAccountLoad++;
+        emit(
+          state.copyWith(
+            savingBankAccount: false,
+            bankAccount: saved,
+            bankAccountStatus: LoadStatus.loaded,
+          ),
+        );
+        return null;
+      },
+    );
+  }
+
+  Future<void> _loadBankAccount() async {
+    final load = ++_bankAccountLoad;
+    if (state.bankAccountStatus == LoadStatus.failure) {
+      emit(state.copyWith(bankAccountStatus: LoadStatus.loading));
+    }
+    final result = await _repository.fetchBankAccount(state.host.hostId);
+    if (isClosed || load != _bankAccountLoad) return;
+
+    result.match(
+      (failure) {
+        if (state.bankAccountStatus == LoadStatus.loaded) return;
+        emit(
+          state.copyWith(
+            bankAccountStatus: LoadStatus.failure,
+            bankAccountError: failure.message,
+          ),
+        );
+      },
+      (account) => emit(
+        state.copyWith(
+          bankAccount: account,
+          clearBankAccount: account == null,
+          bankAccountStatus: LoadStatus.loaded,
+        ),
+      ),
+    );
   }
 
   void updateHost(AdminHost host) {

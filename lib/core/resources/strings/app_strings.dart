@@ -451,6 +451,53 @@ abstract final class AppStrings {
   static const String payoutReviewTitle = 'Payout review';
   static const String hostBasicInfo = 'Host basic info';
   static const String bankAccount = 'Bank account';
+  static const String bankAccountDetails = 'Bank Account Details';
+  static const String editBankAccount = 'Edit bank account';
+  static const String bankAccountUpdated = 'Bank account updated';
+  static const String bankAccountMissing =
+      "This host hasn't added a bank account yet.";
+  static const String bankAccountChanged =
+      'This bank account changed after you opened it. Refresh the page and '
+      'try again.';
+  static const String bankAccountInvalid =
+      'Check the bank account details and try again.';
+  static const String bankAccountEditNote =
+      'The approval status stays the same. For an approved account, pending '
+      'and failed payouts switch to the updated details.';
+  static const String holderNameHint = 'Name as on the bank account';
+  static const String branchNameHint = 'e.g. MG Road, Kochi';
+  static const String accountNumberHint = '9 to 18 digits';
+  static const String ifscHint = 'e.g. SBIN0001234';
+  static const String holderNameRequired = 'Enter the account holder name.';
+  static const String holderNameInvalid =
+      'Use only letters, spaces, dots and apostrophes.';
+  static const String holderNameLength =
+      'The name must be between 3 and 50 characters.';
+  static const String branchNameRequired = 'Enter the branch name.';
+  static const String branchNameInvalid =
+      'The branch name contains characters that are not allowed.';
+  static const String branchNameLength =
+      'The branch name must be between 3 and 50 characters.';
+  static const String accountNumberRequired = 'Enter the account number.';
+  static const String accountNumberInvalid =
+      'The account number must contain digits only.';
+  static const String accountNumberLength =
+      'The account number must be between 9 and 18 digits.';
+  static const String ifscRequired = 'Enter the IFSC code.';
+  static const String ifscLength = 'The IFSC code must be 11 characters.';
+  static const String ifscInvalid =
+      'Enter a valid IFSC code, e.g. SBIN0001234.';
+  static const String panHint = 'e.g. ABCPK1234F';
+  static const String panRequired = 'Enter the PAN number.';
+  static const String panLength = 'The PAN number must be 10 characters.';
+  static const String panInvalid = 'Enter a valid PAN number, e.g. ABCPK1234F.';
+
+  static String bankAccountSaved(String name) =>
+      "$name's bank account details have been saved.";
+
+  static String bankAccountSubtitle(String userId, String? updatedOn) =>
+      updatedOn == null ? userId : '$userId · Updated $updatedOn';
+
   static const String realNameField = 'Real name';
   static const String location = 'Location';
   static const String viewHost = 'View host';

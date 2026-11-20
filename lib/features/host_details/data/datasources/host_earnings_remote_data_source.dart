@@ -253,6 +253,64 @@ class HostEarningsRemoteDataSource {
     }
   }
 
+  Future<Either<Failure, BankAccountRecord?>> fetchBankAccount(
+    String hostId,
+  ) async {
+    try {
+      final snapshot = await _firestore
+          .collection(BankAccountRecord.collection)
+          .doc(hostId)
+          .get();
+      final data = snapshot.data();
+      return right(
+        data == null ? null : BankAccountRecord.fromDocument(snapshot.id, data),
+      );
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.read(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsLoadFailed));
+    }
+  }
+
+  Future<Either<Failure, Unit>> updateBankAccount({
+    required BankAccountRecord reviewed,
+    required BankAccountRecord edited,
+  }) async {
+    final reference = _firestore
+        .collection(BankAccountRecord.collection)
+        .doc(reviewed.id);
+    Failure? refused;
+    try {
+      await _firestore.runTransaction((transaction) async {
+        refused = null;
+        final snapshot = await transaction.get(reference);
+        final data = snapshot.data();
+        final changes = data == null
+            ? null
+            : BankAccountRecord.edit(data, reviewed: reviewed, edited: edited);
+        if (changes == null) {
+          refused = DataFailure(
+            data == null
+                ? AppStrings.recordNotFound
+                : AppStrings.bankAccountChanged,
+          );
+          return;
+        }
+        if (changes.isEmpty) return;
+        transaction.update(reference, {
+          ...changes,
+          BankAccountRecord.updatedAtField: FieldValue.serverTimestamp(),
+        });
+      });
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.write(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsSaveFailed));
+    }
+    final failure = refused;
+    return failure == null ? right(unit) : left(failure);
+  }
+
   Future<Either<Failure, RecordPage<WalletTransaction>>> fetchWalletPage(
     String hostId, {
     required List<String> types,
