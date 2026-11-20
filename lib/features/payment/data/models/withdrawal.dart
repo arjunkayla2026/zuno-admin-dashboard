@@ -1,3 +1,4 @@
+import 'package:zuno_admin_dashboard/core/data/payout_settings.dart';
 import 'package:zuno_admin_dashboard/core/data/user_record.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/utils/name_formatter.dart';
@@ -154,7 +155,7 @@ class Withdrawal {
       callCount: count(callCountField),
       callSeconds: count(callDurationField),
       amountEarned: amount(callEarningsField),
-      surgeEarnings: amount('surgeEarnings'),
+      surgeEarnings: amount(surgeEarningsField),
       adminCreditAmount: amount('adminCreditAmount'),
       adminDebitAmount: amount('adminDebitAmount'),
       bonusAmount: amount('bonusAmount'),
@@ -199,6 +200,7 @@ class Withdrawal {
   static const String callCountField = 'callCount';
   static const String callDurationField = 'callDurationSeconds';
   static const String callEarningsField = 'callEarnings';
+  static const String surgeEarningsField = 'surgeEarnings';
   static const String totalAmountField = 'totalAmount';
   static const String createdAtField = 'createdAt';
   static const String updatedAtField = 'updatedAt';
@@ -221,9 +223,17 @@ class Withdrawal {
 
   static String withdrawablePath(String field) => '$withdrawableField.$field';
 
-  /// Shown in a host's withdrawal history: open, pending, paid and failed
-  /// records, not ones forfeited when the account was deleted.
-  bool get isListed => status != WithdrawalStatus.forfeited;
+  /// Shown in a host's withdrawal history: pending, paid and failed records,
+  /// and open records with a withdrawable amount (a negative one included),
+  /// not ones forfeited when the account was deleted.
+  bool get isListed =>
+      status != WithdrawalStatus.forfeited && !hasNothingWithdrawable;
+
+  /// An open cycle with ₹0 withdrawable: a new cycle whose earnings are all
+  /// from today (they become withdrawable at the next daily roll), or one
+  /// with nothing to pay.
+  bool get hasNothingWithdrawable =>
+      isOpen && totalAmount.abs() < PayoutSettings.amountTolerance;
 
   static DateTime? _dayOf(Object? value) =>
       value is String ? DateTime.tryParse(value) : null;

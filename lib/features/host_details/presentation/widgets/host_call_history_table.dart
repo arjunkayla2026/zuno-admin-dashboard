@@ -26,9 +26,7 @@ class HostCallHistoryTable extends StatelessWidget {
     AppTableColumn(AppStrings.callStatus, 120),
     AppTableColumn(AppStrings.userSpendCoinsAmount, 165, alignEnd: true),
     AppTableColumn(AppStrings.totalUserSpendAmount, 168, alignEnd: true),
-    AppTableColumn(AppStrings.hostRevenue, 100, alignEnd: true),
     AppTableColumn(AppStrings.totalHostRevenue, 140, alignEnd: true),
-    AppTableColumn(AppStrings.adminRevenue, 116, alignEnd: true),
     AppTableColumn(AppStrings.totalAdminRevenue, 150, alignEnd: true),
     AppTableColumn('', 24),
     AppTableColumn(AppStrings.callId, 196),
@@ -80,19 +78,7 @@ class HostCallHistoryTable extends StatelessWidget {
                 style: strong,
               ),
               Text(
-                AppStrings.perMinute(
-                  NumberFormatter.rupeesAmount(call.hostRatePerMinute),
-                ),
-                style: strong,
-              ),
-              Text(
                 NumberFormatter.rupeesAmount(call.hostEarnings),
-                style: strong,
-              ),
-              Text(
-                AppStrings.perMinute(
-                  NumberFormatter.rupeesAmount(call.adminRatePerMinute),
-                ),
                 style: strong,
               ),
               Text(

@@ -53,7 +53,7 @@ class RechargeState {
     this.query = '',
     this.dateFilter = DateRangeFilter.today,
     this.customRange,
-    this.sourceFilter = RechargeSourceFilter.adminRecharges,
+    this.sourceFilter = RechargeSourceFilter.all,
     this.statusFilter = RechargeStatusFilter.all,
     this.page = 1,
     this.totalPages = 1,

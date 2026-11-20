@@ -66,21 +66,17 @@ class WithdrawalOverviewCard extends StatelessWidget {
                   filled: true,
                   stats: [
                     AppStat(
-                      label: AppStrings.hostRevenue,
-                      value: NumberFormatter.rupeesAmount(state.readyEarned),
-                    ),
-                    AppStat(
-                      label: AppStrings.duration,
-                      value: NumberFormatter.grouped(state.readyMinutes),
-                      unit: AppStrings.minutesUnit,
+                      label: AppStrings.totalHostRevenueStat,
+                      value: NumberFormatter.rupeesAmount(state.readyRevenue),
                     ),
                     AppStat(
                       label: AppStrings.totalHostCredit,
                       value: NumberFormatter.rupeesAmount(state.readyCredit),
                     ),
                     AppStat(
-                      label: AppStrings.totalHostRevenueStat,
-                      value: NumberFormatter.rupeesAmount(state.readyTotal),
+                      label: AppStrings.duration,
+                      value: NumberFormatter.grouped(state.readyMinutes),
+                      unit: AppStrings.minutesUnit,
                     ),
                     AppStat(
                       label: AppStrings.totalWithdraw,

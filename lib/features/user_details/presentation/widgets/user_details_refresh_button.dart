@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_refresh_button.dart';
 import 'package:zuno_admin_dashboard/features/calls/presentation/state/call_history_cubit.dart';
+import 'package:zuno_admin_dashboard/features/host_management/presentation/state/call_pricing_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_details_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_recharge_history_cubit.dart';
 
@@ -13,6 +14,7 @@ class UserDetailsRefreshButton extends StatelessWidget {
       context.read<UserDetailsCubit>().refresh(),
       context.read<CallHistoryCubit>().refresh(),
       context.read<UserRechargeHistoryCubit>().reload(),
+      context.read<CallPricingCubit>().load(),
     ]);
   }
 

@@ -8,6 +8,7 @@ import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_nav_item.dar
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_shell.dart';
 import 'package:zuno_admin_dashboard/features/calls/data/models/call_participant.dart';
 import 'package:zuno_admin_dashboard/features/calls/presentation/state/call_history_cubit.dart';
+import 'package:zuno_admin_dashboard/features/host_management/presentation/state/call_pricing_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/add_recharge_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_details_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_recharge_history_cubit.dart';
@@ -40,6 +41,7 @@ class UserDetailsPage extends StatelessWidget {
               param1: CallParticipant.user(arguments.user.id),
             )..load(),
           ),
+          BlocProvider(create: (_) => getIt<CallPricingCubit>()..load()),
           BlocProvider(create: (_) => getIt<UserActionsCubit>()),
           BlocProvider(create: (_) => getIt<AddRechargeCubit>()),
           BlocProvider(

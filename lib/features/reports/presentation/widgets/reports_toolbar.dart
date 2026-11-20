@@ -14,7 +14,8 @@ class ReportsToolbar extends StatelessWidget {
   const ReportsToolbar({super.key});
 
   static const double _searchWidth = 478;
-  static const double _typeWidth = 290;
+  static const double typeWidth = 290;
+  static const double typeMenuWidth = typeWidth;
   static const double _dropdownWidth = 228;
 
   @override
@@ -49,7 +50,8 @@ class ReportsToolbar extends StatelessWidget {
             options: ReportTypeFilter.values,
             labelOf: ReportLabels.typeFilter,
             onSelected: cubit.selectType,
-            width: _typeWidth,
+            width: typeWidth,
+            menuWidth: typeMenuWidth,
           ),
           AppFilterDropdown<ReporterFilter>(
             value: state.reporterFilter,

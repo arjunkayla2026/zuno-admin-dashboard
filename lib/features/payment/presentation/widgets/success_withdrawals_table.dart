@@ -23,7 +23,6 @@ class SuccessWithdrawalsTable extends StatelessWidget {
     AppTableColumn(AppStrings.date, 112),
     AppTableColumn(AppStrings.hostName, 140),
     AppTableColumn(AppStrings.hostId, 96),
-    AppTableColumn(AppStrings.payoutPeriod, 190),
     AppTableColumn(AppStrings.phoneNumber, 148),
     AppTableColumn(AppStrings.totalCallsCount, 124, alignEnd: true),
     AppTableColumn(AppStrings.duration, 104, alignEnd: true),
@@ -65,7 +64,6 @@ class SuccessWithdrawalsTable extends StatelessWidget {
                 badge: MockWithdrawalBadge.of(withdrawal),
               ),
               Text(withdrawal.hostUserId, style: identifier),
-              Text(WithdrawalLabels.period(withdrawal), style: cell),
               Text(withdrawal.phone, style: identifier),
               Text(NumberFormatter.grouped(withdrawal.callCount), style: cell),
               Text(

@@ -197,19 +197,22 @@ class PaymentCubit extends Cubit<PaymentState> {
     });
   }
 
-  /// Loads the bank sheet rows for the selected pending payouts, or for every
-  /// pending payout when nothing is selected. With [registerBeneficiaries],
-  /// each host is also registered as a beneficiary first. Returns null when an
-  /// export is already running or the Pending tab is not open.
+  /// Loads the bank sheet rows for the selected payouts of the open tab, or
+  /// for every payout of that tab when nothing is selected: pending payouts
+  /// on the Pending tab, open payouts at or above the minimum on the
+  /// Withdrawal List. With [registerBeneficiaries], each host is also
+  /// registered as a beneficiary first. Returns null when an export is
+  /// already running or neither of those tabs is open.
   Future<Either<Failure, List<PayoutSheetRow>>?> loadSheetRows({
     bool registerBeneficiaries = false,
   }) async {
-    if (state.exporting || state.tab != PaymentTab.pending) return null;
+    final tab = state.tab;
+    if (state.exporting || !PaymentState.exportTabs.contains(tab)) return null;
     emit(state.copyWith(exporting: true));
     final source = state.selected.isNotEmpty
         ? right<Failure, List<Withdrawal>>(state.selected.values.toList())
         : await _repository.fetchAll(
-            WithdrawalStatus.pending,
+            tab.status,
             minimum: state.minimumPayout,
           );
     final rows = switch (source) {

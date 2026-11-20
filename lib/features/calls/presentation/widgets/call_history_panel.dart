@@ -12,11 +12,14 @@ import 'package:zuno_admin_dashboard/features/calls/presentation/state/call_hist
 import 'package:zuno_admin_dashboard/features/calls/presentation/state/call_history_state.dart';
 
 class CallHistoryPanel extends StatelessWidget {
-  const CallHistoryPanel({super.key, required this.tableBuilder});
+  const CallHistoryPanel({super.key, required this.tableBuilder, this.header});
 
   static const double _emptyHeight = 160;
 
   final Widget Function(List<CallLog> calls) tableBuilder;
+
+  /// Shown above the filter bar, for example the default call rate cards.
+  final Widget? header;
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +32,7 @@ class CallHistoryPanel extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            ?header,
             AppCallFilterBar(
               typeFilter: state.typeFilter,
               onTypeChanged: cubit.selectType,

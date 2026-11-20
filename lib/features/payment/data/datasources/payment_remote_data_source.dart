@@ -153,6 +153,9 @@ class PaymentRemoteDataSource {
     final earnedField = Withdrawal.withdrawablePath(
       Withdrawal.callEarningsField,
     );
+    final surgeField = Withdrawal.withdrawablePath(
+      Withdrawal.surgeEarningsField,
+    );
     final secondsField = Withdrawal.withdrawablePath(
       Withdrawal.callDurationField,
     );
@@ -162,6 +165,7 @@ class PaymentRemoteDataSource {
           .aggregate(
             count(),
             sum(earnedField),
+            sum(surgeField),
             sum(secondsField),
             sum(totalField),
           )
@@ -170,6 +174,7 @@ class PaymentRemoteDataSource {
         PayoutSummary(
           hostCount: result.count ?? 0,
           amountEarned: result.getSum(earnedField) ?? 0,
+          surgeEarnings: result.getSum(surgeField) ?? 0,
           callSeconds: (result.getSum(secondsField) ?? 0).round(),
           totalAmount: result.getSum(totalField) ?? 0,
         ),

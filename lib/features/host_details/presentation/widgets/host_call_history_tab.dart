@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zuno_admin_dashboard/features/calls/presentation/widgets/call_history_panel.dart';
+import 'package:zuno_admin_dashboard/features/calls/presentation/widgets/default_call_rate_cards.dart';
 import 'package:zuno_admin_dashboard/features/host_details/presentation/widgets/host_call_history_table.dart';
 
 class HostCallHistoryTab extends StatelessWidget {
@@ -8,6 +9,7 @@ class HostCallHistoryTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CallHistoryPanel(
+      header: const DefaultCallRateCards(),
       tableBuilder: (calls) => HostCallHistoryTable(calls: calls),
     );
   }

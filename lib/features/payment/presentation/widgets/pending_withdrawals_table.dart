@@ -10,7 +10,6 @@ import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dar
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/mock_withdrawal_badge.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_state.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_flow.dart';
-import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_labels.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_selection.dart';
 
 class PendingWithdrawalsTable extends StatelessWidget {
@@ -25,7 +24,6 @@ class PendingWithdrawalsTable extends StatelessWidget {
     AppTableColumn(AppStrings.number, 60),
     AppTableColumn(AppStrings.hostName, 126),
     AppTableColumn(AppStrings.hostId, 120),
-    AppTableColumn(AppStrings.payoutPeriod, 190),
     AppTableColumn(AppStrings.totalCallsCount, 110, alignEnd: true),
     AppTableColumn(AppStrings.callDurationMinutes, 133, alignEnd: true),
     AppTableColumn(AppStrings.amountEarned, 117, alignEnd: true),
@@ -66,7 +64,6 @@ class PendingWithdrawalsTable extends StatelessWidget {
               badge: MockWithdrawalBadge.of(withdrawal),
             ),
             Text(withdrawal.hostUserId, style: identifier),
-            Text(WithdrawalLabels.period(withdrawal), style: cell),
             Text(NumberFormatter.grouped(withdrawal.callCount), style: cell),
             Text(NumberFormatter.grouped(withdrawal.callMinutes), style: cell),
             Text(

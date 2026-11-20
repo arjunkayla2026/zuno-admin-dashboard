@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_refresh_button.dart';
 import 'package:zuno_admin_dashboard/features/calls/presentation/state/call_history_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_details/presentation/state/host_details_cubit.dart';
+import 'package:zuno_admin_dashboard/features/host_management/presentation/state/call_pricing_cubit.dart';
 
 class HostDetailsRefreshButton extends StatelessWidget {
   const HostDetailsRefreshButton({super.key});
@@ -11,6 +12,7 @@ class HostDetailsRefreshButton extends StatelessWidget {
     await Future.wait([
       context.read<HostDetailsCubit>().refresh(),
       context.read<CallHistoryCubit>().refresh(),
+      context.read<CallPricingCubit>().load(),
     ]);
   }
 

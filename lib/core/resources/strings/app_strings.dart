@@ -401,6 +401,11 @@ abstract final class AppStrings {
 
   static String perMinute(String amount) => '$amount/min';
 
+  static const String defaultHostAudioCallRevenue = 'Host Audio Call Revenue';
+  static const String defaultHostVideoCallRevenue = 'Host Video Call Revenue';
+  static const String defaultAdminAudioCallRevenue = 'Admin Audio Call Revenue';
+  static const String defaultAdminVideoCallRevenue = 'Admin Video Call Revenue';
+
   static const String callDetails = 'Call Details';
   static const String backToCalls = 'Back to calls';
   static const String audioCallTitle = 'Audio call';

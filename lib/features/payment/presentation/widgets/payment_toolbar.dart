@@ -139,14 +139,30 @@ class PaymentToolbar extends StatelessWidget {
                     ),
                 ],
               ),
-            if (tab == PaymentTab.withdrawalList && hasSelection)
-              AppPrimaryButton(
-                label: AppStrings.withSelectedCount(
-                  AppStrings.moveToPending,
-                  selectedCount,
-                ),
-                compact: true,
-                onPressed: busy ? null : () => moveSelectedToPending(context),
+            if (tab == PaymentTab.withdrawalList)
+              Wrap(
+                spacing: AppUtils.spacingSm,
+                runSpacing: AppUtils.spacingSm,
+                children: [
+                  AppSecondaryButton(
+                    label: AppStrings.exportWithdrawalSheet,
+                    leading: _downloadIcon(context),
+                    onPressed: exporting
+                        ? null
+                        : () => exportWithdrawals(context),
+                  ),
+                  if (hasSelection)
+                    AppPrimaryButton(
+                      label: AppStrings.withSelectedCount(
+                        AppStrings.moveToPending,
+                        selectedCount,
+                      ),
+                      compact: true,
+                      onPressed: busy || exporting
+                          ? null
+                          : () => moveSelectedToPending(context),
+                    ),
+                ],
               ),
           ],
         ),

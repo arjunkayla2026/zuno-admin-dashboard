@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
+import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_avatar_name_cell.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_data_table.dart';
@@ -10,7 +11,6 @@ import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dar
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/mock_withdrawal_badge.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_state.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_flow.dart';
-import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_labels.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/withdrawal_selection.dart';
 
 class WithdrawalsTable extends StatelessWidget {
@@ -21,7 +21,7 @@ class WithdrawalsTable extends StatelessWidget {
   });
 
   static const List<AppTableColumn> _columns = [
-    AppTableColumn(AppStrings.payoutPeriod, 200),
+    AppTableColumn(AppStrings.date, 112),
     AppTableColumn(AppStrings.hostName, 186),
     AppTableColumn(AppStrings.hostId, 118),
     AppTableColumn(AppStrings.withdrawId, 138),
@@ -49,7 +49,7 @@ class WithdrawalsTable extends StatelessWidget {
         for (final withdrawal in withdrawals)
           [
             WithdrawalSelection.cell(context, state, withdrawal),
-            Text(WithdrawalLabels.period(withdrawal), style: cell),
+            Text(DateFormatter.short(withdrawal.date), style: cell),
             AppAvatarNameCell(
               initials: withdrawal.initials,
               avatarIndex: withdrawal.avatarIndex,

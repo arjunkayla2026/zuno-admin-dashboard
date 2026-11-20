@@ -36,7 +36,8 @@ class HostEarningsRemoteDataSource {
       _firestore.collection(WalletTransaction.collection).doc().id;
 
   /// The host's payout records, newest first, without the ones forfeited
-  /// when the account was deleted. The query is only `hostId` ordered by
+  /// when the account was deleted and without an open cycle that has ₹0
+  /// withdrawable ([Withdrawal.isListed]). The query is only `hostId` ordered by
   /// `createdAt`, which the deployed `hostId` + `createdAt` index serves;
   /// adding a `status` filter would need a `hostId` + `status` +
   /// `createdAt` index that does not exist, and Firestore would refuse the
@@ -56,19 +57,37 @@ class HostEarningsRemoteDataSource {
     (batch) => batch.where((payout) => payout.isListed),
   );
 
-  /// One count per listed status. Counts with only equality filters are
+  /// The number of records the withdrawal history lists: one count per
+  /// pending, paid and failed status, plus the host's open records (normally
+  /// one) read and checked with [Withdrawal.isListed], so an open cycle with
+  /// ₹0 withdrawable is not counted. Queries with only equality filters are
   /// served by the single-field indexes, so no composite index is needed.
   Future<Either<Failure, int>> countWithdrawals(String hostId) async {
     try {
-      final counts = await Future.wait([
+      final results = await Future.wait<Object>([
+        _payoutsOf(hostId)
+            .where(Withdrawal.statusField, isEqualTo: Withdrawal.openStatus)
+            .get(),
         for (final status in Withdrawal.listedStatuses)
-          _payoutsOf(hostId)
-              .where(Withdrawal.statusField, isEqualTo: status)
-              .count()
-              .get(),
+          if (status != Withdrawal.openStatus)
+            _payoutsOf(hostId)
+                .where(Withdrawal.statusField, isEqualTo: status)
+                .count()
+                .get(),
       ]);
+      final open = results.first as QuerySnapshot<Map<String, dynamic>>;
+      final listedOpen = open.docs
+          .map((doc) => Withdrawal.fromDocument(doc.id, doc.data()))
+          .where((payout) => payout.isListed)
+          .length;
       return right(
-        counts.fold(0, (total, snapshot) => total + (snapshot.count ?? 0)),
+        results
+            .skip(1)
+            .cast<AggregateQuerySnapshot>()
+            .fold(
+              listedOpen,
+              (total, snapshot) => total + (snapshot.count ?? 0),
+            ),
       );
     } on FirebaseException catch (error) {
       return left(FirestoreFailures.read(error.code));

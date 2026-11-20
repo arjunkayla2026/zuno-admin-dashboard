@@ -20,6 +20,12 @@ enum PaymentTab {
 }
 
 class PaymentState {
+  /// Tabs whose payouts can be exported as a bank withdrawal sheet.
+  static const List<PaymentTab> exportTabs = [
+    PaymentTab.withdrawalList,
+    PaymentTab.pending,
+  ];
+
   const PaymentState({
     this.tab = PaymentTab.withdrawalList,
     this.query = '',
@@ -85,6 +91,8 @@ class PaymentState {
   int get readyMinutes => summary?.callMinutes ?? 0;
 
   double get readyCredit => summary?.hostCredit ?? 0;
+
+  double get readyRevenue => summary?.hostRevenue ?? 0;
 
   double get readyTotal => summary?.totalAmount ?? 0;
 
