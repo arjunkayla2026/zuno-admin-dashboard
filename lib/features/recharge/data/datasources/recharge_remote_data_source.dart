@@ -236,6 +236,43 @@ class RechargeRemoteDataSource {
     }
   }
 
+  /// The number of completed recharges (`type` `recharge`, `status`
+  /// `success`, gateway and admin alike) of each user in [userIds], one
+  /// equality-only count query per user.
+  Future<Either<Failure, Map<String, int>>> fetchCompletedRechargeCounts(
+    Iterable<String> userIds,
+  ) async {
+    final ids = userIds.where((id) => id.isNotEmpty).toSet().toList();
+    if (ids.isEmpty) return right(const {});
+    final completed = _firestore
+        .collection(_collection)
+        .where(
+          RechargeTransaction.typeField,
+          isEqualTo: RechargeTransaction.rechargeType,
+        )
+        .where(
+          RechargeTransaction.statusField,
+          isEqualTo: RechargeTransaction.successStatus,
+        );
+    try {
+      final counts = await Future.wait([
+        for (final id in ids)
+          completed
+              .where(RechargeTransaction.userIdField, isEqualTo: id)
+              .count()
+              .get(),
+      ]);
+      return right({
+        for (var index = 0; index < ids.length; index++)
+          ids[index]: counts[index].count ?? 0,
+      });
+    } on FirebaseException catch (error) {
+      return left(FirestoreFailures.read(error.code));
+    } catch (_) {
+      return left(const DataFailure(AppStrings.recordsLoadFailed));
+    }
+  }
+
   Future<Either<Failure, List<RechargeTransaction>>> fetchTransactions({
     DateTime? from,
     DateTime? until,

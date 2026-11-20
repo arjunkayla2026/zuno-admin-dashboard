@@ -51,7 +51,11 @@ class AdminUser {
   final String initials;
   final String id;
   final String phone;
+
+  /// The user's completed recharges (gateway and admin), counted from
+  /// `transactions`. Null until counted, or when counting failed.
   final int? recharges;
+
   /// `walletBalance` rounded down and grouped, for the user list.
   final String walletBalance;
 
@@ -103,6 +107,7 @@ class AdminUser {
     double? walletAmount,
     int? adminCredit,
     int? adminDebit,
+    int? recharges,
   }) {
     return AdminUser(
       createdDate: createdDate,
@@ -111,7 +116,7 @@ class AdminUser {
       id: id,
       userID: userID,
       phone: phone ?? this.phone,
-      recharges: recharges,
+      recharges: recharges ?? this.recharges,
       walletBalance: walletAmount == null
           ? walletBalance
           : NumberFormatter.grouped(walletAmount.truncate()),

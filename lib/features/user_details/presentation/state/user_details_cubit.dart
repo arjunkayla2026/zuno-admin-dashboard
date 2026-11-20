@@ -45,15 +45,20 @@ class UserDetailsCubit extends Cubit<UserDetailsState> {
     });
     summaryResult.match(
       (_) => emit(state.copyWith(summaryStatus: LoadStatus.failure)),
-      (summary) => emit(
-        state.copyWith(
-          totalRecharge: summary.totalRecharge,
-          receivableTopUp: summary.receivableTopUp,
-          adminCreditTotal: summary.adminCredit,
-          adminDebitTotal: summary.adminDebit,
-          summaryStatus: LoadStatus.loaded,
-        ),
-      ),
+      (summary) {
+        if (state.user.recharges != summary.rechargeCount) {
+          updateUser(state.user.copyWith(recharges: summary.rechargeCount));
+        }
+        emit(
+          state.copyWith(
+            totalRecharge: summary.totalRecharge,
+            receivableTopUp: summary.receivableTopUp,
+            adminCreditTotal: summary.adminCredit,
+            adminDebitTotal: summary.adminDebit,
+            summaryStatus: LoadStatus.loaded,
+          ),
+        );
+      },
     );
   }
 

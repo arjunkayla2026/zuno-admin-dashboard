@@ -5,18 +5,60 @@ import 'package:zuno_admin_dashboard/core/data/users_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/core/enums/wallet_adjustment_type.dart';
 import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:zuno_admin_dashboard/features/recharge/data/datasources/recharge_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/recharge/data/models/recharge_transaction.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/models/admin_user.dart';
 
 class UserManagementRepository {
-  const UserManagementRepository(this._dataSource);
+  const UserManagementRepository(this._dataSource, {this._recharges});
 
   static const String _role = 'user';
   static const int _pageSize = 10;
 
   final UsersRemoteDataSource _dataSource;
+  final RechargeRemoteDataSource? _recharges;
 
   Future<Either<Failure, RecordPage<AdminUser>>> fetchUsers({
+    UserStatus? status,
+    String? term,
+    Object? cursor,
+  }) async {
+    final result = await _fetchUsersPage(
+      status: status,
+      term: term,
+      cursor: cursor,
+    );
+    return switch (result) {
+      Right(value: final page) => right(await _withRechargeCounts(page)),
+      Left() => result,
+    };
+  }
+
+  /// Fills in each user's completed recharge count. A failed count leaves
+  /// the users unchanged (shown as "—") rather than failing the page.
+  Future<RecordPage<AdminUser>> _withRechargeCounts(
+    RecordPage<AdminUser> page,
+  ) async {
+    final recharges = _recharges;
+    if (recharges == null || page.items.isEmpty) return page;
+    final result = await recharges.fetchCompletedRechargeCounts(
+      page.items.map((user) => user.id),
+    );
+    return result.match(
+      (_) => page,
+      (counts) => page.mapItems(
+        (users) => [
+          for (final user in users)
+            if (counts[user.id] case final count?)
+              user.copyWith(recharges: count)
+            else
+              user,
+        ],
+      ),
+    );
+  }
+
+  Future<Either<Failure, RecordPage<AdminUser>>> _fetchUsersPage({
     UserStatus? status,
     String? term,
     Object? cursor,

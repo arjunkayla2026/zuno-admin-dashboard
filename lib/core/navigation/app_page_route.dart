@@ -25,6 +25,14 @@ class AppPageRoute<T> extends PageRoute<T> {
   bool get maintainState => true;
 
   @override
+  RoutePopDisposition get popDisposition {
+    final disposition = super.popDisposition;
+    return disposition == RoutePopDisposition.bubble
+        ? RoutePopDisposition.doNotPop
+        : disposition;
+  }
+
+  @override
   Duration get transitionDuration =>
       fadeIn ? AppTheme.pageTransitionDuration : Duration.zero;
 

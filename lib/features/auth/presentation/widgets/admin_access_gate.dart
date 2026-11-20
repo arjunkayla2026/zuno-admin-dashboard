@@ -18,8 +18,24 @@ class AdminAccessGate extends StatelessWidget {
   bool _allowed(AdminSessionState state) =>
       state.account?.canAccess(module) ?? false;
 
+  void _onBack(BuildContext context, bool didPop) {
+    if (didPop) return;
+    final route = ModalRoute.of(context);
+    if (route == null || !route.isFirst) return;
+    final home = context.read<AdminSessionCubit>().state.account?.homeRoute;
+    if (home == null || home == route.settings.name) return;
+    Navigator.of(context).pushReplacementNamed(home);
+  }
+
   @override
   Widget build(BuildContext context) {
+    return PopScope<Object?>(
+      onPopInvokedWithResult: (didPop, _) => _onBack(context, didPop),
+      child: _buildGate(context),
+    );
+  }
+
+  Widget _buildGate(BuildContext context) {
     return BlocBuilder<AdminSessionCubit, AdminSessionState>(
       buildWhen: (previous, current) =>
           previous.status != current.status ||

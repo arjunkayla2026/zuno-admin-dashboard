@@ -48,6 +48,20 @@ abstract final class AppRoutes {
     );
   }
 
+  static List<Route<dynamic>> onGenerateInitialRoutes(String initialRoute) {
+    final stack = <Route<dynamic>>[];
+    var name = '';
+    for (final part in initialRoute.split('/').where((p) => p.isNotEmpty)) {
+      name += '/$part';
+      final route = onGenerateRoute(RouteSettings(name: name));
+      if (route != null) stack.add(route);
+    }
+    final reachedTarget = stack.isNotEmpty && stack.last.settings.name == name;
+    return reachedTarget
+        ? stack
+        : [onGenerateRoute(const RouteSettings(name: login))!];
+  }
+
   static final Map<String, WidgetBuilder> routes = {
     login: (_) => const AdminLoginPage(),
     dashboard: _gated(AdminNavItem.dashboard, const DashboardPage()),

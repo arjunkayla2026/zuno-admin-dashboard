@@ -43,6 +43,7 @@ class ApprovalCubit extends Cubit<ApprovalState> {
   final PayoutRepository _payoutRepository;
   final DateTime Function() _now;
   Timer? _debounce;
+  int _latestCountRequest = 0;
   final Set<String> _approvedRequestIds = {};
 
   late final ApprovalPager<HostRequest> _hosts = ApprovalPager(
@@ -128,12 +129,15 @@ class ApprovalCubit extends Cubit<ApprovalState> {
   }
 
   Future<void> _loadTabCounts() async {
-    const query = RecordPageQuery();
+    final request = ++_latestCountRequest;
+    final filter = _filter;
+    final query = RecordPageQuery(from: filter.from, until: filter.until);
     final (hosts, payouts, photos) = await (
       _repository.countHostRequests(query),
       _payoutRepository.countPayoutRequests(query),
       _repository.countProfilePhotoRequests(query),
     ).wait;
+    if (request != _latestCountRequest) return;
     _publish(
       state.copyWith(
         pendingCount: hosts.toNullable(),
@@ -184,6 +188,7 @@ class ApprovalCubit extends Cubit<ApprovalState> {
   void selectDateFilter(DateRangeFilter filter) {
     emit(state.copyWith(dateFilter: filter));
     _applyFilters();
+    _loadTabCounts();
   }
 
   void selectCustomRange(DateTimeRange range) {
@@ -191,6 +196,7 @@ class ApprovalCubit extends Cubit<ApprovalState> {
       state.copyWith(dateFilter: DateRangeFilter.custom, customRange: range),
     );
     _applyFilters();
+    _loadTabCounts();
   }
 
   void _applyFilters() {

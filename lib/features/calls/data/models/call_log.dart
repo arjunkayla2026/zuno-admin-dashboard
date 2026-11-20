@@ -289,6 +289,11 @@ class CallLog {
   /// the same way the calling app's Cloud Functions decide it: from the
   /// user ID that ended it, the end reason, the final status, the end
   /// request and finally whoever left the Agora channel first.
+  ///
+  /// A call the host let ring out is the host's ending: Cloud Functions
+  /// store the ring timeout as `endedBy: system` with `endReason: noAnswer`
+  /// (status `missed`), and older documents may carry only the `missed`
+  /// status. `hostUnreachable` stays a system ending.
   static CallEndedBy? _resolveEndedBy({
     required Object? rawEndedBy,
     required String? endedUserId,
@@ -300,6 +305,10 @@ class CallLog {
     required Object? left,
   }) {
     final stored = CallEndedBy.fromValue(rawEndedBy);
+    if (endReason == noAnswerReason &&
+        (stored == null || stored == CallEndedBy.system)) {
+      return CallEndedBy.host;
+    }
     if (stored != null) return stored;
 
     // Some old documents kept the ender's user ID instead of a role.
@@ -312,7 +321,6 @@ class CallLog {
     final byReason = switch (endReason) {
       cancelledByCustomerReason => CallEndedBy.user,
       rejectedByHostReason => CallEndedBy.host,
-      noAnswerReason ||
       hostUnreachableReason ||
       connectionFailedReason ||
       maxDurationReason => CallEndedBy.system,
@@ -322,8 +330,8 @@ class CallLog {
 
     final byStatus = switch (status) {
       CallLogStatus.cancelled => CallEndedBy.user,
-      CallLogStatus.rejected => CallEndedBy.host,
-      CallLogStatus.missed || CallLogStatus.failed => CallEndedBy.system,
+      CallLogStatus.rejected || CallLogStatus.missed => CallEndedBy.host,
+      CallLogStatus.failed => CallEndedBy.system,
       _ => null,
     };
     if (byStatus != null) return byStatus;

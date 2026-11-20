@@ -61,6 +61,7 @@ class UserRechargeSummary {
     this.receivableTopUp = 0,
     this.adminCredit = 0,
     this.adminDebit = 0,
+    this.rechargeCount = 0,
   });
 
   factory UserRechargeSummary.fromTransactions(
@@ -71,10 +72,12 @@ class UserRechargeSummary {
     var adminCredit = 0.0;
     var adminDebit = 0.0;
     var receivedCoins = 0;
+    var rechargeCount = 0;
     for (final transaction in transactions) {
       if (!transaction.isCompleted || !transaction.isListed) continue;
       switch (transaction.kind) {
         case RechargeKind.recharge:
+          rechargeCount++;
           totalRecharge += transaction.amount;
           receivableTopUp += transaction.receivableAmount;
         case RechargeKind.credit:
@@ -92,8 +95,13 @@ class UserRechargeSummary {
       receivableTopUp: NumberFormatter.roundAmount(receivableTopUp),
       adminCredit: NumberFormatter.roundAmount(adminCredit),
       adminDebit: NumberFormatter.roundAmount(adminDebit),
+      rechargeCount: rechargeCount,
     );
   }
+
+  /// Completed recharges (gateway and admin), the User Management list's
+  /// Recharges column.
+  final int rechargeCount;
 
   /// `rechargeAmount` paid on completed recharges, GST included.
   final double totalRecharge;

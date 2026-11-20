@@ -29,6 +29,7 @@ class MyApp extends StatelessWidget {
         themeMode: ThemeMode.light,
         initialRoute: AppRoutes.login,
         onGenerateRoute: AppRoutes.onGenerateRoute,
+        onGenerateInitialRoutes: AppRoutes.onGenerateInitialRoutes,
         navigatorObservers: [AppRoutes.observer],
       ),
     );

@@ -125,7 +125,10 @@ void configureDependencies() {
       () => ProfilePhotoLookup(getIt<UsersRemoteDataSource>()),
     )
     ..registerLazySingleton<UserManagementRepository>(
-      () => UserManagementRepository(getIt<UsersRemoteDataSource>()),
+      () => UserManagementRepository(
+        getIt<UsersRemoteDataSource>(),
+        recharges: getIt<RechargeRemoteDataSource>(),
+      ),
     )
     ..registerLazySingleton<HostManagementRepository>(
       () => HostManagementRepository(getIt<UsersRemoteDataSource>()),
