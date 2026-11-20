@@ -6,6 +6,7 @@ import 'package:zuno_admin_dashboard/core/enums/app_environment.dart';
 import 'package:zuno_admin_dashboard/core/navigation/app_routes.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/app_theme.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_text_selection_scope.dart';
 import 'package:zuno_admin_dashboard/features/auth/presentation/state/admin_session_cubit.dart';
 
 Future<void> flavorMain(Environment environment) async {
@@ -31,6 +32,8 @@ class MyApp extends StatelessWidget {
         onGenerateRoute: AppRoutes.onGenerateRoute,
         onGenerateInitialRoutes: AppRoutes.onGenerateInitialRoutes,
         navigatorObservers: [AppRoutes.observer],
+        builder: (context, child) =>
+            AppTextSelectionScope(child: child ?? const SizedBox.shrink()),
       ),
     );
   }
