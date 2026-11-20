@@ -18,13 +18,13 @@ import 'package:zuno_admin_dashboard/features/surge_charge_sessions/presentation
 class SurgeSessionSheet extends StatefulWidget {
   const SurgeSessionSheet({
     super.key,
-    required this.takenNames,
+    required this.otherSessions,
     required this.onSave,
     this.session,
   });
 
   final SurgeSession? session;
-  final Set<String> takenNames;
+  final List<SurgeSession> otherSessions;
   final Future<String?> Function(SurgeSession session) onSave;
 
   static String nameKey(String name) => name.trim().toLowerCase();
@@ -67,20 +67,31 @@ class _SurgeSessionSheetState extends State<SurgeSessionSheet> {
   late final _endController = TextEditingController(
     text: _timeText(_endMinutes),
   );
+  late final Set<String> _takenNames = {
+    for (final session in widget.otherSessions)
+      SurgeSessionSheet.nameKey(session.name),
+  };
   bool _submitted = false;
+  bool _timesEdited = false;
   bool _saving = false;
   String? _errorMessage;
 
   static String _timeText(int? minutes) =>
       minutes == null ? '' : DateFormatter.minutesOfDay(minutes);
 
-  int get _percent => int.tryParse(_percentController.text) ?? 0;
+  int? get _percent => SurgeSession.parsePercent(_percentController.text);
+
+  String? get _percentError =>
+      _percent == null ? AppStrings.surgeChargeInvalid : null;
+
+  bool get _showPercentError =>
+      _submitted || _percentController.text.isNotEmpty;
 
   String get _name => _nameController.text.trim();
 
   String? get _nameError {
     if (_name.isEmpty) return AppStrings.enterSessionName;
-    if (widget.takenNames.contains(SurgeSessionSheet.nameKey(_name))) {
+    if (_takenNames.contains(SurgeSessionSheet.nameKey(_name))) {
       return AppStrings.sessionNameTaken;
     }
     return null;
@@ -93,11 +104,23 @@ class _SurgeSessionSheetState extends State<SurgeSessionSheet> {
       _missingTime(_endMinutes) ??
       (_startMinutes == _endMinutes ? AppStrings.endTimeMustDiffer : null);
 
+  String? get _overlapError {
+    final start = _startMinutes;
+    final end = _endMinutes;
+    if (start == null || end == null || start == end) return null;
+    return SurgeSession.firstOverlap(
+      widget.otherSessions,
+      startMinutes: start,
+      endMinutes: end,
+    )?.overlapMessage;
+  }
+
   bool get _isValid =>
       _nameError == null &&
       _missingTime(_startMinutes) == null &&
       _endError == null &&
-      _percent > 0;
+      _overlapError == null &&
+      _percent != null;
 
   Future<void> _pickTime({required bool isStart}) async {
     final current =
@@ -113,6 +136,7 @@ class _SurgeSessionSheetState extends State<SurgeSessionSheet> {
     if (picked == null) return;
     final minutes = picked.hour * Duration.minutesPerHour + picked.minute;
     setState(() {
+      _timesEdited = true;
       if (isStart) {
         _startMinutes = minutes;
         _startController.text = DateFormatter.minutesOfDay(minutes);
@@ -124,7 +148,8 @@ class _SurgeSessionSheetState extends State<SurgeSessionSheet> {
   }
 
   Future<void> _save() async {
-    if (!_isValid) {
+    final percent = _percent;
+    if (!_isValid || percent == null) {
       setState(() => _submitted = true);
       return;
     }
@@ -148,7 +173,7 @@ class _SurgeSessionSheetState extends State<SurgeSessionSheet> {
         name: _name,
         startTime: startTime,
         endTime: endTime,
-        percent: _percent,
+        percent: percent,
         enabled: _enabled,
       ),
     );
@@ -197,6 +222,7 @@ class _SurgeSessionSheetState extends State<SurgeSessionSheet> {
   @override
   Widget build(BuildContext context) {
     final textColor = context.colorScheme.onSurface;
+    final overlapError = _submitted || _timesEdited ? _overlapError : null;
 
     return AppSideSheet(
       title: widget.session == null
@@ -233,6 +259,15 @@ class _SurgeSessionSheetState extends State<SurgeSessionSheet> {
               errorText: _submitted ? _endError : null,
             ),
           ),
+          if (overlapError != null) ...[
+            const SizedBox(height: _helperGap),
+            Text(
+              overlapError,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: context.colorScheme.error,
+              ),
+            ),
+          ],
           const SizedBox(height: _rowGap),
           AppLabeledTextField(
             label: AppStrings.surgeChargeField,
@@ -240,11 +275,12 @@ class _SurgeSessionSheetState extends State<SurgeSessionSheet> {
             controller: _percentController,
             readOnly: _saving,
             keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(SurgeSession.maxPercentDigits),
+            ],
             onChanged: (_) => setState(() {}),
-            errorText: _submitted && _percent <= 0
-                ? AppStrings.enterSurgeCharge
-                : null,
+            errorText: _showPercentError ? _percentError : null,
             dense: true,
           ),
           const SizedBox(height: _helperGap),
@@ -277,7 +313,7 @@ class _SurgeSessionSheetState extends State<SurgeSessionSheet> {
           ),
           const SizedBox(height: _sectionGap),
           SurgePreviewNote(
-            percent: _percent,
+            percent: _percent ?? 0,
             start: _startController.text,
             end: _endController.text,
           ),

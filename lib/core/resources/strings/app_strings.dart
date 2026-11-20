@@ -343,7 +343,8 @@ abstract final class AppStrings {
   static const String surgeChargeHelper =
       'Added on top of the call price during this session.';
   static const String saveSession = 'Save session';
-  static const String enterSurgeCharge = 'Enter a surge charge.';
+  static const String surgeChargeInvalid =
+      'Enter a whole-number percentage greater than 0 and less than 100.';
   static const String endTimeMustDiffer =
       'End time must be different from the start time.';
   static const String surgePreviewLead = 'Users will see ';
@@ -1095,6 +1096,11 @@ abstract final class AppStrings {
 
   static String surgePreviewTail(String start, String end) =>
       ' before starting a call between $start and $end.';
+
+  static String surgeTimeOverlap(String name, String start, String end) =>
+      'This time interval overlaps with an existing peak hour '
+      '(${name.isEmpty ? '' : '$name, '}$start – $end). '
+      'Please select a different time range.';
 
   static String removeSurgeSessionMessage(
     String name,

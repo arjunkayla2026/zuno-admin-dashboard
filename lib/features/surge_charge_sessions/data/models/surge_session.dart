@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:zuno_admin_dashboard/core/utils/date_formatter.dart';
 
 class SurgeSession {
   const SurgeSession({
@@ -34,6 +36,11 @@ class SurgeSession {
   static const String enabledStatus = 'enabled';
   static const String disabledStatus = 'disabled';
   static const int maxNameLength = 40;
+  static const int minPercent = 1;
+  static const int maxPercent = 99;
+  static const int maxPercentDigits = 3;
+
+  static final RegExp _wholeNumber = RegExp(r'^[0-9]+$');
 
   final int id;
   final String name;
@@ -45,6 +52,54 @@ class SurgeSession {
   int? get startMinutes => _minutesOf(startTime);
 
   int? get endMinutes => _minutesOf(endTime);
+
+  String get overlapMessage => AppStrings.surgeTimeOverlap(
+    name,
+    _clockOf(startMinutes),
+    _clockOf(endMinutes),
+  );
+
+  static bool isValidPercent(int percent) =>
+      percent >= minPercent && percent <= maxPercent;
+
+  static int? parsePercent(String text) {
+    final trimmed = text.trim();
+    if (!_wholeNumber.hasMatch(trimmed)) return null;
+    final percent = int.tryParse(trimmed);
+    return percent != null && isValidPercent(percent) ? percent : null;
+  }
+
+  static bool windowsOverlap(int startA, int endA, int startB, int endB) {
+    for (final (fromA, toA) in _spans(startA, endA)) {
+      for (final (fromB, toB) in _spans(startB, endB)) {
+        if (fromA < toB && fromB < toA) return true;
+      }
+    }
+    return false;
+  }
+
+  static SurgeSession? firstOverlap(
+    Iterable<SurgeSession> sessions, {
+    required int startMinutes,
+    required int endMinutes,
+    int? skipId,
+  }) {
+    for (final session in sessions) {
+      final start = session.startMinutes;
+      final end = session.endMinutes;
+      if (session.id == skipId || start == null || end == null) continue;
+      if (windowsOverlap(startMinutes, endMinutes, start, end)) return session;
+    }
+    return null;
+  }
+
+  static List<(int, int)> _spans(int start, int end) => end > start
+      ? [(start, end)]
+      : [(start, Duration.minutesPerDay), (0, end)];
+
+  static String _clockOf(int? minutes) => minutes == null
+      ? AppStrings.emptyValue
+      : DateFormatter.minutesOfDay(minutes);
 
   static List<SurgeSession> listFrom(Object? data, {DateTime? today}) => [
     if (data is List)

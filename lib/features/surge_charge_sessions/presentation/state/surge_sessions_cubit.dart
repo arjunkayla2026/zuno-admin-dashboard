@@ -32,20 +32,40 @@ class SurgeSessionsCubit extends Cubit<SurgeSessionsState> {
     await load();
   }
 
-  Future<String?> addSession(SurgeSession session) =>
-      _save([...state.sessions, session.copyWith(id: state.nextId)]);
+  Future<String?> addSession(SurgeSession session) async =>
+      _invalidReason(session) ??
+      await _save([...state.sessions, session.copyWith(id: state.nextId)]);
 
-  Future<String?> updateSession(SurgeSession session) => _save([
-    for (final current in state.sessions)
-      current.id == session.id ? session : current,
-  ]);
+  Future<String?> updateSession(SurgeSession session) async =>
+      _invalidReason(session) ?? await _replace(session);
 
   Future<String?> setEnabled(SurgeSession session, bool enabled) =>
-      updateSession(session.copyWith(enabled: enabled));
+      _replace(session.copyWith(enabled: enabled));
 
   Future<String?> removeSession(SurgeSession session) => _save([
     for (final current in state.sessions)
       if (current.id != session.id) current,
+  ]);
+
+  String? _invalidReason(SurgeSession session) {
+    final start = session.startMinutes;
+    final end = session.endMinutes;
+    if (start == null || end == null) return AppStrings.selectTime;
+    if (start == end) return AppStrings.endTimeMustDiffer;
+    if (!SurgeSession.isValidPercent(session.percent)) {
+      return AppStrings.surgeChargeInvalid;
+    }
+    return SurgeSession.firstOverlap(
+      state.sessions,
+      startMinutes: start,
+      endMinutes: end,
+      skipId: session.id,
+    )?.overlapMessage;
+  }
+
+  Future<String?> _replace(SurgeSession session) => _save([
+    for (final current in state.sessions)
+      current.id == session.id ? session : current,
   ]);
 
   Future<String?> _save(List<SurgeSession> sessions) async {

@@ -8,10 +8,13 @@ import 'package:zuno_admin_dashboard/features/surge_charge_sessions/data/models/
 import 'package:zuno_admin_dashboard/features/surge_charge_sessions/presentation/state/surge_sessions_cubit.dart';
 import 'package:zuno_admin_dashboard/features/surge_charge_sessions/presentation/widgets/surge_session_sheet.dart';
 
-Set<String> _namesExcept(List<SurgeSession> sessions, [SurgeSession? skip]) => {
+List<SurgeSession> _sessionsExcept(
+  List<SurgeSession> sessions, [
+  SurgeSession? skip,
+]) => [
   for (final session in sessions)
-    if (session.id != skip?.id) SurgeSessionSheet.nameKey(session.name),
-};
+    if (session.id != skip?.id) session,
+];
 
 String _time(int? minutes) => minutes == null
     ? AppStrings.emptyValue
@@ -26,7 +29,7 @@ Future<void> createSurgeSession(BuildContext context) async {
   await showAppSideSheet<void>(
     context: context,
     builder: (_) => SurgeSessionSheet(
-      takenNames: _namesExcept(cubit.state.sessions),
+      otherSessions: _sessionsExcept(cubit.state.sessions),
       onSave: cubit.addSession,
     ),
   );
@@ -41,7 +44,7 @@ Future<void> editSurgeSession(
     context: context,
     builder: (_) => SurgeSessionSheet(
       session: session,
-      takenNames: _namesExcept(cubit.state.sessions, session),
+      otherSessions: _sessionsExcept(cubit.state.sessions, session),
       onSave: cubit.updateSession,
     ),
   );
