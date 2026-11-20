@@ -11,7 +11,6 @@ import 'package:zuno_admin_dashboard/core/errors/failure.dart';
 import 'package:zuno_admin_dashboard/core/utils/date_range_matcher.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_batch_result.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_failure_reason.dart';
-import 'package:zuno_admin_dashboard/features/payment/data/models/payout_sheet_row.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/repositories/payment_repository.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_state.dart';
@@ -37,7 +36,10 @@ class PaymentCubit extends Cubit<PaymentState> {
   Timer? _debounce;
   int _searchRequest = 0;
   int _paidCountRequest = 0;
-  (DateTime?, DateTime?) _paidRange = (null, null);
+  late (DateTime?, DateTime?) _paidRange = state.successDateFilter.momentBounds(
+    today: DateUtils.dateOnly(DateTime.now()),
+    customRange: state.successCustomRange,
+  );
 
   Future<void> load() async {
     emit(state.copyWith(status: LoadStatus.loading));
@@ -65,7 +67,7 @@ class PaymentCubit extends Cubit<PaymentState> {
     if (state.batchRunning) return;
     _stale.addAll(PaymentTab.values);
     _views.clear();
-    emit(state.copyWith(selected: const {}));
+    emit(state.copyWith(selected: const {}, beneficiaryExportedTabs: const {}));
     if (state.isSearching && state.minimumLoaded) {
       unawaited(_loadCounts());
       return _runSearch();
@@ -203,29 +205,67 @@ class PaymentCubit extends Cubit<PaymentState> {
   /// Withdrawal List. With [registerBeneficiaries], each host is also
   /// registered as a beneficiary first. Returns null when an export is
   /// already running or neither of those tabs is open.
-  Future<Either<Failure, List<PayoutSheetRow>>?> loadSheetRows({
+  Future<Either<Failure, PayoutSheetLoad>?> loadSheetRows({
     bool registerBeneficiaries = false,
   }) async {
     final tab = state.tab;
     if (state.exporting || !PaymentState.exportTabs.contains(tab)) return null;
     emit(state.copyWith(exporting: true));
-    final source = state.selected.isNotEmpty
+    final wholeTab = state.selected.isEmpty;
+    final source = !wholeTab
         ? right<Failure, List<Withdrawal>>(state.selected.values.toList())
-        : await _repository.fetchAll(
-            tab.status,
-            minimum: state.minimumPayout,
-          );
-    final rows = switch (source) {
-      Left(value: final failure) => left<Failure, List<PayoutSheetRow>>(
-        failure,
-      ),
+        : await _repository.fetchAll(tab.status, minimum: state.minimumPayout);
+    final result = switch (source) {
+      Left(value: final failure) => left<Failure, PayoutSheetLoad>(failure),
       Right(value: final withdrawals) =>
-        registerBeneficiaries
-            ? await _repository.fetchBeneficiarySheetRows(withdrawals)
-            : await _repository.fetchSheetRows(withdrawals),
+        (registerBeneficiaries
+                ? await _repository.fetchBeneficiarySheetRows(withdrawals)
+                : await _repository.fetchSheetRows(withdrawals))
+            .map(
+              (rows) => (
+                tab: tab,
+                wholeTab: wholeTab,
+                candidates: withdrawals.length,
+                rows: rows,
+              ),
+            ),
     };
     if (!isClosed) emit(state.copyWith(exporting: false));
-    return rows;
+    return result;
+  }
+
+  /// Records a downloaded beneficiary sheet, which unlocks the withdrawal
+  /// sheet for the same payouts.
+  void markBeneficiariesExported(PayoutSheetLoad load) {
+    if (isClosed) return;
+    emit(
+      state.copyWith(
+        beneficiaryExportedIds: {
+          ...state.beneficiaryExportedIds,
+          for (final row in load.rows)
+            if (row.hasBeneficiary) row.withdrawal.id,
+        },
+        beneficiaryExportedTabs: load.wholeTab
+            ? {...state.beneficiaryExportedTabs, load.tab}
+            : null,
+      ),
+    );
+  }
+
+  /// Payouts arriving in [tab] that were not in a beneficiary sheet mean its
+  /// whole-tab beneficiary sheet has to be exported again.
+  void _receivedIn(PaymentTab tab, List<Withdrawal> arrived) {
+    if (arrived.every(
+      (item) => state.beneficiaryExportedIds.contains(item.id),
+    )) {
+      return;
+    }
+    emit(
+      state.copyWith(
+        beneficiaryExportedTabs: {...state.beneficiaryExportedTabs}
+          ..remove(tab),
+      ),
+    );
   }
 
   Future<Either<Failure, PayoutBatchResult>> moveSelectedToPending() =>
@@ -259,6 +299,7 @@ class PaymentCubit extends Cubit<PaymentState> {
         ),
       );
       _removeFrom(PaymentTab.withdrawalList, moved);
+      _receivedIn(PaymentTab.pending, moved);
     },
   );
 
@@ -331,6 +372,7 @@ class PaymentCubit extends Cubit<PaymentState> {
         ),
       );
       _removeFrom(PaymentTab.failed, retried);
+      _receivedIn(PaymentTab.pending, retried);
     },
   );
 
