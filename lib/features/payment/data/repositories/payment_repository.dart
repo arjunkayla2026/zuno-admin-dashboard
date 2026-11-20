@@ -91,6 +91,18 @@ class PaymentRepository {
     return _readyOnly(await _attachBankAccounts(found));
   }
 
+  /// The Total Withdraw card: every Withdrawal List row (open payouts at or
+  /// above [minimum] with an approved bank account, up to [selectAllLimit]),
+  /// each less its own TDS (2% with a PAN number, 5% without), added up.
+  Future<Either<Failure, double>> fetchOpenNetTotal({
+    required double? minimum,
+  }) async {
+    final open = await fetchAll(WithdrawalStatus.open, minimum: minimum);
+    return open.map(
+      (items) => items.fold(0, (total, item) => total + item.netAfterPanTds),
+    );
+  }
+
   Future<Either<Failure, List<Withdrawal>>> search(
     String term, {
     required double? minimum,

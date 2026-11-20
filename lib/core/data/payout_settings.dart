@@ -5,6 +5,9 @@ import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 abstract final class PayoutSettings {
   static const String minimumPayoutField = 'minimumPayoutAmount';
   static const int tdsPercent = 2;
+
+  /// TDS for a host whose bank details have no PAN number.
+  static const int tdsPercentWithoutPan = 5;
   static const double amountTolerance = 0.000001;
   static const double _smallestPayout = 0.01;
 
@@ -15,4 +18,11 @@ abstract final class PayoutSettings {
 
   static double eligibleFrom(double? minimum) =>
       max((minimum ?? 0) - amountTolerance, _smallestPayout);
+
+  /// [tdsPercent] when [panNumber] is filled in, [tdsPercentWithoutPan]
+  /// when it is missing or blank.
+  static int tdsPercentFor(String? panNumber) =>
+      (panNumber?.trim().isNotEmpty ?? false)
+      ? tdsPercent
+      : tdsPercentWithoutPan;
 }

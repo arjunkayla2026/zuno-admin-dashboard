@@ -80,7 +80,7 @@ class WithdrawalOverviewCard extends StatelessWidget {
                     ),
                     AppStat(
                       label: AppStrings.totalWithdraw,
-                      value: NumberFormatter.rupeesAmount(state.readyTotal),
+                      value: NumberFormatter.rupeesAmount(state.readyNetTotal),
                     ),
                   ],
                 ),

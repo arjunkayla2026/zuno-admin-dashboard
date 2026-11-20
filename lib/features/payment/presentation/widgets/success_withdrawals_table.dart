@@ -33,7 +33,6 @@ class SuccessWithdrawalsTable extends StatelessWidget {
     AppTableColumn(AppStrings.totalReceivableAmount, 180, alignEnd: true),
     AppTableColumn('', 32),
     AppTableColumn(AppStrings.withdrawStatus, 124),
-    AppTableColumn(AppStrings.paidBy, 150),
   ];
 
   final List<Withdrawal> withdrawals;
@@ -91,12 +90,6 @@ class SuccessWithdrawalsTable extends StatelessWidget {
               ),
               const SizedBox.shrink(),
               AppStatusBadge(label: statusLabel, status: status),
-              Text(
-                withdrawal.paidByName ??
-                    withdrawal.paidBy ??
-                    AppStrings.emptyValue,
-                style: cell,
-              ),
             ];
           }(),
       ],

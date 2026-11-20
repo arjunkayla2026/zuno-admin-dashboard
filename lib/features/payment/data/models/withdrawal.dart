@@ -314,6 +314,14 @@ class Withdrawal {
   double receivableAmount(int percent) =>
       paidReceivableAmount ?? totalAmount - tdsAmount(percent);
 
+  /// The TDS percent for this payout's bank details: 2% with a PAN number,
+  /// 5% without. Open payouts read the PAN from the host's approved
+  /// `bankAccounts` document, the others from their `bankAccount` copy.
+  int get panTdsPercent => PayoutSettings.tdsPercentFor(bankAccount?.panNumber);
+
+  /// [totalAmount] less TDS at [panTdsPercent].
+  double get netAfterPanTds => receivableAmount(panTdsPercent);
+
   String get accountHolderName =>
       bankAccount?.accountHolderName ?? AppStrings.emptyValue;
 

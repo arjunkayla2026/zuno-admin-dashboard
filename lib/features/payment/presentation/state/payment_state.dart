@@ -38,6 +38,7 @@ class PaymentState {
     this.minimumPayout,
     this.minimumLoaded = false,
     this.summary,
+    this.openNetTotal,
     this.pendingCount,
     this.paidCount,
     this.failedCount,
@@ -71,6 +72,10 @@ class PaymentState {
   final double? minimumPayout;
   final bool minimumLoaded;
   final PayoutSummary? summary;
+
+  /// The Withdrawal List rows' amounts after each one's TDS
+  /// ([Withdrawal.netAfterPanTds]), shown as Total Withdraw.
+  final double? openNetTotal;
   final int? pendingCount;
   final int? paidCount;
   final int? failedCount;
@@ -95,6 +100,8 @@ class PaymentState {
   double get readyRevenue => summary?.hostRevenue ?? 0;
 
   double get readyTotal => summary?.totalAmount ?? 0;
+
+  double get readyNetTotal => openNetTotal ?? 0;
 
   int? countOf(PaymentTab tab) => switch (tab) {
     PaymentTab.withdrawalList => summary?.hostCount,
@@ -158,6 +165,7 @@ class PaymentState {
     double? minimumPayout,
     bool? minimumLoaded,
     PayoutSummary? summary,
+    double? openNetTotal,
     int? pendingCount,
     int? paidCount,
     bool clearPaidCount = false,
@@ -183,6 +191,7 @@ class PaymentState {
       minimumPayout: minimumPayout ?? this.minimumPayout,
       minimumLoaded: minimumLoaded ?? this.minimumLoaded,
       summary: summary ?? this.summary,
+      openNetTotal: openNetTotal ?? this.openNetTotal,
       pendingCount: pendingCount ?? this.pendingCount,
       paidCount: clearPaidCount ? null : paidCount ?? this.paidCount,
       failedCount: failedCount ?? this.failedCount,
