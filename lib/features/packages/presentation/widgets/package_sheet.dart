@@ -38,6 +38,9 @@ class _PackageSheetState extends State<PackageSheet> {
   );
 
   final _amountFormatter = DecimalInputFormatter();
+  final _offerPercentageFormatter = DecimalInputFormatter(
+    max: PackagePlan.maxOfferPercentage,
+  );
   late bool _gst = widget.plan?.isGstEnabled ?? true;
   late bool _active = widget.plan?.isActive ?? true;
   late bool _manualReceivable = widget.plan?.hasManualReceivable ?? false;
@@ -315,7 +318,7 @@ class _PackageSheetState extends State<PackageSheet> {
               hint: AppStrings.offerPercentageField,
               controller: _offerPercentageController,
               keyboardType: _decimalKeyboard,
-              inputFormatters: [_amountFormatter],
+              inputFormatters: [_offerPercentageFormatter],
               onChanged: (_) => setState(() {}),
               errorText: _offerPercentageError,
               dense: true,

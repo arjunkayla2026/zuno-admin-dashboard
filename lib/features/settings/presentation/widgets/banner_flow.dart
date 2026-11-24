@@ -4,7 +4,7 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_confirm_dialog.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_dialog_surface.dart';
-import 'package:zuno_admin_dashboard/core/widgets/app_options_menu.dart';
+// import 'package:zuno_admin_dashboard/core/widgets/app_options_menu.dart';
 import 'package:zuno_admin_dashboard/features/settings/data/models/banner_image.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/state/settings_cubit.dart';
 import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/add_banner_dialog.dart';
@@ -12,15 +12,16 @@ import 'package:zuno_admin_dashboard/features/settings/presentation/widgets/bann
 
 Future<void> openAddBannerDialog(BuildContext anchorContext) async {
   final cubit = anchorContext.read<SettingsCubit>();
-  final screen = await showAppOptionsMenu<BannerScreen>(
-    anchorContext: anchorContext,
-    options: const [
-      BannerScreen.home,
-      // BannerScreen.recharge,
-    ],
-    labelOf: BannerLabels.option,
-  );
-  if (screen == null || !anchorContext.mounted) return;
+  // final screen = await showAppOptionsMenu<BannerScreen>(
+  //   anchorContext: anchorContext,
+  //   options: const [
+  //     BannerScreen.home,
+  //     // BannerScreen.recharge,
+  //   ],
+  //   labelOf: BannerLabels.option,
+  // );
+  // if (screen == null || !anchorContext.mounted) return;
+  const screen = BannerScreen.home;
 
   await showAppDialog<void>(
     context: anchorContext,

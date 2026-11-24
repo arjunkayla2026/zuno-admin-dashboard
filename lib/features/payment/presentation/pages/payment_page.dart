@@ -6,7 +6,6 @@ import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
 import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_nav_item.dart';
 import 'package:zuno_admin_dashboard/core/widgets/admin_shell/admin_shell.dart';
-import 'package:zuno_admin_dashboard/features/payment/presentation/state/mock_withdrawals_cubit.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_cubit.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_state.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/widgets/payment_content.dart';
@@ -34,17 +33,8 @@ class PaymentPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: context.pageOverlayStyle,
-      child: MultiBlocProvider(
-        providers: [
-          BlocProvider(create: (_) => getIt<PaymentCubit>()..load()),
-          BlocProvider(
-            create: (_) {
-              final cubit = getIt<MockWithdrawalsCubit>();
-              if (cubit.isAvailable) cubit.load();
-              return cubit;
-            },
-          ),
-        ],
+      child: BlocProvider(
+        create: (_) => getIt<PaymentCubit>()..load(),
         child: BlocSelector<PaymentCubit, PaymentState, PaymentTab>(
           selector: (state) => state.tab,
           builder: (context, tab) => AdminShell(

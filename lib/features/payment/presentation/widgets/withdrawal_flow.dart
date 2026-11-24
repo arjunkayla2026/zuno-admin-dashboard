@@ -183,38 +183,6 @@ Future<void> markSelectedPaid(BuildContext context) => markWithdrawalsPaid(
   context.read<PaymentCubit>().state.selectedPending,
 );
 
-/// Rejects a pending payout through the existing Mark as Failed action, with
-/// the reason Rejected by the bank. Nothing is added to the host's withdrawn
-/// total.
-Future<void> rejectWithdrawal(
-  BuildContext context,
-  Withdrawal withdrawal,
-) async {
-  final cubit = context.read<PaymentCubit>();
-  final confirmed = await showAppConfirmDialog(
-    context: context,
-    iconAsset: AppImages.paymentIcon,
-    title: AppStrings.rejectWithdrawalTitle,
-    message: TextSpan(
-      text: AppStrings.rejectWithdrawalMessage(
-        NumberFormatter.rupeesAmount(withdrawal.totalAmount),
-        withdrawal.hostName,
-      ),
-    ),
-    confirmLabel: AppStrings.reject,
-  );
-  if (!confirmed || !context.mounted) return;
-  final result = await cubit.markFailed(
-    [withdrawal],
-    const PayoutFailureInput(
-      reason: PayoutFailureReason.bankRejected,
-      note: AppStrings.rejectedInTesting,
-    ),
-  );
-  if (!context.mounted) return;
-  await _showFailResult(context, result);
-}
-
 Future<void> markWithdrawalsPaid(
   BuildContext context,
   List<Withdrawal> selection,

@@ -34,11 +34,8 @@ import 'package:zuno_admin_dashboard/features/host_management/presentation/state
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/host_actions_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/host_management_cubit.dart';
 import 'package:zuno_admin_dashboard/features/packages/data/datasources/packages_remote_data_source.dart';
-import 'package:zuno_admin_dashboard/features/payment/data/datasources/mock_withdrawals_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/datasources/payment_remote_data_source.dart';
-import 'package:zuno_admin_dashboard/features/payment/data/repositories/mock_withdrawals_repository.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/repositories/payment_repository.dart';
-import 'package:zuno_admin_dashboard/features/payment/presentation/state/mock_withdrawals_cubit.dart';
 import 'package:zuno_admin_dashboard/features/payment/presentation/state/payment_cubit.dart';
 import 'package:zuno_admin_dashboard/features/packages/data/repositories/packages_repository.dart';
 import 'package:zuno_admin_dashboard/features/packages/presentation/state/packages_cubit.dart';
@@ -223,18 +220,6 @@ void configureDependencies() {
     )
     ..registerFactory<PaymentCubit>(
       () => PaymentCubit(getIt<PaymentRepository>()),
-    )
-    ..registerLazySingleton<MockWithdrawalsRemoteDataSource>(
-      () => MockWithdrawalsRemoteDataSource(
-        FirebaseFirestore.instance,
-        FirebaseFunctions.instanceFor(region: _functionsRegion),
-      ),
-    )
-    ..registerLazySingleton<MockWithdrawalsRepository>(
-      () => MockWithdrawalsRepository(getIt<MockWithdrawalsRemoteDataSource>()),
-    )
-    ..registerFactory<MockWithdrawalsCubit>(
-      () => MockWithdrawalsCubit(getIt<MockWithdrawalsRepository>()),
     )
     ..registerLazySingleton<MessageRevenueRemoteDataSource>(
       () => MessageRevenueRemoteDataSource(FirebaseFirestore.instance),
