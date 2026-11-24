@@ -350,6 +350,7 @@ class HostEarningsRemoteDataSource {
     required int amount,
     required String description,
     required String requestId,
+    bool isIncentive = false,
   }) async {
     try {
       await _functions.httpsCallable(_adjustFunction).call<Object?>({
@@ -358,6 +359,7 @@ class HostEarningsRemoteDataSource {
         'amount': amount,
         'description': description,
         'requestId': requestId,
+        if (isIncentive) WalletTransaction.isIncentiveField: true,
       });
       return right(unit);
     } on FirebaseFunctionsException catch (error) {

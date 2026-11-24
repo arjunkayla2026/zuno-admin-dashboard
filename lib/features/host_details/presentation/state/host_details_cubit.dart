@@ -158,6 +158,7 @@ class HostDetailsCubit extends Cubit<HostDetailsState> {
       type: adjustment.type,
       amount: adjustment.amount,
       description: adjustment.description,
+      isIncentive: adjustment.isIncentive,
     );
     if (isClosed) return null;
     emit(state.copyWith(adjusting: false));

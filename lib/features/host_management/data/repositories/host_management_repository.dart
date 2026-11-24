@@ -106,6 +106,16 @@ class HostManagementRepository {
   Future<Either<Failure, Unit>> delete(AdminHost host) =>
       _dataSource.markDeletedByAdmin(host.hostId);
 
+  Future<Either<Failure, AdminHost?>> findHost(String hostId) async {
+    final result = await _dataSource.fetchByIds([hostId]);
+    return result.map(
+      (records) => switch (records) {
+        [final record, ...] when record.role == _role => toAdminHost(record),
+        _ => null,
+      },
+    );
+  }
+
   /// Builds the host shown in Host Management and host details from their
   /// `users` document.
   static AdminHost toAdminHost(UserRecord record) {

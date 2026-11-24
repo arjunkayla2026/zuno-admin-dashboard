@@ -9,6 +9,28 @@ class PayoutSummary {
     this.totalAmount = 0,
   });
 
+  factory PayoutSummary.of(Iterable<Withdrawal> withdrawals) {
+    var hostCount = 0;
+    var amountEarned = 0.0;
+    var surgeEarnings = 0.0;
+    var callSeconds = 0;
+    var totalAmount = 0.0;
+    for (final withdrawal in withdrawals) {
+      hostCount++;
+      amountEarned += withdrawal.amountEarned;
+      surgeEarnings += withdrawal.surgeEarnings;
+      callSeconds += withdrawal.callSeconds;
+      totalAmount += withdrawal.totalAmount;
+    }
+    return PayoutSummary(
+      hostCount: hostCount,
+      amountEarned: amountEarned,
+      surgeEarnings: surgeEarnings,
+      callSeconds: callSeconds,
+      totalAmount: totalAmount,
+    );
+  }
+
   static const int _secondsPerMinute = 60;
 
   final int hostCount;

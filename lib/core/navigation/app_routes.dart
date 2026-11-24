@@ -38,25 +38,61 @@ abstract final class AppRoutes {
   static final RouteObserver<PageRoute<dynamic>> observer =
       RouteObserver<PageRoute<dynamic>>();
 
+  static const String _recordIdParameter = 'id';
+
+  static String userDetailsFor(String userId) =>
+      _withRecordId(userDetails, userId);
+
+  static String hostDetailsFor(String hostId) =>
+      _withRecordId(hostDetails, hostId);
+
+  static String? recordIdOf(RouteSettings? settings) {
+    final name = settings?.name;
+    if (name == null) return null;
+    final id = Uri.tryParse(name)?.queryParameters[_recordIdParameter]?.trim();
+    return id != null && _isDocumentId(id) ? id : null;
+  }
+
+  static String _withRecordId(String path, String id) => _isDocumentId(id)
+      ? Uri(path: path, queryParameters: {_recordIdParameter: id}).toString()
+      : path;
+
+  static bool _isDocumentId(String id) =>
+      id.isNotEmpty && !id.contains('/') && id != '.' && id != '..';
+
+  static String _pathOf(String name) => Uri.tryParse(name)?.path ?? name;
+
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
-    final builder = routes[settings.name];
+    final name = settings.name;
+    if (name == null) return null;
+    final path = _pathOf(name);
+    final builder = routes[path];
     if (builder == null) return null;
     return AppPageRoute<dynamic>(
       builder: builder,
       settings: settings,
-      fadeIn: settings.name == login,
+      fadeIn: path == login,
     );
   }
 
   static List<Route<dynamic>> onGenerateInitialRoutes(String initialRoute) {
+    final target = Uri.tryParse(initialRoute);
+    final segments = (target?.path ?? initialRoute)
+        .split('/')
+        .where((part) => part.isNotEmpty)
+        .toList();
+    final query = target?.query ?? '';
     final stack = <Route<dynamic>>[];
-    var name = '';
-    for (final part in initialRoute.split('/').where((p) => p.isNotEmpty)) {
-      name += '/$part';
+    var path = '';
+    for (var index = 0; index < segments.length; index++) {
+      path += '/${segments[index]}';
+      final isTarget = index == segments.length - 1;
+      final name = isTarget && query.isNotEmpty ? '$path?$query' : path;
       final route = onGenerateRoute(RouteSettings(name: name));
       if (route != null) stack.add(route);
     }
-    final reachedTarget = stack.isNotEmpty && stack.last.settings.name == name;
+    final reachedTarget =
+        stack.isNotEmpty && _pathOf(stack.last.settings.name ?? '') == path;
     return reachedTarget
         ? stack
         : [onGenerateRoute(const RouteSettings(name: login))!];

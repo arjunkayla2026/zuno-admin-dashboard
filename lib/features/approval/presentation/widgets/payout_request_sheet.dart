@@ -46,7 +46,7 @@ class _PayoutRequestSheetState extends State<PayoutRequestSheet> {
     final navigator = Navigator.of(context);
     navigator.pop();
     navigator.pushNamed(
-      AppRoutes.hostDetails,
+      AppRoutes.hostDetailsFor(host.hostId),
       arguments: HostDetailsArguments(host: host),
     );
   }

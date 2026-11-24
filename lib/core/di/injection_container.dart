@@ -28,6 +28,7 @@ import 'package:zuno_admin_dashboard/features/calls/presentation/state/calls_cub
 import 'package:zuno_admin_dashboard/features/host_details/data/datasources/host_earnings_remote_data_source.dart';
 import 'package:zuno_admin_dashboard/features/host_details/data/repositories/host_earnings_repository.dart';
 import 'package:zuno_admin_dashboard/features/host_details/presentation/state/host_details_cubit.dart';
+import 'package:zuno_admin_dashboard/features/host_details/presentation/state/host_lookup_cubit.dart';
 import 'package:zuno_admin_dashboard/features/host_management/data/repositories/host_management_repository.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/host_details_arguments.dart';
 import 'package:zuno_admin_dashboard/features/host_management/presentation/state/call_pricing_cubit.dart';
@@ -53,6 +54,7 @@ import 'package:zuno_admin_dashboard/features/settings/presentation/state/settin
 import 'package:zuno_admin_dashboard/features/surge_charge_sessions/presentation/state/surge_sessions_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/add_recharge_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_details_cubit.dart';
+import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_lookup_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_details/presentation/state/user_recharge_history_cubit.dart';
 import 'package:zuno_admin_dashboard/features/user_management/data/repositories/user_management_repository.dart';
 import 'package:zuno_admin_dashboard/features/user_management/presentation/state/user_actions_cubit.dart';
@@ -261,6 +263,10 @@ void configureDependencies() {
         onUserChanged: arguments.onUserChanged,
       ),
     )
+    ..registerFactoryParam<UserLookupCubit, String, void>(
+      (userId, _) =>
+          UserLookupCubit(getIt<UserManagementRepository>(), userId: userId),
+    )
     ..registerFactoryParam<UserRechargeHistoryCubit, String, void>(
       (userId, _) =>
           UserRechargeHistoryCubit(getIt<RechargeRepository>(), userId),
@@ -286,5 +292,9 @@ void configureDependencies() {
         host: arguments.host,
         onHostChanged: arguments.onHostChanged,
       ),
+    )
+    ..registerFactoryParam<HostLookupCubit, String, void>(
+      (hostId, _) =>
+          HostLookupCubit(getIt<HostManagementRepository>(), hostId: hostId),
     );
 }

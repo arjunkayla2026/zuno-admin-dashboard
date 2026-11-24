@@ -474,9 +474,8 @@ class PaymentCubit extends Cubit<PaymentState> {
 
   Future<void> _loadCounts() async {
     final minimum = state.minimumPayout;
-    final (summary, openNetTotal, pendingCount, failedCount, _) = await (
-      _repository.fetchSummary(minimum),
-      _repository.fetchOpenNetTotal(minimum: minimum),
+    final (overview, pendingCount, failedCount, _) = await (
+      _repository.fetchOpenOverview(minimum: minimum),
       _repository.countPending(),
       _repository.countFailed(),
       _loadPaidCount(),
@@ -484,8 +483,8 @@ class PaymentCubit extends Cubit<PaymentState> {
     if (isClosed) return;
     emit(
       state.copyWith(
-        summary: summary.toNullable(),
-        openNetTotal: openNetTotal.toNullable(),
+        summary: overview.toNullable()?.summary,
+        openNetTotal: overview.toNullable()?.netTotal,
         pendingCount: pendingCount.toNullable(),
         failedCount: failedCount.toNullable(),
       ),

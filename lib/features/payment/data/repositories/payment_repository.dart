@@ -38,9 +38,6 @@ class PaymentRepository {
   Future<Either<Failure, double?>> fetchMinimumPayout() =>
       _dataSource.fetchMinimumPayout();
 
-  Future<Either<Failure, PayoutSummary>> fetchSummary(double? minimum) =>
-      _dataSource.fetchOpenSummary(minimum);
-
   Future<Either<Failure, int>> countPending() => _dataSource.countPending();
 
   Future<Either<Failure, int>> countPaid({DateTime? from, DateTime? until}) =>
@@ -51,15 +48,13 @@ class PaymentRepository {
   Future<Either<Failure, RecordPage<Withdrawal>>> fetchOpenPage({
     required double? minimum,
     Object? cursor,
-  }) async =>
-      (await _withBankAccounts(
-        await _dataSource.fetchOpenPage(minimum: minimum, cursor: cursor),
-      )).map(
-        (page) => RecordPage(
-          page.items.where((item) => item.hasBankAccount).toList(),
-          nextCursor: page.nextCursor,
-        ),
-      );
+  }) => RecordPages.untilMatch<Withdrawal, Withdrawal>(
+    cursor,
+    (next) async => _withBankAccounts(
+      await _dataSource.fetchOpenPage(minimum: minimum, cursor: next),
+    ),
+    (batch) => batch.where((item) => item.hasBankAccount),
+  );
 
   Future<Either<Failure, RecordPage<Withdrawal>>> fetchPendingPage({
     Object? cursor,
@@ -98,15 +93,18 @@ class PaymentRepository {
     return _readyOnly(await _attachBankAccounts(found));
   }
 
-  /// The Total Withdraw card: every Withdrawal List row (open payouts at or
-  /// above [minimum] with an approved bank account, up to [selectAllLimit]),
-  /// each less its own TDS (2% with a PAN number, 5% without), added up.
-  Future<Either<Failure, double>> fetchOpenNetTotal({
-    required double? minimum,
-  }) async {
+  /// The Upcoming Withdrawal Overview and the Withdrawal List count, built
+  /// from the same rows the list shows: open payouts at or above [minimum]
+  /// with an approved bank account, up to [selectAllLimit]. Total Withdraw is
+  /// each row less its own TDS (2% with a PAN number, 5% without).
+  Future<Either<Failure, ({PayoutSummary summary, double netTotal})>>
+  fetchOpenOverview({required double? minimum}) async {
     final open = await fetchAll(WithdrawalStatus.open, minimum: minimum);
     return open.map(
-      (items) => items.fold(0, (total, item) => total + item.netAfterPanTds),
+      (items) => (
+        summary: PayoutSummary.of(items),
+        netTotal: items.fold(0, (total, item) => total + item.netAfterPanTds),
+      ),
     );
   }
 

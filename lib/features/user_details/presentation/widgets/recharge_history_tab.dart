@@ -73,31 +73,32 @@ class RechargeHistoryTab extends StatelessWidget {
                   onChanged: context.read<UserRechargeHistoryCubit>().search,
                 ),
               ),
-              Wrap(
-                spacing: _actionGap,
-                runSpacing: AppUtils.spacingSm,
-                children: [
-                  AppSecondaryButton(
-                    label: AppStrings.creditDebitWallet,
-                    onPressed: () => _adjustWallet(context),
-                    leading: SvgPicture.asset(
-                      AppImages.paymentIcon,
-                      width: _walletIconSize,
-                      height: _walletIconSize,
-                      colorFilter: ColorFilter.mode(
-                        context.colorScheme.onSurface,
-                        BlendMode.srcIn,
+              if (user.hasActions)
+                Wrap(
+                  spacing: _actionGap,
+                  runSpacing: AppUtils.spacingSm,
+                  children: [
+                    AppSecondaryButton(
+                      label: AppStrings.creditDebitWallet,
+                      onPressed: () => _adjustWallet(context),
+                      leading: SvgPicture.asset(
+                        AppImages.paymentIcon,
+                        width: _walletIconSize,
+                        height: _walletIconSize,
+                        colorFilter: ColorFilter.mode(
+                          context.colorScheme.onSurface,
+                          BlendMode.srcIn,
+                        ),
                       ),
                     ),
-                  ),
-                  AppPrimaryButton(
-                    label: AppStrings.addRecharge,
-                    icon: Icons.add_rounded,
-                    compact: true,
-                    onPressed: () => startAddRecharge(context, user),
-                  ),
-                ],
-              ),
+                    AppPrimaryButton(
+                      label: AppStrings.addRecharge,
+                      icon: Icons.add_rounded,
+                      compact: true,
+                      onPressed: () => startAddRecharge(context, user),
+                    ),
+                  ],
+                ),
             ],
           ),
         ),

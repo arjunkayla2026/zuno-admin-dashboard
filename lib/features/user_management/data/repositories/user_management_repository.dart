@@ -165,6 +165,18 @@ class UserManagementRepository {
     );
   }
 
+  Future<Either<Failure, AdminUser?>> findUser(String id) async {
+    final result = await _dataSource.fetchByIds([id]);
+    return result.map(
+      (records) => switch (records) {
+        [final record, ...] when record.role == _role => AdminUser.fromRecord(
+          record,
+        ),
+        _ => null,
+      },
+    );
+  }
+
   Future<Either<Failure, double>> fetchDeletedAccountProfit(AdminUser user) =>
       user.hasActions
       ? Future.value(right(0))

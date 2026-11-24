@@ -45,7 +45,7 @@ class UserTableRow extends StatelessWidget {
       type: MaterialType.transparency,
       child: InkWell(
         onTap: () => Navigator.of(context).pushNamed(
-          AppRoutes.userDetails,
+          AppRoutes.userDetailsFor(user.id),
           arguments: UserDetailsArguments(
             user: user,
             onUserChanged: context.read<UserManagementCubit>().replaceUser,

@@ -15,7 +15,6 @@ import 'package:zuno_admin_dashboard/features/payment/data/models/payout_batch_r
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_beneficiary.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_failure_reason.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/payout_sheet_row.dart';
-import 'package:zuno_admin_dashboard/features/payment/data/models/payout_summary.dart';
 import 'package:zuno_admin_dashboard/features/payment/data/models/withdrawal.dart';
 
 class PaymentRemoteDataSource {
@@ -146,46 +145,6 @@ class PaymentRemoteDataSource {
     _pending.orderBy(Withdrawal.updatedAtField, descending: true),
     limit,
   );
-
-  Future<Either<Failure, PayoutSummary>> fetchOpenSummary(
-    double? minimum,
-  ) async {
-    final earnedField = Withdrawal.withdrawablePath(
-      Withdrawal.callEarningsField,
-    );
-    final surgeField = Withdrawal.withdrawablePath(
-      Withdrawal.surgeEarningsField,
-    );
-    final secondsField = Withdrawal.withdrawablePath(
-      Withdrawal.callDurationField,
-    );
-    final totalField = _withdrawableTotal;
-    try {
-      final result = await _open(minimum)
-          .aggregate(
-            count(),
-            sum(earnedField),
-            sum(surgeField),
-            sum(secondsField),
-            sum(totalField),
-          )
-          .get();
-      return right(
-        PayoutSummary(
-          hostCount: result.count ?? 0,
-          amountEarned: result.getSum(earnedField) ?? 0,
-          surgeEarnings: result.getSum(surgeField) ?? 0,
-          callSeconds: (result.getSum(secondsField) ?? 0).round(),
-          totalAmount: result.getSum(totalField) ?? 0,
-        ),
-      );
-    } on FirebaseException catch (error) {
-      debugPrint('Payout summary failed [${error.code}]: ${error.message}');
-      return left(FirestoreFailures.read(error.code));
-    } catch (_) {
-      return left(const DataFailure(AppStrings.recordsLoadFailed));
-    }
-  }
 
   Future<Either<Failure, int>> countPending() => _count(_pending);
 

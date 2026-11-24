@@ -122,11 +122,13 @@ class HostEarningsRepository {
     required WalletAdjustmentType type,
     required int amount,
     required String description,
+    bool isIncentive = false,
   }) => _dataSource.adjust(
     hostId: hostId,
     isCredit: type == WalletAdjustmentType.credit,
     amount: amount,
     description: description,
+    isIncentive: isIncentive && type == WalletAdjustmentType.credit,
     requestId: _dataSource.newRequestId(),
   );
 }

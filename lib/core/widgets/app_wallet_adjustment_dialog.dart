@@ -3,22 +3,27 @@ import 'package:flutter/services.dart';
 import 'package:zuno_admin_dashboard/core/data/payout_settings.dart';
 import 'package:zuno_admin_dashboard/core/enums/wallet_adjustment_type.dart';
 import 'package:zuno_admin_dashboard/core/resources/strings/app_strings.dart';
+import 'package:zuno_admin_dashboard/core/theme/app_text_styles.dart';
+import 'package:zuno_admin_dashboard/core/theme/theme_utils.dart';
 import 'package:zuno_admin_dashboard/core/utils/number_formatter.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_dialog_surface.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_labeled_text_field.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_primary_button.dart';
 import 'package:zuno_admin_dashboard/core/widgets/app_segmented_control.dart';
+import 'package:zuno_admin_dashboard/core/widgets/app_table_checkbox.dart';
 
 class WalletAdjustment {
   const WalletAdjustment({
     required this.type,
     required this.amount,
     required this.description,
+    this.isIncentive = false,
   });
 
   final WalletAdjustmentType type;
   final int amount;
   final String description;
+  final bool isIncentive;
 }
 
 Future<WalletAdjustment?> showWalletAdjustmentDialog({
@@ -26,12 +31,14 @@ Future<WalletAdjustment?> showWalletAdjustmentDialog({
   required double walletBalance,
   String Function(String limit) debitLimitMessage =
       AppStrings.debitExceedsBalance,
+  bool allowIncentive = false,
 }) {
   return showAppDialog<WalletAdjustment>(
     context: context,
     builder: (_) => AppWalletAdjustmentDialog(
       walletBalance: walletBalance,
       debitLimitMessage: debitLimitMessage,
+      allowIncentive: allowIncentive,
     ),
   );
 }
@@ -41,10 +48,12 @@ class AppWalletAdjustmentDialog extends StatefulWidget {
     super.key,
     required this.walletBalance,
     this.debitLimitMessage = AppStrings.debitExceedsBalance,
+    this.allowIncentive = false,
   });
 
   final double walletBalance;
   final String Function(String limit) debitLimitMessage;
+  final bool allowIncentive;
 
   @override
   State<AppWalletAdjustmentDialog> createState() =>
@@ -57,14 +66,21 @@ class _AppWalletAdjustmentDialogState extends State<AppWalletAdjustmentDialog> {
   static const double _fieldGap = 14;
   static const double _actionsGap = 10;
   static const double _actionSpacing = 8;
+  static const double _checkboxGap = 6;
   static const EdgeInsets _padding = EdgeInsets.fromLTRB(16, 18, 16, 18);
 
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
   WalletAdjustmentType _type = WalletAdjustmentType.credit;
   bool _submitted = false;
+  bool _isIncentive = false;
 
   int get _amount => int.tryParse(_amountController.text) ?? 0;
+
+  bool get _showsIncentive =>
+      widget.allowIncentive && _type == WalletAdjustmentType.credit;
+
+  void _toggleIncentive() => setState(() => _isIncentive = !_isIncentive);
 
   bool get _exceedsBalance =>
       _type == WalletAdjustmentType.debit &&
@@ -92,6 +108,7 @@ class _AppWalletAdjustmentDialogState extends State<AppWalletAdjustmentDialog> {
         type: _type,
         amount: _amount,
         description: _descriptionController.text.trim(),
+        isIncentive: _showsIncentive && _isIncentive,
       ),
     );
   }
@@ -126,7 +143,7 @@ class _AppWalletAdjustmentDialogState extends State<AppWalletAdjustmentDialog> {
             const SizedBox(height: _toggleGap),
             AppLabeledTextField(
               label: AppStrings.amount,
-              hint: AppStrings.typeHint,
+              hint: AppStrings.walletAmountHint,
               controller: _amountController,
               keyboardType: TextInputType.number,
               textInputAction: TextInputAction.next,
@@ -136,12 +153,39 @@ class _AppWalletAdjustmentDialogState extends State<AppWalletAdjustmentDialog> {
             ),
             const SizedBox(height: _fieldGap),
             AppLabeledTextField(
-              label: AppStrings.description,
-              hint: AppStrings.typeHint,
+              label: AppStrings.walletNote,
+              hint: AppStrings.walletNoteHint,
               controller: _descriptionController,
               textInputAction: TextInputAction.done,
               onChanged: _onChanged,
             ),
+            if (_showsIncentive) ...[
+              const SizedBox(height: _actionsGap),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: InkWell(
+                  onTap: _toggleIncentive,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AppTableCheckbox(
+                        value: _isIncentive,
+                        onToggle: _toggleIncentive,
+                      ),
+                      const SizedBox(width: _checkboxGap),
+                      Flexible(
+                        child: Text(
+                          AppStrings.isThisAnIncentive,
+                          style: AppTextStyles.labelSmall.copyWith(
+                            color: context.colorScheme.onSurface,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: _actionsGap),
             Row(
               children: [

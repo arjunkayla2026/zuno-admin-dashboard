@@ -10,16 +10,20 @@ class WalletTransaction {
     required this.type,
     required this.amount,
     required this.description,
+    this.isIncentive = false,
   });
 
   factory WalletTransaction.fromLedger(String id, Map<String, dynamic> data) {
     final value = data['amount'];
     final amount = value is num ? value.toDouble() : 0.0;
     final entryType = data[typeField];
+    final isIncentive =
+        entryType == adminCreditType && data[isIncentiveField] == true;
     final description =
         UserRecord.readText(data['description']) ??
         switch (entryType) {
           callEarningType => AppStrings.callEarnings,
+          adminCreditType when isIncentive => AppStrings.incentive,
           adminCreditType => AppStrings.adminCredit,
           adminDebitType => AppStrings.adminDebit,
           payoutType => AppStrings.payoutLedgerDescription(
@@ -37,12 +41,14 @@ class WalletTransaction {
           : WalletAdjustmentType.credit,
       amount: NumberFormatter.roundAmount(amount.abs()),
       description: description,
+      isIncentive: isIncentive,
     );
   }
 
   static const String collection = 'ledger';
   static const String uidField = 'uid';
   static const String typeField = 'type';
+  static const String isIncentiveField = 'isIncentive';
   static const String createdAtField = 'createdAt';
   static const String callEarningType = 'call_earning';
   static const String adminCreditType = 'host_admin_credit';
@@ -56,6 +62,7 @@ class WalletTransaction {
   final WalletAdjustmentType type;
   final double amount;
   final String description;
+  final bool isIncentive;
 
   bool get isCredit => type == WalletAdjustmentType.credit;
 

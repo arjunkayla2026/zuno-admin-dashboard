@@ -27,6 +27,7 @@ class UserRecord {
     this.welcomeBonusClaimedAt,
     this.lastLoggedIn,
     this.lastOnline,
+    this.role,
   });
 
   factory UserRecord.fromDocument(String id, Map<String, dynamic> data) {
@@ -53,7 +54,7 @@ class UserRecord {
       adminCredit: source(adminCreditField),
       adminDebit: source(adminDebitField),
       isBlocked: data['isAccountBlocked'] == true,
-      isDeleted: data['isAccountDeleted'] == true,
+      isDeleted: data[accountDeletedField] == true,
       isDeletedByAdmin: data[deletedByField] == deletedByAdmin,
       isActive: data['isActive'] == true,
       hostDetails: hostDetails is Map<String, dynamic> ? hostDetails : const {},
@@ -64,9 +65,14 @@ class UserRecord {
       welcomeBonusClaimedAt: readDate(data[welcomeBonusClaimedAtField]),
       lastLoggedIn: readDate(data['lastLoggedIn']),
       lastOnline: readDate(data['lastOnline']),
+      role: readText(data[roleField]),
     );
   }
 
+  static const String roleField = 'role';
+  static const String accountDeletedField = 'isAccountDeleted';
+  static const String userRole = 'user';
+  static const String hostRole = 'host';
   static const String documentSubmitted = 'submitted';
   static const String documentApproved = 'approved';
   static const String documentRejected = 'rejected';
@@ -135,6 +141,7 @@ class UserRecord {
   final DateTime? welcomeBonusClaimedAt;
   final DateTime? lastLoggedIn;
   final DateTime? lastOnline;
+  final String? role;
 
   static String? readText(Object? value) {
     if (value is! String) return null;
@@ -295,6 +302,7 @@ class UserRecord {
     required bool isCredit,
     required int amount,
   }) {
+    if (data[accountDeletedField] == true) return null;
     final balance = data[walletBalanceField];
     if (!isCredit && amount > (balance is num ? balance : 0)) return null;
 

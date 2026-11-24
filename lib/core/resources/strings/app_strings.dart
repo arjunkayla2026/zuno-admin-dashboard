@@ -269,6 +269,9 @@ abstract final class AppStrings {
   static const String amount = 'Amount';
   static const String description = 'Description';
   static const String typeHint = 'Type';
+  static const String walletAmountHint = 'Whole rupees, e.g. 500';
+  static const String walletNote = 'Note';
+  static const String walletNoteHint = 'Add note';
   static const String save = 'Save';
   static const String enterAmount = 'Enter an amount.';
 
@@ -289,8 +292,12 @@ abstract final class AppStrings {
   static const String creditDebit = 'Credit / Debit';
   static const String walletBalanceTooLow =
       "This debit is more than the user's current wallet balance.";
+  static const String walletAccountDeleted =
+      "This account is deleted, so its wallet can't be changed.";
   static const String adminCredit = 'Admin credit';
   static const String adminDebit = 'Admin debit';
+  static const String incentive = 'Incentive';
+  static const String isThisAnIncentive = 'Is this an Incentive?';
 
   static String minutes(int count) => '$count min';
 
@@ -382,6 +389,14 @@ abstract final class AppStrings {
       'Search user or host name, user mobile or host ID';
   static const String callNotFound =
       'Open a call from the Calls list to see its details.';
+  static const String userNotFound =
+      'Open a user from User Management to see their details.';
+  static const String hostNotFound =
+      'Open a host from the Host List to see their details.';
+  static const String userUnavailable =
+      "This user couldn't be found. Open them again from User Management.";
+  static const String hostUnavailable =
+      "This host couldn't be found. Open them again from the Host List.";
   static const String incoming = 'Incoming';
   static const String ongoing = 'Ongoing';
   static const String systemRole = 'System';

@@ -12,6 +12,8 @@ import 'package:zuno_admin_dashboard/features/host_details/data/models/wallet_tr
 class HostWalletHistoryTable extends StatelessWidget {
   const HostWalletHistoryTable({super.key, required this.transactions});
 
+  static const double _badgeGap = 6;
+
   static const List<AppTableColumn> _columns = [
     AppTableColumn(AppStrings.date, 300),
     AppTableColumn(AppStrings.creditDebit, 200),
@@ -36,11 +38,24 @@ class HostWalletHistoryTable extends StatelessWidget {
         for (final transaction in transactions)
           [
             Text(DateFormatter.short(transaction.date), style: cell),
-            AppStatusBadge(
-              label: transaction.isCredit
-                  ? AppStrings.credit
-                  : AppStrings.debit,
-              status: transaction.isCredit ? AppStatus.active : AppStatus.error,
+            Wrap(
+              spacing: _badgeGap,
+              runSpacing: _badgeGap,
+              children: [
+                AppStatusBadge(
+                  label: transaction.isCredit
+                      ? AppStrings.credit
+                      : AppStrings.debit,
+                  status: transaction.isCredit
+                      ? AppStatus.active
+                      : AppStatus.error,
+                ),
+                if (transaction.isIncentive)
+                  const AppStatusBadge(
+                    label: AppStrings.incentive,
+                    status: AppStatus.isNew,
+                  ),
+              ],
             ),
             Text(
               AppStrings.signedAmount(

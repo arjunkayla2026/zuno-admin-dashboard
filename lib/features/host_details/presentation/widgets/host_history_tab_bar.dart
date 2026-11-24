@@ -28,6 +28,7 @@ class HostHistoryTabBar extends StatelessWidget {
       context: context,
       walletBalance: cubit.state.host.availableBalance,
       debitLimitMessage: AppStrings.debitExceedsAvailableWallet,
+      allowIncentive: true,
     );
     if (adjustment == null) return;
     final error = await cubit.adjustWallet(adjustment);
@@ -60,22 +61,23 @@ class HostHistoryTabBar extends StatelessWidget {
           value: state.tab,
           onChanged: context.read<HostDetailsCubit>().selectTab,
         ),
-        Padding(
-          padding: _buttonPadding,
-          child: AppSecondaryButton(
-            label: AppStrings.creditDebitWallet,
-            onPressed: state.adjusting ? null : () => _adjustWallet(context),
-            leading: SvgPicture.asset(
-              AppImages.paymentIcon,
-              width: _walletIconSize,
-              height: _walletIconSize,
-              colorFilter: ColorFilter.mode(
-                context.colorScheme.onSurface,
-                BlendMode.srcIn,
+        if (!state.host.isDeleted)
+          Padding(
+            padding: _buttonPadding,
+            child: AppSecondaryButton(
+              label: AppStrings.creditDebitWallet,
+              onPressed: state.adjusting ? null : () => _adjustWallet(context),
+              leading: SvgPicture.asset(
+                AppImages.paymentIcon,
+                width: _walletIconSize,
+                height: _walletIconSize,
+                colorFilter: ColorFilter.mode(
+                  context.colorScheme.onSurface,
+                  BlendMode.srcIn,
+                ),
               ),
             ),
           ),
-        ),
       ],
     );
   }

@@ -40,7 +40,7 @@ class RechargeDetailsSheet extends StatelessWidget {
     final navigator = Navigator.of(context);
     navigator.pop();
     navigator.pushNamed(
-      AppRoutes.userDetails,
+      AppRoutes.userDetailsFor(user.id),
       arguments: UserDetailsArguments(user: user),
     );
   }

@@ -500,6 +500,7 @@ class UsersRemoteDataSource {
     Map<String, Object?>? Function(Map<String, dynamic> data, String adminUid)
     buildUpdate, {
     required String refusedMessage,
+    String Function(Map<String, dynamic> data)? refusedMessageOf,
     Map<String, Object?> Function(String adminUid)? audit,
     String auditCollection = ApprovalAudit.collection,
   }) async {
@@ -517,7 +518,9 @@ class UsersRemoteDataSource {
         final update = data == null ? null : buildUpdate(data, adminUid);
         if (update == null) {
           refused = DataFailure(
-            data == null ? AppStrings.recordNotFound : refusedMessage,
+            data == null
+                ? AppStrings.recordNotFound
+                : refusedMessageOf?.call(data) ?? refusedMessage,
           );
           return;
         }
@@ -554,6 +557,9 @@ class UsersRemoteDataSource {
     (data, _) =>
         UserRecord.walletAdjustment(data, isCredit: isCredit, amount: amount),
     refusedMessage: AppStrings.walletBalanceTooLow,
+    refusedMessageOf: (data) => data[UserRecord.accountDeletedField] == true
+        ? AppStrings.walletAccountDeleted
+        : AppStrings.walletBalanceTooLow,
     audit: ledgerEntry,
     auditCollection: ledgerCollection,
   );

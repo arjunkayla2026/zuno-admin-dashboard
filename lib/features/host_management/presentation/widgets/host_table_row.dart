@@ -38,7 +38,7 @@ class HostTableRow extends StatelessWidget {
       type: MaterialType.transparency,
       child: InkWell(
         onTap: () => Navigator.of(context).pushNamed(
-          AppRoutes.hostDetails,
+          AppRoutes.hostDetailsFor(host.hostId),
           arguments: HostDetailsArguments(
             host: host,
             onHostChanged: context.read<HostManagementCubit>().replaceHost,
